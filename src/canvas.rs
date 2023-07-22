@@ -37,10 +37,29 @@ impl Canvas {
     }
 
     pub fn write(&mut self, x: usize, y: usize, c: Color) {
+        println!("setting {}, {} to {}", x, y, c);
         self.pixels[y][x] = c;
     }
 
     pub fn to_ppm(&self) -> PPM {
-        PPM::new(self.width(), self.height())
+        let mut ppm = PPM::new(self.width(), self.height());
+
+        for row in self.pixels.iter() {
+            let mut row_line = row
+                .iter()
+                .map(|c| c.as_ppm_string())
+                .collect::<Vec<_>>()
+                .join(" ");
+
+            while row_line.len() > 70 {
+                let (l, rest) = row_line.split_at(70);
+                ppm.add_line(format!("{}\n", l.to_string()));
+                row_line = rest.to_string();
+            }
+
+            ppm.add_line(format!("{}\n", row_line));
+        }
+
+        ppm
     }
 }

@@ -44,7 +44,7 @@ fn given_a_canvas(world: &mut CanvasWorld, name: String, width: usize, height: u
     world.canvases.insert(name, Canvas::new(width, height));
 }
 
-#[given(expr = r"{word} ← color\({int}, {int}, {int}\)")]
+#[given(expr = r"{word} ← color\({float}, {float}, {float}\)")]
 fn given_a_color(world: &mut CanvasWorld, name: String, r: f32, g: f32, b: f32) {
     world.colors.insert(name, Color::new(r, g, b));
 }
@@ -66,6 +66,17 @@ fn when_write_pixel(
 fn when_canvas_to_ppm(world: &mut CanvasWorld, ppm_name: String, canvas_name: String) {
     let canvas = world.get_canvas_or_panic(&canvas_name);
     world.ppms.insert(ppm_name, canvas.to_ppm());
+}
+
+#[when(expr = r"every pixel of {word} is set to color\({float}, {float}, {float}\)")]
+fn when_every_pixel_set(world: &mut CanvasWorld, canvas_name: String, r: f32, g: f32, b: f32) {
+    let canvas = world.get_mut_canvas_or_panic(&canvas_name);
+
+    for y in 0..canvas.height() {
+        for x in 0..canvas.width() {
+            canvas.write(x, y, Color::new(r, g, b));
+        }
+    }
 }
 
 #[then(expr = r"{word}.{word} = {int}")]
@@ -153,6 +164,24 @@ fn assert_ppm_lines(
         end_inclusive_1_offset,
         expected,
         actual,
+    );
+}
+
+#[then(expr = r"{word} ends with a newline character")]
+fn assert_ppm_ends_with_newline(world: &mut CanvasWorld, ppm_name: String) {
+    let ppm = world.get_ppm_or_panic(&ppm_name);
+    let whole_file = ppm.whole_file();
+
+    assert!(
+        ppm.whole_file()
+            .chars()
+            .into_iter()
+            .rev()
+            .next()
+            .expect("zero size file")
+            == '\n',
+        "expected ppm {} to end with newline but it did not",
+        ppm_name
     );
 }
 

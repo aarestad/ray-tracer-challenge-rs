@@ -53,6 +53,15 @@ impl Color {
     pub fn approx_eq(&self, rhs: &Color) -> bool {
         self.0.approx_eq(&rhs.0)
     }
+
+    pub fn as_ppm_string(&self) -> String {
+        format!(
+            "{} {} {}",
+            (self.red() * 255.).round() as u8,
+            (self.green() * 255.).round() as u8,
+            (self.blue() * 255.).round() as u8,
+        )
+    }
 }
 
 impl FromStr for Color {
