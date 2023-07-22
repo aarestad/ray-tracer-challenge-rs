@@ -1,7 +1,8 @@
 use ray_tracer_challenge_rs::tuple::Tuple;
 
-use cucumber::{given, then, World};
-use std::collections::HashMap;
+use cucumber::{given, then, Parameter, World};
+use futures_lite::future;
+use std::{collections::HashMap, ops::AddAssign, str::FromStr};
 
 #[derive(Debug, Default, World)]
 struct TupleWorld {
@@ -13,6 +14,65 @@ impl TupleWorld {
         self.tuples
             .get(tuple_name)
             .expect(format!("missing tuple named {}", tuple_name).as_str())
+    }
+}
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"[+-]")]
+enum AddSub {
+    Add,
+    Sub,
+}
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"[*/]")]
+enum MulDiv {
+    Mul,
+    Div,
+}
+
+#[derive(Debug)]
+struct OpParseErr;
+
+impl FromStr for AddSub {
+    type Err = OpParseErr;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "+" => Ok(AddSub::Add),
+            "-" => Ok(AddSub::Sub),
+            _ => Err(OpParseErr),
+        }
+    }
+}
+
+impl ToString for AddSub {
+    fn to_string(&self) -> String {
+        match self {
+            AddSub::Add => "+".into(),
+            AddSub::Sub => "-".into(),
+        }
+    }
+}
+
+impl FromStr for MulDiv {
+    type Err = OpParseErr;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "*" => Ok(MulDiv::Mul),
+            "/" => Ok(MulDiv::Div),
+            _ => Err(OpParseErr),
+        }
+    }
+}
+
+impl ToString for MulDiv {
+    fn to_string(&self) -> String {
+        match self {
+            MulDiv::Mul => "*".into(),
+            MulDiv::Div => "/".into(),
+        }
     }
 }
 
@@ -82,32 +142,47 @@ fn assert_tuple_equality(world: &mut TupleWorld, tuple_name: String, expected: T
     )
 }
 
-#[then(expr = r"{word} + {word} = {}")]
-fn assert_add(world: &mut TupleWorld, lhs_name: String, rhs_name: String, expected: Tuple) {
+#[then(expr = r"{word} {addsub} {word} = {}")]
+fn assert_addsub(
+    world: &mut TupleWorld,
+    lhs_name: String,
+    op: AddSub,
+    rhs_name: String,
+    expected: Tuple,
+) {
     let lhs = world.get_tuple_or_panic(&lhs_name);
     let rhs = world.get_tuple_or_panic(&rhs_name);
-    let actual = *lhs + *rhs;
+
+    let actual = match op {
+        AddSub::Add => *lhs + *rhs,
+        AddSub::Sub => *lhs - *rhs,
+    };
 
     assert!(
         actual == expected,
-        "expected {:?} + {:?} to be {:?} but was {:?}",
+        "expected {:?} {:?} {:?} to be {:?} but was {:?}",
         lhs,
+        op,
         rhs,
         expected,
         actual
     );
 }
 
-#[then(expr = r"{word} - {word} = {}")]
-fn assert_sub(world: &mut TupleWorld, lhs_name: String, rhs_name: String, expected: Tuple) {
+#[then(expr = r"{word} {muldiv} {float} = {}")]
+fn assert_muldiv(world: &mut TupleWorld, lhs_name: String, op: MulDiv, rhs: f32, expected: Tuple) {
     let lhs = world.get_tuple_or_panic(&lhs_name);
-    let rhs = world.get_tuple_or_panic(&rhs_name);
-    let actual = *lhs - *rhs;
+
+    let actual = match op {
+        MulDiv::Mul => *lhs * rhs,
+        MulDiv::Div => *lhs / rhs,
+    };
 
     assert!(
         actual == expected,
-        "expected {:?} - {:?} to be {:?} but was {:?}",
+        "expected {:?} {:?} {:?} to be {:?} but was {:?}",
         lhs,
+        op,
         rhs,
         expected,
         actual
@@ -130,5 +205,5 @@ fn assert_neg(world: &mut TupleWorld, tuple_name: String, expected: Tuple) {
 }
 
 fn main() {
-    futures::executor::block_on(TupleWorld::run("tests/features/tuples.feature"));
+    future::block_on(TupleWorld::run("tests/features/tuples.feature"));
 }

@@ -1,3 +1,6 @@
+mod tuple;
+mod virtual_cannon;
+
 fn main() {
-    println!("Hello, world!");
+    virtual_cannon::ch1_playground();
 }

@@ -128,12 +128,16 @@ impl FromStr for Tuple {
 }
 
 impl Tuple {
+    pub fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+        Tuple { x, y, z, w }
+    }
+
     pub fn point(x: f32, y: f32, z: f32) -> Tuple {
-        Tuple { x, y, z, w: 1.0 }
+        Tuple::new(x, y, z, 1.0)
     }
 
     pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
-        Tuple { x, y, z, w: 0.0 }
+        Tuple::new(x, y, z, 0.0)
     }
 
     fn tuple_type(&self) -> TupleType {
@@ -156,7 +160,7 @@ impl Tuple {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
     }
 
-    pub fn normalize(&self) -> Tuple {
+    pub fn normalize(self) -> Tuple {
         let mag = self.magnitude();
 
         Tuple {
@@ -171,7 +175,7 @@ impl Tuple {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
     }
 
-    pub fn cross(&self, rhs: Tuple) -> Tuple {
+    pub fn cross(self, rhs: Tuple) -> Tuple {
         assert!(self.is_vector(), "must use vectors in cross");
         assert!(rhs.is_vector(), "must use vectors in cross");
 

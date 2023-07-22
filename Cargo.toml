@@ -10,7 +10,7 @@ regex = "1.9.1"
 
 [dev-dependencies]
 cucumber = "0.20"
-futures = "0.3"
+futures-lite = "1.13.0"
 
 [[test]]
 name = "tuples"
