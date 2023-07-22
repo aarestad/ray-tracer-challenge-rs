@@ -11,6 +11,7 @@ enum TupleType {
     Point,
     Vector,
 }
+
 impl Tuple {
     fn tuple_type(&self) -> TupleType {
         match self.w {
