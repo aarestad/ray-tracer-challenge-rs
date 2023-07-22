@@ -37,7 +37,6 @@ impl Canvas {
     }
 
     pub fn write(&mut self, x: usize, y: usize, c: Color) {
-        println!("setting {}, {} to {}", x, y, c);
         self.pixels[y][x] = c;
     }
 

@@ -170,7 +170,6 @@ fn assert_ppm_lines(
 #[then(expr = r"{word} ends with a newline character")]
 fn assert_ppm_ends_with_newline(world: &mut CanvasWorld, ppm_name: String) {
     let ppm = world.get_ppm_or_panic(&ppm_name);
-    let whole_file = ppm.whole_file();
 
     assert!(
         ppm.whole_file()
