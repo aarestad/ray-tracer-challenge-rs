@@ -4,8 +4,16 @@ use cucumber::{given, then, World};
 use std::collections::HashMap;
 
 #[derive(Debug, Default, World)]
-pub struct TupleWorld {
+struct TupleWorld {
     tuples: HashMap<String, Tuple>,
+}
+
+impl TupleWorld {
+    fn get_tuple_or_panic(&self, tuple_name: &String) -> &Tuple {
+        self.tuples
+            .get(tuple_name)
+            .expect(format!("missing tuple named {}", tuple_name).as_str())
+    }
 }
 
 #[given(regex = r"(\w+)\s*←\s*((tuple|point|vector).+)")]
@@ -15,10 +23,7 @@ fn new_tuple(world: &mut TupleWorld, tuple_name: String, tuple: Tuple) {
 
 #[then(expr = r"{word}.{word} = {float}")]
 fn assert_field(world: &mut TupleWorld, tuple_name: String, field: String, expected: f32) {
-    let tuple = world
-        .tuples
-        .get(&tuple_name)
-        .expect(format!("missing tuple named {}", tuple_name).as_str());
+    let tuple = world.get_tuple_or_panic(&tuple_name);
 
     let actual = match field.as_str() {
         "x" => tuple.x,
@@ -45,10 +50,7 @@ fn assert_tuple_type(
     negation: String,
     tuple_type: String,
 ) {
-    let tuple = world
-        .tuples
-        .get(&tuple_name)
-        .expect(format!("missing tuple named {}", tuple_name).as_str());
+    let tuple = world.get_tuple_or_panic(&tuple_name);
 
     let mut is_proper_type = match tuple_type.as_str() {
         "point" => tuple.is_point(),
@@ -69,10 +71,7 @@ fn assert_tuple_type(
 
 #[then(regex = r"^(\w+) = (.+)")]
 fn assert_tuple_equality(world: &mut TupleWorld, tuple_name: String, expected: Tuple) {
-    let actual = world
-        .tuples
-        .get(&tuple_name)
-        .expect(format!("missing tuple named {}", tuple_name).as_str());
+    let actual = world.get_tuple_or_panic(&tuple_name);
 
     assert!(
         *actual == expected,
@@ -83,8 +82,52 @@ fn assert_tuple_equality(world: &mut TupleWorld, tuple_name: String, expected: T
     )
 }
 
-// #[then(expr = r"a1 + a2 = tuple(1, 1, 6, 1)")]
-// fn assert_add()
+#[then(expr = r"{word} + {word} = {}")]
+fn assert_add(world: &mut TupleWorld, lhs_name: String, rhs_name: String, expected: Tuple) {
+    let lhs = world.get_tuple_or_panic(&lhs_name);
+    let rhs = world.get_tuple_or_panic(&rhs_name);
+    let actual = *lhs + *rhs;
+
+    assert!(
+        actual == expected,
+        "expected {:?} + {:?} to be {:?} but was {:?}",
+        lhs,
+        rhs,
+        expected,
+        actual
+    );
+}
+
+#[then(expr = r"{word} - {word} = {}")]
+fn assert_sub(world: &mut TupleWorld, lhs_name: String, rhs_name: String, expected: Tuple) {
+    let lhs = world.get_tuple_or_panic(&lhs_name);
+    let rhs = world.get_tuple_or_panic(&rhs_name);
+    let actual = *lhs - *rhs;
+
+    assert!(
+        actual == expected,
+        "expected {:?} - {:?} to be {:?} but was {:?}",
+        lhs,
+        rhs,
+        expected,
+        actual
+    );
+}
+
+#[then(expr = r"-{word} = {}")]
+fn assert_neg(world: &mut TupleWorld, tuple_name: String, expected: Tuple) {
+    let tuple = world.get_tuple_or_panic(&tuple_name);
+
+    let actual = -*tuple;
+
+    assert!(
+        actual == expected,
+        "expected -{:?} to be {:?} but was {:?}",
+        tuple,
+        expected,
+        actual
+    );
+}
 
 fn main() {
     futures::executor::block_on(TupleWorld::run("tests/features/tuples.feature"));

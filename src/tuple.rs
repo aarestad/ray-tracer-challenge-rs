@@ -6,7 +6,7 @@ use std::{
 
 use regex::Regex;
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Copy, Clone)]
 pub struct Tuple {
     pub x: f32,
     pub y: f32,
