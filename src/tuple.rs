@@ -1,4 +1,5 @@
 use std::{
+    fmt::Display,
     num::ParseFloatError,
     ops::{Add, Div, Mul, Neg, Sub},
     str::FromStr,
@@ -14,6 +15,28 @@ pub struct Tuple {
     pub y: f32,
     pub z: f32,
     pub w: f32,
+}
+
+impl Display for Tuple {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let self_type = match self {
+            _ if self.is_point() => "point",
+            _ if self.is_vector() => "vector",
+            _ => "tuple",
+        };
+
+        if self_type == "tuple" {
+            f.write_fmt(format_args!(
+                "tuple({}, {}, {}, {})",
+                self.x, self.y, self.z, self.w
+            ))
+        } else {
+            f.write_fmt(format_args!(
+                "{}({}, {}, {})",
+                self_type, self.x, self.y, self.z
+            ))
+        }
+    }
 }
 
 #[derive(PartialEq)]

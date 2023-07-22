@@ -3,7 +3,7 @@ use ray_tracer_challenge_rs::util::approx;
 
 use cucumber::{given, then, when, Parameter, World};
 use futures_lite::future;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::{collections::HashMap, str::FromStr};
 
 #[derive(Debug, Default, World)]
@@ -28,6 +28,12 @@ impl FromStr for Sqrt {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Sqrt(f32::from_str(s).unwrap().sqrt()))
+    }
+}
+
+impl Display for Sqrt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{}", self.0))
     }
 }
 
@@ -60,12 +66,12 @@ impl FromStr for AddSub {
     }
 }
 
-impl ToString for AddSub {
-    fn to_string(&self) -> String {
-        match self {
-            AddSub::Add => "+".into(),
-            AddSub::Sub => "-".into(),
-        }
+impl Display for AddSub {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            AddSub::Add => "+",
+            AddSub::Sub => "-",
+        })
     }
 }
 
@@ -81,12 +87,12 @@ impl FromStr for MulDiv {
     }
 }
 
-impl ToString for MulDiv {
-    fn to_string(&self) -> String {
-        match self {
-            MulDiv::Mul => "*".into(),
-            MulDiv::Div => "/".into(),
-        }
+impl Display for MulDiv {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            MulDiv::Mul => "*",
+            MulDiv::Div => "/",
+        })
     }
 }
 
@@ -194,7 +200,7 @@ fn assert_muldiv(world: &mut TupleWorld, lhs_name: String, op: MulDiv, rhs: f32,
 
     assert!(
         actual == expected,
-        "expected {:?} {:?} {:?} to be {:?} but was {:?}",
+        "expected {} {} {} to be {} but was {}",
         lhs,
         op,
         rhs,
@@ -211,7 +217,7 @@ fn assert_neg(world: &mut TupleWorld, tuple_name: String, expected: Tuple) {
 
     assert!(
         actual == expected,
-        "expected -{:?} to be {:?} but was {:?}",
+        "expected -{} to be {} but was {}",
         tuple,
         expected,
         actual
@@ -225,7 +231,7 @@ fn assert_magnitude_with_f32(world: &mut TupleWorld, tuple_name: String, expecte
 
     assert!(
         approx(actual, expected),
-        "expected magnitude({:?}) to be {:?} but was {:?}",
+        "expected magnitude({}) to be {} but was {}",
         tuple,
         expected,
         actual
@@ -239,7 +245,7 @@ fn assert_magnitude_with_sqrt(world: &mut TupleWorld, tuple_name: String, expect
 
     assert!(
         approx(actual, expected.0),
-        "expected magnitude({:?}) to be {:?} but was {:?}",
+        "expected magnitude({}) to be {} but was {}",
         tuple,
         expected,
         actual
@@ -263,7 +269,7 @@ fn assert_normalize_approx(
         } else {
             actual == expected
         },
-        "expected normalize({:?}) to be {}{:?} but was {:?}",
+        "expected normalize({}) to be {}{} but was {}",
         tuple,
         if approx_test { "approximately " } else { "" },
         expected,
@@ -281,6 +287,43 @@ fn when_normalizing_vec(
     world
         .tuples
         .insert(result_tuple_name, source_tuple.normalize());
+}
+
+#[then(expr = r"dot\({word}, {word}\) = {float}")]
+fn assert_dot_product(world: &mut TupleWorld, lhs_name: String, rhs_name: String, expected: f32) {
+    let lhs = world.get_tuple_or_panic(&lhs_name);
+    let rhs = world.get_tuple_or_panic(&rhs_name);
+    let actual = lhs.dot(*rhs);
+
+    assert!(
+        actual == expected,
+        "expected {}.dot({}) to be {} but was {}",
+        lhs_name,
+        rhs_name,
+        expected,
+        actual
+    );
+}
+
+#[then(expr = r"cross\({word}, {word}\) = {}")]
+fn assert_cross_product(
+    world: &mut TupleWorld,
+    lhs_name: String,
+    rhs_name: String,
+    expected: Tuple,
+) {
+    let lhs = world.get_tuple_or_panic(&lhs_name);
+    let rhs = world.get_tuple_or_panic(&rhs_name);
+    let actual = lhs.cross(*rhs);
+
+    assert!(
+        actual == expected,
+        "expected {}.cross({}) to be {} but was {}",
+        lhs_name,
+        rhs_name,
+        expected,
+        actual
+    );
 }
 
 fn main() {
