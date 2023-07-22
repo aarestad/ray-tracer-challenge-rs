@@ -245,6 +245,31 @@ fn assert_magnitude_with_sqrt(world: &mut TupleWorld, tuple_name: String, expect
     );
 }
 
+#[then(regex = r"normalize\((\w+)\)\s*=\s*(approximately)?\s*(.+)")]
+fn assert_normalize_approx(
+    world: &mut TupleWorld,
+    tuple_name: String,
+    approx: String,
+    expected: Tuple,
+) {
+    let tuple = world.get_tuple_or_panic(&tuple_name);
+    let actual = tuple.normalize();
+    let approx_test = approx == "approximately";
+
+    assert!(
+        if approx_test {
+            actual.approx_eq(expected)
+        } else {
+            actual == expected
+        },
+        "expected normalize({:?}) to be {}{:?} but was {:?}",
+        tuple,
+        if approx_test { "approximately " } else { "" },
+        expected,
+        actual
+    );
+}
+
 fn main() {
     future::block_on(TupleWorld::run("tests/features/tuples.feature"));
 }
