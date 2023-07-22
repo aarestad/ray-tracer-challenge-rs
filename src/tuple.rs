@@ -1,3 +1,11 @@
+use std::{
+    num::ParseFloatError,
+    ops::{Add, Neg, Sub},
+    str::FromStr,
+};
+
+use regex::Regex;
+
 #[derive(Debug, Default, PartialEq)]
 pub struct Tuple {
     pub x: f32,
@@ -10,6 +18,91 @@ pub struct Tuple {
 enum TupleType {
     Point,
     Vector,
+}
+
+impl Add for Tuple {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Tuple {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+            w: self.w + rhs.w,
+        }
+    }
+}
+
+impl Neg for Tuple {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Tuple {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+            w: -self.w,
+        }
+    }
+}
+
+impl Sub for Tuple {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self + -rhs
+    }
+}
+
+#[derive(Debug)]
+pub struct ParseTupleError;
+
+impl FromStr for Tuple {
+    type Err = ParseTupleError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parens_contents_re = Regex::new(r"\((.+)\)").expect("bad regex");
+
+        if !parens_contents_re.is_match(s) {
+            return Err(ParseTupleError);
+        }
+
+        let Some(args_group) = parens_contents_re.captures(s) else {
+            return Err(ParseTupleError)
+        };
+
+        let args_str = &args_group[1];
+
+        let args: Vec<Result<f32, ParseFloatError>> = args_str
+            .replace(" ", "")
+            .split(",")
+            .map(|arg| f32::from_str(arg))
+            .collect();
+
+        if args.clone().iter().any(|a| a.is_err()) {
+            return Err(ParseTupleError);
+        }
+
+        match s {
+            s if s.starts_with("tuple") => Ok(Tuple {
+                x: *args[0].as_ref().unwrap(),
+                y: *args[1].as_ref().unwrap(),
+                z: *args[2].as_ref().unwrap(),
+                w: *args[3].as_ref().unwrap(),
+            }),
+            s if s.starts_with("point") => Ok(Tuple::point(
+                *args[0].as_ref().unwrap(),
+                *args[1].as_ref().unwrap(),
+                *args[2].as_ref().unwrap(),
+            )),
+            s if s.starts_with("vector") => Ok(Tuple::vector(
+                *args[0].as_ref().unwrap(),
+                *args[1].as_ref().unwrap(),
+                *args[2].as_ref().unwrap(),
+            )),
+            _ => Err(ParseTupleError),
+        }
+    }
 }
 
 impl Tuple {
