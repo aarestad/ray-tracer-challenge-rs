@@ -201,10 +201,12 @@ impl Tuple {
         }
     }
 
+    #[allow(dead_code)]
     pub fn dot(&self, rhs: Tuple) -> f32 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
     }
 
+    #[allow(dead_code)]
     pub fn cross(self, rhs: Tuple) -> Tuple {
         assert!(self.is_vector(), "must use vectors in cross");
         assert!(rhs.is_vector(), "must use vectors in cross");

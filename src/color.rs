@@ -46,10 +46,12 @@ impl Color {
         self.0.z
     }
 
+    #[allow(dead_code)]
     pub fn alpha(&self) -> f32 {
         self.0.w
     }
 
+    #[allow(dead_code)]
     pub fn approx_eq(&self, rhs: &Color) -> bool {
         self.0.approx_eq(&rhs.0)
     }

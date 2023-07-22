@@ -35,6 +35,7 @@ impl Environment {
     }
 }
 
+#[allow(dead_code)]
 pub fn ch1_playground() {
     let mut proj = Projectile::new(
         Tuple::point(0., 1., 0.),

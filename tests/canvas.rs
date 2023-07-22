@@ -4,13 +4,13 @@ use cucumber::{gherkin::Step, given, then, when, World};
 use futures_lite::future;
 use ray_tracer_challenge_rs::canvas::Canvas;
 use ray_tracer_challenge_rs::color::Color;
-use ray_tracer_challenge_rs::ppm::PPM;
+use ray_tracer_challenge_rs::ppm::Ppm;
 
 #[derive(Debug, Default, World)]
 struct CanvasWorld {
     canvases: HashMap<String, Canvas>,
     colors: HashMap<String, Color>,
-    ppms: HashMap<String, PPM>,
+    ppms: HashMap<String, Ppm>,
 }
 
 impl CanvasWorld {
@@ -32,7 +32,7 @@ impl CanvasWorld {
             .expect(format!("missing color named {}", color_name).as_str())
     }
 
-    fn get_ppm_or_panic(&self, ppm_name: &String) -> &PPM {
+    fn get_ppm_or_panic(&self, ppm_name: &String) -> &Ppm {
         self.ppms
             .get(ppm_name)
             .expect(format!("missing PPM named {}", ppm_name).as_str())

@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::ppm::PPM;
+use crate::ppm::Ppm;
 
 #[derive(Default, Debug)]
 pub struct Canvas {
@@ -32,6 +32,7 @@ impl Canvas {
         self.pixels.len()
     }
 
+    #[allow(dead_code)]
     pub fn pixel_at(&self, x: usize, y: usize) -> Color {
         self.pixels[y][x]
     }
@@ -40,8 +41,8 @@ impl Canvas {
         self.pixels[y][x] = c;
     }
 
-    pub fn to_ppm(&self) -> PPM {
-        let mut ppm = PPM::new(self.width(), self.height());
+    pub fn to_ppm(&self) -> Ppm {
+        let mut ppm = Ppm::new(self.width(), self.height());
 
         for row in self.pixels.iter() {
             let mut row_line = row
