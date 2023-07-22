@@ -51,9 +51,21 @@ impl Canvas {
                 .join(" ");
 
             while row_line.len() > 70 {
-                let (l, rest) = row_line.split_at(70);
-                ppm.add_line(format!("{}\n", l.to_string()));
-                row_line = rest.to_string();
+                let mut split_pos = 70;
+                loop {
+                    let (l, rest) = row_line.split_at(split_pos);
+                    if l.char_indices().last().unwrap().1 >= '0'
+                        && rest.char_indices().last().unwrap().1 >= '0'
+                    {
+                        // this means we split in the middle of a number - back up 1 and try again
+                        split_pos -= 1;
+                        continue;
+                    }
+
+                    ppm.add_line(format!("{}\n", l.to_string().trim()));
+                    row_line = rest.to_string();
+                    break;
+                }
             }
 
             ppm.add_line(format!("{}\n", row_line));
