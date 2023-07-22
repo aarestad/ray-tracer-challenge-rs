@@ -63,10 +63,6 @@ impl FromStr for Tuple {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parens_contents_re = Regex::new(r"\((.+)\)").expect("bad regex");
 
-        if !parens_contents_re.is_match(s) {
-            return Err(ParseTupleError);
-        }
-
         let Some(args_group) = parens_contents_re.captures(s) else {
             return Err(ParseTupleError)
         };
