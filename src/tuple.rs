@@ -70,12 +70,12 @@ impl FromStr for Tuple {
         let args_str = &args_group[1];
 
         let args: Vec<Result<f32, ParseFloatError>> = args_str
-            .replace(" ", "")
-            .split(",")
-            .map(|arg| f32::from_str(arg))
+            .replace(' ', "")
+            .split(',')
+            .map(f32::from_str)
             .collect();
 
-        if args.clone().iter().any(|a| a.is_err()) {
+        if args.iter().any(|a| a.is_err()) {
             return Err(ParseTupleError);
         }
 
@@ -111,11 +111,11 @@ impl Tuple {
     }
 
     pub fn is_point(&self) -> bool {
-        return self.tuple_type() == TupleType::Point;
+        self.tuple_type() == TupleType::Point
     }
 
     pub fn is_vector(&self) -> bool {
-        return self.tuple_type() == TupleType::Vector;
+        self.tuple_type() == TupleType::Vector
     }
 
     pub fn point(x: f32, y: f32, z: f32) -> Tuple {
