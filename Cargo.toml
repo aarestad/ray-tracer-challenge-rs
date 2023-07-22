@@ -13,5 +13,5 @@ cucumber = "0.20"
 futures = "0.3"
 
 [[test]]
-name = "ch1_tests"
+name = "tuples"
 harness = false

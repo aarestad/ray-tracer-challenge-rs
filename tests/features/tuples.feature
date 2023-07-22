@@ -55,62 +55,62 @@ Feature: Tuples, Vectors, and Points
     Given a ← tuple(1, -2, 3, -4)
     Then -a = tuple(-1, 2, -3, 4)
 
-# Scenario: Multiplying a tuple by a scalar
-#   Given a ← tuple(1, -2, 3, -4)
-#   Then a * 3.5 = tuple(3.5, -7, 10.5, -14)
+  Scenario: Multiplying a tuple by a scalar
+    Given a ← tuple(1, -2, 3, -4)
+    Then a * 3.5 = tuple(3.5, -7, 10.5, -14)
 
-# Scenario: Multiplying a tuple by a fraction
-#   Given a ← tuple(1, -2, 3, -4)
-#   Then a * 0.5 = tuple(0.5, -1, 1.5, -2)
+  Scenario: Multiplying a tuple by a fraction
+    Given a ← tuple(1, -2, 3, -4)
+    Then a * 0.5 = tuple(0.5, -1, 1.5, -2)
 
-# Scenario: Dividing a tuple by a scalar
-#   Given a ← tuple(1, -2, 3, -4)
-#   Then a / 2 = tuple(0.5, -1, 1.5, -2)
+  Scenario: Dividing a tuple by a scalar
+    Given a ← tuple(1, -2, 3, -4)
+    Then a / 2 = tuple(0.5, -1, 1.5, -2)
 
-# Scenario: Computing the magnitude of vector(1, 0, 0)
-#   Given v ← vector(1, 0, 0)
-#   Then magnitude(v) = 1
+  Scenario: Computing the magnitude of vector(1, 0, 0)
+    Given v ← vector(1, 0, 0)
+    Then magnitude(v) = 1
 
-# Scenario: Computing the magnitude of vector(0, 1, 0)
-#   Given v ← vector(0, 1, 0)
-#   Then magnitude(v) = 1
+  Scenario: Computing the magnitude of vector(0, 1, 0)
+    Given v ← vector(0, 1, 0)
+    Then magnitude(v) = 1
 
-# Scenario: Computing the magnitude of vector(0, 0, 1)
-#   Given v ← vector(0, 0, 1)
-#   Then magnitude(v) = 1
+  Scenario: Computing the magnitude of vector(0, 0, 1)
+    Given v ← vector(0, 0, 1)
+    Then magnitude(v) = 1
 
-# Scenario: Computing the magnitude of vector(1, 2, 3)
-#   Given v ← vector(1, 2, 3)
-#   Then magnitude(v) = √14
+  Scenario: Computing the magnitude of vector(1, 2, 3)
+    Given v ← vector(1, 2, 3)
+    Then magnitude(v) = √14
 
-# Scenario: Computing the magnitude of vector(-1, -2, -3)
-#   Given v ← vector(-1, -2, -3)
-#   Then magnitude(v) = √14
+  Scenario: Computing the magnitude of vector(-1, -2, -3)
+    Given v ← vector(-1, -2, -3)
+    Then magnitude(v) = √14
 
-# Scenario: Normalizing vector(4, 0, 0) gives (1, 0, 0)
-#   Given v ← vector(4, 0, 0)
-#   Then normalize(v) = vector(1, 0, 0)
+  Scenario: Normalizing vector(4, 0, 0) gives (1, 0, 0)
+    Given v ← vector(4, 0, 0)
+    Then normalize(v) = vector(1, 0, 0)
 
-# Scenario: Normalizing vector(1, 2, 3)
-#   Given v ← vector(1, 2, 3)
-#                                   # vector(1/√14,   2/√14,   3/√14)
-#   Then normalize(v) = approximately vector(0.26726, 0.53452, 0.80178)
+  Scenario: Normalizing vector(1, 2, 3)
+    Given v ← vector(1, 2, 3)
+    # vector(1/√14,   2/√14,   3/√14)
+    Then normalize(v) = approximately vector(0.26726, 0.53452, 0.80178)
 
-# Scenario: The magnitude of a normalized vector
-#   Given v ← vector(1, 2, 3)
-#   When norm ← normalize(v)
-#   Then magnitude(norm) = 1
+  Scenario: The magnitude of a normalized vector
+    Given v ← vector(1, 2, 3)
+    When norm ← normalize(v)
+    Then magnitude(norm) = 1
 
-# Scenario: The dot product of two tuples
-#   Given a ← vector(1, 2, 3)
-#     And b ← vector(2, 3, 4)
-#   Then dot(a, b) = 20
+  Scenario: The dot product of two tuples
+    Given a ← vector(1, 2, 3)
+    And b ← vector(2, 3, 4)
+    Then dot(a, b) = 20
 
-# Scenario: The cross product of two vectors
-#   Given a ← vector(1, 2, 3)
-#     And b ← vector(2, 3, 4)
-#   Then cross(a, b) = vector(-1, 2, -1)
-#     And cross(b, a) = vector(1, -2, 1)
+  Scenario: The cross product of two vectors
+    Given a ← vector(1, 2, 3)
+    And b ← vector(2, 3, 4)
+    Then cross(a, b) = vector(-1, 2, -1)
+    And cross(b, a) = vector(1, -2, 1)
 
 # Scenario: Colors are (red, green, blue) tuples
 #   Given c ← color(-0.5, 0.4, 1.7)

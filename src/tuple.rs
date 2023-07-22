@@ -1,6 +1,6 @@
 use std::{
     num::ParseFloatError,
-    ops::{Add, Neg, Sub},
+    ops::{Add, Div, Mul, Neg, Sub},
     str::FromStr,
 };
 
@@ -54,6 +54,32 @@ impl Sub for Tuple {
     }
 }
 
+impl Mul<f32> for Tuple {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Tuple {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs,
+            w: self.w * rhs,
+        }
+    }
+}
+
+impl Div<f32> for Tuple {
+    type Output = Self;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        Tuple {
+            x: self.x / rhs,
+            y: self.y / rhs,
+            z: self.z / rhs,
+            w: self.w / rhs,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseTupleError;
 
@@ -102,6 +128,14 @@ impl FromStr for Tuple {
 }
 
 impl Tuple {
+    pub fn point(x: f32, y: f32, z: f32) -> Tuple {
+        Tuple { x, y, z, w: 1.0 }
+    }
+
+    pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
+        Tuple { x, y, z, w: 0.0 }
+    }
+
     fn tuple_type(&self) -> TupleType {
         match self.w {
             w if w == 0.0 => TupleType::Vector,
@@ -118,11 +152,33 @@ impl Tuple {
         self.tuple_type() == TupleType::Vector
     }
 
-    pub fn point(x: f32, y: f32, z: f32) -> Tuple {
-        Tuple { x, y, z, w: 1.0 }
+    pub fn magnitude(&self) -> f32 {
+        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
     }
 
-    pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
-        Tuple { x, y, z, w: 0.0 }
+    pub fn normalize(&self) -> Tuple {
+        let mag = self.magnitude();
+
+        Tuple {
+            x: self.x / mag,
+            y: self.y / mag,
+            z: self.z / mag,
+            w: self.w / mag,
+        }
+    }
+
+    pub fn dot(&self, rhs: Tuple) -> f32 {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
+    }
+
+    pub fn cross(&self, rhs: Tuple) -> Tuple {
+        assert!(self.is_vector(), "must use vectors in cross");
+        assert!(rhs.is_vector(), "must use vectors in cross");
+
+        Tuple::vector(
+            self.y * rhs.z - self.z * rhs.y,
+            self.z * rhs.x - self.x * rhs.z,
+            self.x * rhs.y - self.y * rhs.x,
+        )
     }
 }
