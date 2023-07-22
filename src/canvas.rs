@@ -6,6 +6,7 @@ pub struct Canvas {
 }
 
 impl Canvas {
+    /// Creates a new width * height Canvas with every pixel black
     pub fn new(width: usize, height: usize) -> Canvas {
         let mut rows: Vec<Vec<Color>> = vec![];
 
@@ -28,5 +29,13 @@ impl Canvas {
 
     pub fn height(&self) -> usize {
         self.pixels.len()
+    }
+
+    pub fn pixel_at(&self, x: usize, y: usize) -> Color {
+        self.pixels[y][x]
+    }
+
+    pub fn write(&mut self, x: usize, y: usize, c: Color) {
+        self.pixels[y][x] = c;
     }
 }

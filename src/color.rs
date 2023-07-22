@@ -9,8 +9,14 @@ use regex::Regex;
 
 use crate::tuple::Tuple;
 
-#[derive(Debug, PartialEq, Copy, Clone, Default)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Color(Tuple);
+
+impl Default for Color {
+    fn default() -> Self {
+        Self::new(0., 0., 0.)
+    }
+}
 
 impl Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
