@@ -88,6 +88,7 @@ pub struct ParseTupleError;
 impl FromStr for Tuple {
     type Err = ParseTupleError;
 
+    /// Converts from "(point|vector)(x, y, z)" or "tuple(x, y, z, w)" to a Tuple
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parens_contents_re = Regex::new(r"\((.+)\)").expect("bad regex");
 

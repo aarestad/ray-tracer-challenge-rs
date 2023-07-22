@@ -24,7 +24,7 @@ impl TupleWorld {
 struct Sqrt(f32);
 
 impl FromStr for Sqrt {
-    type Err = String;
+    type Err = core::convert::Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Sqrt(f32::from_str(s).unwrap().sqrt()))
@@ -49,13 +49,13 @@ enum MulDiv {
 struct OpParseErr;
 
 impl FromStr for AddSub {
-    type Err = OpParseErr;
+    type Err = core::convert::Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "+" => Ok(AddSub::Add),
             "-" => Ok(AddSub::Sub),
-            _ => Err(OpParseErr),
+            _ => unreachable!(),
         }
     }
 }
@@ -70,13 +70,13 @@ impl ToString for AddSub {
 }
 
 impl FromStr for MulDiv {
-    type Err = OpParseErr;
+    type Err = core::convert::Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "*" => Ok(MulDiv::Mul),
             "/" => Ok(MulDiv::Div),
-            _ => Err(OpParseErr),
+            _ => unreachable!(),
         }
     }
 }
