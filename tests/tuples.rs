@@ -2,6 +2,7 @@ use ray_tracer_challenge_rs::tuple::Tuple;
 
 use cucumber::{given, then, Parameter, World};
 use futures_lite::future;
+use std::fmt::Debug;
 use std::{collections::HashMap, ops::AddAssign, str::FromStr};
 
 #[derive(Debug, Default, World)]
@@ -14,6 +15,28 @@ impl TupleWorld {
         self.tuples
             .get(tuple_name)
             .expect(format!("missing tuple named {}", tuple_name).as_str())
+    }
+}
+
+#[derive(Parameter)]
+#[param(regex = r"√(\d+)")]
+struct Sqrt {
+    val: f32,
+}
+
+impl Debug for Sqrt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f32::fmt(&self.val, f)
+    }
+}
+
+impl FromStr for Sqrt {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Sqrt {
+            val: f32::from_str(s).unwrap().sqrt(),
+        })
     }
 }
 
@@ -198,6 +221,34 @@ fn assert_neg(world: &mut TupleWorld, tuple_name: String, expected: Tuple) {
     assert!(
         actual == expected,
         "expected -{:?} to be {:?} but was {:?}",
+        tuple,
+        expected,
+        actual
+    );
+}
+
+#[then(expr = r"magnitude\({word}\) = {float}")]
+fn assert_magnitude_with_f32(world: &mut TupleWorld, tuple_name: String, expected: f32) {
+    let tuple = world.get_tuple_or_panic(&tuple_name);
+    let actual = tuple.magnitude();
+
+    assert!(
+        actual == expected,
+        "expected magnitude({:?}) to be {:?} but was {:?}",
+        tuple,
+        expected,
+        actual
+    );
+}
+
+#[then(expr = r"magnitude\({word}\) = {sqrt}")]
+fn assert_magnitude_with_sqrt(world: &mut TupleWorld, tuple_name: String, expected: Sqrt) {
+    let tuple = world.get_tuple_or_panic(&tuple_name);
+    let actual = tuple.magnitude();
+
+    assert!(
+        actual == expected.val,
+        "expected magnitude({:?}) to be {:?} but was {:?}",
         tuple,
         expected,
         actual
