@@ -1,11 +1,15 @@
 use std::{
     fmt::Display,
+    num::ParseFloatError,
     ops::{Add, Mul, Sub},
+    str::FromStr,
 };
+
+use regex::Regex;
 
 use crate::tuple::Tuple;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct Color(Tuple);
 
 impl Display for Color {
@@ -42,6 +46,37 @@ impl Color {
 
     pub fn approx_eq(&self, rhs: &Color) -> bool {
         self.0.approx_eq(&rhs.0)
+    }
+}
+
+impl FromStr for Color {
+    type Err = String;
+
+    /// Converts from "color(r, g, b)" to a Color
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parens_contents_re = Regex::new(r"color\((.+)\)").expect("bad regex");
+
+        let Some(args_group) = parens_contents_re.captures(s) else {
+            return Err(s.to_string());
+        };
+
+        let args_str = &args_group[1];
+
+        let args: Vec<Result<f32, ParseFloatError>> = args_str
+            .replace(' ', "")
+            .split(',')
+            .map(f32::from_str)
+            .collect();
+
+        if args.iter().any(|a| a.is_err()) {
+            return Err(s.to_string());
+        }
+
+        Ok(Color::new(
+            *args[0].as_ref().unwrap(),
+            *args[1].as_ref().unwrap(),
+            *args[2].as_ref().unwrap(),
+        ))
     }
 }
 

@@ -15,3 +15,7 @@ futures-lite = "1.13.0"
 [[test]]
 name = "tuples"
 harness = false
+
+[[test]]
+name = "canvas"
+harness = false

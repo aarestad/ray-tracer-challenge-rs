@@ -1,4 +1,4 @@
-use ray_tracer_challenge_rs::color::{self, Color};
+use ray_tracer_challenge_rs::color::Color;
 use ray_tracer_challenge_rs::tuple::Tuple;
 use ray_tracer_challenge_rs::util::approx;
 
