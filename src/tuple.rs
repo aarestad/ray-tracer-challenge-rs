@@ -6,6 +6,8 @@ use std::{
 
 use regex::Regex;
 
+use crate::util::approx;
+
 #[derive(Debug, Default, PartialEq, Copy, Clone)]
 pub struct Tuple {
     pub x: f32,
@@ -149,12 +151,6 @@ impl Tuple {
     }
 
     pub fn approx_eq(&self, rhs: Tuple) -> bool {
-        const EPSILON: f32 = 0.00001;
-
-        fn approx(lhs: f32, rhs: f32) -> bool {
-            (lhs - rhs).abs() < EPSILON
-        }
-
         approx(self.x, rhs.x)
             && approx(self.y, rhs.y)
             && approx(self.z, rhs.z)

@@ -1,6 +1,7 @@
 use ray_tracer_challenge_rs::tuple::Tuple;
+use ray_tracer_challenge_rs::util::approx;
 
-use cucumber::{given, then, Parameter, World};
+use cucumber::{given, then, when, Parameter, World};
 use futures_lite::future;
 use std::fmt::Debug;
 use std::{collections::HashMap, str::FromStr};
@@ -223,7 +224,7 @@ fn assert_magnitude_with_f32(world: &mut TupleWorld, tuple_name: String, expecte
     let actual = tuple.magnitude();
 
     assert!(
-        actual == expected,
+        approx(actual, expected),
         "expected magnitude({:?}) to be {:?} but was {:?}",
         tuple,
         expected,
@@ -237,7 +238,7 @@ fn assert_magnitude_with_sqrt(world: &mut TupleWorld, tuple_name: String, expect
     let actual = tuple.magnitude();
 
     assert!(
-        actual == expected.0,
+        approx(actual, expected.0),
         "expected magnitude({:?}) to be {:?} but was {:?}",
         tuple,
         expected,
@@ -268,6 +269,18 @@ fn assert_normalize_approx(
         expected,
         actual
     );
+}
+
+#[when(expr = r"{word} ← normalize\({word}\)")]
+fn when_normalizing_vec(
+    world: &mut TupleWorld,
+    result_tuple_name: String,
+    source_tuple_name: String,
+) {
+    let source_tuple = world.get_tuple_or_panic(&source_tuple_name);
+    world
+        .tuples
+        .insert(result_tuple_name, source_tuple.normalize());
 }
 
 fn main() {
