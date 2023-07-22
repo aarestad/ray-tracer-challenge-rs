@@ -3,7 +3,7 @@ use ray_tracer_challenge_rs::tuple::Tuple;
 use cucumber::{given, then, Parameter, World};
 use futures_lite::future;
 use std::fmt::Debug;
-use std::{collections::HashMap, ops::AddAssign, str::FromStr};
+use std::{collections::HashMap, str::FromStr};
 
 #[derive(Debug, Default, World)]
 struct TupleWorld {
@@ -18,25 +18,15 @@ impl TupleWorld {
     }
 }
 
-#[derive(Parameter)]
+#[derive(Debug, Parameter)]
 #[param(regex = r"√(\d+)")]
-struct Sqrt {
-    val: f32,
-}
-
-impl Debug for Sqrt {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f32::fmt(&self.val, f)
-    }
-}
+struct Sqrt(f32);
 
 impl FromStr for Sqrt {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Sqrt {
-            val: f32::from_str(s).unwrap().sqrt(),
-        })
+        Ok(Sqrt(f32::from_str(s).unwrap().sqrt()))
     }
 }
 
@@ -247,7 +237,7 @@ fn assert_magnitude_with_sqrt(world: &mut TupleWorld, tuple_name: String, expect
     let actual = tuple.magnitude();
 
     assert!(
-        actual == expected.val,
+        actual == expected.0,
         "expected magnitude({:?}) to be {:?} but was {:?}",
         tuple,
         expected,
