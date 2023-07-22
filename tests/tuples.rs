@@ -1,14 +1,17 @@
+use ray_tracer_challenge_rs::color::{self, Color};
 use ray_tracer_challenge_rs::tuple::Tuple;
 use ray_tracer_challenge_rs::util::approx;
 
+use core::convert::Infallible;
 use cucumber::{given, then, when, Parameter, World};
 use futures_lite::future;
 use std::fmt::{Debug, Display};
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, fmt::Formatter, str::FromStr};
 
 #[derive(Debug, Default, World)]
 struct TupleWorld {
     tuples: HashMap<String, Tuple>,
+    colors: HashMap<String, Color>,
 }
 
 impl TupleWorld {
@@ -17,6 +20,68 @@ impl TupleWorld {
             .get(tuple_name)
             .expect(format!("missing tuple named {}", tuple_name).as_str())
     }
+
+    fn get_color_or_panic(&self, color_name: &String) -> &Color {
+        self.colors
+            .get(color_name)
+            .expect(format!("missing color named {}", color_name).as_str())
+    }
+}
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"x|y|z|w")]
+enum TupleProperty {
+    X,
+    Y,
+    Z,
+    W,
+}
+
+impl FromStr for TupleProperty {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "x" => TupleProperty::X,
+            "y" => TupleProperty::Y,
+            "z" => TupleProperty::Z,
+            "w" => TupleProperty::W,
+            _ => unreachable!(),
+        })
+    }
+}
+
+impl Display for TupleProperty {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.to_string().as_str())
+    }
+}
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"red|green|blue")]
+enum ColorProperty {
+    Red,
+    Green,
+    Blue,
+}
+
+impl FromStr for ColorProperty {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "red" => ColorProperty::Red,
+            "green" => ColorProperty::Green,
+            "blue" => ColorProperty::Blue,
+            _ => unreachable!(),
+        })
+    }
+}
+
+impl Display for ColorProperty {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.to_string().as_str())
+    }
 }
 
 #[derive(Debug, Parameter)]
@@ -24,7 +89,7 @@ impl TupleWorld {
 struct Sqrt(f32);
 
 impl FromStr for Sqrt {
-    type Err = core::convert::Infallible;
+    type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Sqrt(f32::from_str(s).unwrap().sqrt()))
@@ -32,7 +97,7 @@ impl FromStr for Sqrt {
 }
 
 impl Display for Sqrt {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("{}", self.0))
     }
 }
@@ -55,7 +120,7 @@ enum MulDiv {
 struct OpParseErr;
 
 impl FromStr for AddSub {
-    type Err = core::convert::Infallible;
+    type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -76,7 +141,7 @@ impl Display for AddSub {
 }
 
 impl FromStr for MulDiv {
-    type Err = core::convert::Infallible;
+    type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -101,23 +166,27 @@ fn new_tuple(world: &mut TupleWorld, tuple_name: String, tuple: Tuple) {
     world.tuples.insert(tuple_name, tuple);
 }
 
-#[then(expr = r"{word}.{word} = {float}")]
-fn assert_field(world: &mut TupleWorld, tuple_name: String, field: String, expected: f32) {
+#[then(expr = r"{word}.{tupleproperty} = {float}")]
+fn assert_tuple_property(
+    world: &mut TupleWorld,
+    tuple_name: String,
+    prop: TupleProperty,
+    expected: f32,
+) {
     let tuple = world.get_tuple_or_panic(&tuple_name);
 
-    let actual = match field.as_str() {
-        "x" => tuple.x,
-        "y" => tuple.y,
-        "z" => tuple.z,
-        "w" => tuple.w,
-        _ => panic!("unrecognized field name: {}", field),
+    let actual = match prop {
+        TupleProperty::X => tuple.x,
+        TupleProperty::Y => tuple.y,
+        TupleProperty::Z => tuple.z,
+        TupleProperty::W => tuple.w,
     };
 
     assert!(
         expected == actual,
         "{}.{}: expected {} but got {}",
         tuple_name,
-        field,
+        prop,
         expected,
         actual
     );
@@ -321,6 +390,36 @@ fn assert_cross_product(
         "expected {}.cross({}) to be {} but was {}",
         lhs_name,
         rhs_name,
+        expected,
+        actual
+    );
+}
+
+#[given(expr = r"{word} ← color\({float}, {float}, {float}\)")]
+fn given_color(world: &mut TupleWorld, color_name: String, r: f32, g: f32, b: f32) {
+    world.colors.insert(color_name, Color::new(r, g, b));
+}
+
+#[then(expr = r"{word}.{colorproperty} = {float}")]
+fn assert_color_property(
+    world: &mut TupleWorld,
+    tuple_name: String,
+    prop: ColorProperty,
+    expected: f32,
+) {
+    let color = world.get_color_or_panic(&tuple_name);
+
+    let actual = match prop {
+        ColorProperty::Red => color.red(),
+        ColorProperty::Green => color.green(),
+        ColorProperty::Blue => color.blue(),
+    };
+
+    assert!(
+        expected == actual,
+        "{}.{}: expected {} but got {}",
+        tuple_name,
+        prop,
         expected,
         actual
     );
