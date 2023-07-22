@@ -1,4 +1,4 @@
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Tuple {
     pub x: f32,
     pub y: f32,
@@ -27,5 +27,13 @@ impl Tuple {
 
     pub fn is_vector(&self) -> bool {
         return self.tuple_type() == TupleType::Vector;
+    }
+
+    pub fn point(x: f32, y: f32, z: f32) -> Tuple {
+        Tuple { x, y, z, w: 1.0 }
+    }
+
+    pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
+        Tuple { x, y, z, w: 0.0 }
     }
 }
