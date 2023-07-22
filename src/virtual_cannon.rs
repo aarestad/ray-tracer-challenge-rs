@@ -1,3 +1,9 @@
+use std::fs::File;
+use std::io::{Result, Write};
+use std::path::Path;
+
+use crate::canvas::Canvas;
+use crate::color::Color;
 use crate::tuple::Tuple;
 
 pub struct Projectile {
@@ -40,4 +46,29 @@ pub fn ch1_playground() {
         proj = env.tick(proj);
         println!("proj now at {:?}", proj.position);
     }
+}
+
+pub fn ch2_playground(filename: &Path) -> Result<()> {
+    let mut proj = Projectile::new(
+        Tuple::point(0., 1., 0.),
+        Tuple::vector(1., 1.8, 0.).normalize() * 11.25,
+    );
+
+    let env = Environment::new(Tuple::vector(0., -0.1, 0.), Tuple::vector(-0.01, 0., 0.));
+
+    let mut canvas = Canvas::new(900, 550);
+    let color = Color::new(0.5, 0.7, 0.5);
+
+    while proj.position.y >= 0. {
+        canvas.write(
+            proj.position.x.floor() as usize,
+            550 - proj.position.y.floor() as usize,
+            color,
+        );
+
+        proj = env.tick(proj);
+    }
+
+    let mut output = File::create(filename)?;
+    write!(output, "{}", canvas.to_ppm().whole_file())
 }

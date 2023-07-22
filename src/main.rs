@@ -1,3 +1,6 @@
+use std::io::Result;
+use std::path::Path;
+
 mod canvas;
 mod color;
 mod ppm;
@@ -5,6 +8,6 @@ mod tuple;
 mod util;
 mod virtual_cannon;
 
-fn main() {
-    virtual_cannon::ch1_playground();
+fn main() -> Result<()> {
+    virtual_cannon::ch2_playground(Path::new("trajectory.ppm"))
 }
