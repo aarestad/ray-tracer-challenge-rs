@@ -105,18 +105,15 @@ impl Div<f32> for Tuple {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseTupleError;
-
 impl FromStr for Tuple {
-    type Err = ParseTupleError;
+    type Err = String;
 
     /// Converts from "(point|vector)(x, y, z)" or "tuple(x, y, z, w)" to a Tuple
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parens_contents_re = Regex::new(r"\((.+)\)").expect("bad regex");
 
         let Some(args_group) = parens_contents_re.captures(s) else {
-            return Err(ParseTupleError)
+            return Err(s.to_string());
         };
 
         let args_str = &args_group[1];
@@ -128,7 +125,7 @@ impl FromStr for Tuple {
             .collect();
 
         if args.iter().any(|a| a.is_err()) {
-            return Err(ParseTupleError);
+            return Err(s.to_string());
         }
 
         match s {
@@ -148,7 +145,7 @@ impl FromStr for Tuple {
                 *args[1].as_ref().unwrap(),
                 *args[2].as_ref().unwrap(),
             )),
-            _ => Err(ParseTupleError),
+            _ => Err(s.to_string()),
         }
     }
 }
@@ -174,7 +171,7 @@ impl Tuple {
         }
     }
 
-    pub fn approx_eq(&self, rhs: Tuple) -> bool {
+    pub fn approx_eq(&self, rhs: &Tuple) -> bool {
         approx(self.x, rhs.x)
             && approx(self.y, rhs.y)
             && approx(self.z, rhs.z)

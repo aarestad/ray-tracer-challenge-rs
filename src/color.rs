@@ -1,8 +1,11 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    ops::{Add, Mul, Sub},
+};
 
 use crate::tuple::Tuple;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Color(Tuple);
 
 impl Display for Color {
@@ -35,5 +38,54 @@ impl Color {
 
     pub fn alpha(&self) -> f32 {
         self.0.w
+    }
+
+    pub fn approx_eq(&self, rhs: &Color) -> bool {
+        self.0.approx_eq(&rhs.0)
+    }
+}
+
+impl Add for Color {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Color::new(
+            self.red() + rhs.red(),
+            self.green() + rhs.green(),
+            self.blue() + rhs.blue(),
+        )
+    }
+}
+
+impl Sub for Color {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Color::new(
+            self.red() - rhs.red(),
+            self.green() - rhs.green(),
+            self.blue() - rhs.blue(),
+        )
+    }
+}
+
+/// Hadamard product of the underlying tuples
+impl Mul for Color {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Color::new(
+            self.red() * rhs.red(),
+            self.green() * rhs.green(),
+            self.blue() * rhs.blue(),
+        )
+    }
+}
+
+impl Mul<f32> for Color {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Color::new(self.red() * rhs, self.green() * rhs, self.blue() * rhs)
     }
 }

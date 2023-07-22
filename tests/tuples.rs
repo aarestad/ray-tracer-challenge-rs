@@ -231,7 +231,7 @@ fn assert_tuple_equality(world: &mut TupleWorld, tuple_name: String, expected: T
     )
 }
 
-#[then(expr = r"{word} {addsub} {word} = {}")]
+#[then(regex = r"(\w+) (\+|-) (\w+) = ((tuple|point|vector).+)")]
 fn assert_addsub(
     world: &mut TupleWorld,
     lhs_name: String,
@@ -258,7 +258,7 @@ fn assert_addsub(
     );
 }
 
-#[then(expr = r"{word} {muldiv} {float} = {}")]
+#[then(regex = r"(\w+) (\*|/) (\d+(?:\.\d+)?) = ((tuple|point|vector).+)")]
 fn assert_muldiv(world: &mut TupleWorld, lhs_name: String, op: MulDiv, rhs: f32, expected: Tuple) {
     let lhs = world.get_tuple_or_panic(&lhs_name);
 
@@ -334,7 +334,7 @@ fn assert_normalize_approx(
 
     assert!(
         if approx_test {
-            actual.approx_eq(expected)
+            actual.approx_eq(&expected)
         } else {
             actual == expected
         },
@@ -422,6 +422,58 @@ fn assert_color_property(
         prop,
         expected,
         actual
+    );
+}
+
+#[then(expr = r"{word} {addsub} {word} = color\({float}, {float}, {float}\)")]
+fn assert_color_addsub(
+    world: &mut TupleWorld,
+    lhs_name: String,
+    op: AddSub,
+    rhs_name: String,
+    r: f32,
+    g: f32,
+    b: f32,
+) {
+    let lhs = world.get_color_or_panic(&lhs_name);
+    let rhs = world.get_color_or_panic(&rhs_name);
+    let expected = Color::new(r, g, b);
+    let actual = match op {
+        AddSub::Add => *lhs + *rhs,
+        AddSub::Sub => *lhs - *rhs,
+    };
+
+    assert!(
+        expected.approx_eq(&actual),
+        "expected {} {} {} to be {} but was {}",
+        lhs_name,
+        op,
+        rhs_name,
+        expected,
+        actual,
+    );
+}
+
+#[then(expr = r"{word} * {word} = color\({float}, {float}, {float}\)")]
+fn assert_color_mul(world: &mut TupleWorld, lhs_name: String, rhs: String, r: f32, g: f32, b: f32) {
+    let lhs = world.get_color_or_panic(&lhs_name);
+    let rhs_f32 = f32::from_str(rhs.as_str());
+
+    let actual = if let Ok(rhs) = rhs_f32 {
+        *lhs * rhs
+    } else {
+        *lhs * *world.get_color_or_panic(&rhs)
+    };
+
+    let expected = Color::new(r, g, b);
+
+    assert!(
+        expected.approx_eq(&actual),
+        "expected {} * {} to be {} but was {}",
+        lhs_name,
+        rhs,
+        expected,
+        actual,
     );
 }
 
