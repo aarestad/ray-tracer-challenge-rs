@@ -52,20 +52,20 @@ fn assert_tuple_type(
 ) {
     let tuple = world.get_tuple_or_panic(&tuple_name);
 
-    let mut is_proper_type = match tuple_type.as_str() {
+    let is_proper_type = match tuple_type.as_str() {
         "point" => tuple.is_point(),
         "vector" => tuple.is_vector(),
         _ => panic!("unrecognized tuple type: {}", tuple_type),
     };
 
-    if negation.len() > 0 {
-        is_proper_type = !is_proper_type;
-    }
+    let negate = negation.len() > 0;
 
     assert!(
-        is_proper_type,
-        "expected {} to be a {} but was not",
-        tuple_name, tuple_type
+        is_proper_type && !negate || !is_proper_type && negate,
+        "expected {} {}to be a {} but was not",
+        tuple_name,
+        if negate { "not " } else { "" },
+        tuple_type
     );
 }
 
