@@ -1,5 +1,6 @@
 mod canvas;
 mod color;
+mod ppm;
 mod tuple;
 mod util;
 mod virtual_cannon;

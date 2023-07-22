@@ -1,14 +1,16 @@
 use std::collections::HashMap;
 
-use cucumber::{given, then, when, Parameter, World};
+use cucumber::{gherkin::Step, given, then, when, World};
 use futures_lite::future;
 use ray_tracer_challenge_rs::canvas::Canvas;
 use ray_tracer_challenge_rs::color::Color;
+use ray_tracer_challenge_rs::ppm::PPM;
 
 #[derive(Debug, Default, World)]
 struct CanvasWorld {
     canvases: HashMap<String, Canvas>,
     colors: HashMap<String, Color>,
+    ppms: HashMap<String, PPM>,
 }
 
 impl CanvasWorld {
@@ -28,6 +30,12 @@ impl CanvasWorld {
         self.colors
             .get(color_name)
             .expect(format!("missing color named {}", color_name).as_str())
+    }
+
+    fn get_ppm_or_panic(&self, ppm_name: &String) -> &PPM {
+        self.ppms
+            .get(ppm_name)
+            .expect(format!("missing PPM named {}", ppm_name).as_str())
     }
 }
 
@@ -52,6 +60,12 @@ fn when_write_pixel(
     let color = world.get_color_or_panic(&color_name).clone();
     let canvas = world.get_mut_canvas_or_panic(&canvas_name);
     canvas.write(x, y, color);
+}
+
+#[when(expr = r"{word} ← canvas_to_ppm\({word}\)")]
+fn when_canvas_to_ppm(world: &mut CanvasWorld, ppm_name: String, canvas_name: String) {
+    let canvas = world.get_canvas_or_panic(&canvas_name);
+    world.ppms.insert(ppm_name, canvas.to_ppm());
 }
 
 #[then(expr = r"{word}.{word} = {int}")]
@@ -115,6 +129,28 @@ fn assert_pixel_at(
         "pixel at {}, {} expected to be {} but was {}",
         x,
         y,
+        expected,
+        actual,
+    );
+}
+
+#[then(expr = r"lines {int}-{int} of {word} are")]
+fn assert_ppm_lines(
+    world: &mut CanvasWorld,
+    step: &Step,
+    start_1_offset: usize,
+    end_inclusive_1_offset: usize,
+    ppm_name: String,
+) {
+    let ppm = world.get_ppm_or_panic(&ppm_name);
+    let actual = ppm.lines_range(start_1_offset - 1, end_inclusive_1_offset);
+    let expected = step.docstring.as_ref().expect("no docstring").trim_start();
+
+    assert!(
+        expected == actual,
+        "lines {}-{} expected to be <{}> but were actually <{}>",
+        start_1_offset,
+        end_inclusive_1_offset,
         expected,
         actual,
     );

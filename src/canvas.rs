@@ -1,4 +1,5 @@
 use crate::color::Color;
+use crate::ppm::PPM;
 
 #[derive(Default, Debug)]
 pub struct Canvas {
@@ -37,5 +38,9 @@ impl Canvas {
 
     pub fn write(&mut self, x: usize, y: usize, c: Color) {
         self.pixels[y][x] = c;
+    }
+
+    pub fn to_ppm(&self) -> PPM {
+        PPM::new(self.width(), self.height())
     }
 }
