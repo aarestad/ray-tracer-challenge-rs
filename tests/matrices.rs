@@ -1,7 +1,7 @@
 use cucumber::{gherkin::Step, given, then, when, Parameter, World};
 use futures_lite::future;
-use nalgebra::{ArrayStorage, DMatrix, Matrix4, MatrixN};
-use ray_tracer_challenge_rs::tuple::Tuple;
+use nalgebra::{DMatrix, Matrix4};
+use ray_tracer_challenge_rs::{tuple::Tuple, util::approx};
 use std::{collections::HashMap, str::FromStr, thread::sleep, time::Duration};
 
 #[derive(Debug, Default, World)]
@@ -143,6 +143,47 @@ fn assert_tuple_identity_mult_lhs(
     let identity = Matrix4::<f32>::identity();
 
     assert_eq!(*t, t.rhs_mult(&identity),);
+}
+
+#[then(expr = r"transpose\({word}\) is the following {int}x{int} matrix:")]
+fn assert_transpose(
+    world: &mut MatrixWorld,
+    step: &Step,
+    matrix_name: String,
+    rows: usize,
+    cols: usize,
+) {
+    let original_matrix = world.get_matrix_or_panic(&matrix_name);
+    let expected = get_matrix_from_step(step, rows, cols);
+    assert_eq!(original_matrix.transpose(), expected);
+}
+
+#[then(expr = r"determinant\({word}\) = {float}")]
+fn assert_determinant(world: &mut MatrixWorld, matrix_name: String, expected: f32) {
+    let m = world.get_matrix_or_panic(&matrix_name);
+    assert!(
+        approx(m.determinant(), expected),
+        "expected={}, actual={}",
+        expected,
+        m.determinant()
+    );
+}
+
+#[then(regex = r"(\w+) is (not )?invertible")]
+fn assert_invertible(world: &mut MatrixWorld, matrix_name: String, invert: String) {
+    let m = world.get_matrix_or_panic(&matrix_name);
+    let inv = invert.starts_with("not");
+    let actual = if inv {
+        !m.is_invertible()
+    } else {
+        m.is_invertible()
+    };
+    assert!(
+        actual,
+        "expected {}{}.invertible() to be true but was false",
+        if inv { "!" } else { "" },
+        matrix_name
+    );
 }
 
 fn main() {
