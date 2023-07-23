@@ -40,6 +40,7 @@ fn new_tuple(world: &mut RaysWorld, tuple_name: String, tuple: Tuple) {
     world.tuples.insert(tuple_name, tuple);
 }
 
+// TODO move to shared lib
 #[given(
     expr = r"{word} ← ray\(point\({float}, {float}, {float}\), vector\({float}, {float}, {float}\)\)"
 )]

@@ -34,3 +34,7 @@ harness = false
 [[test]]
 name = "rays"
 harness = false
+
+[[test]]
+name = "spheres"
+harness = false

@@ -2,22 +2,21 @@ use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::default::Default;
 
-pub struct Intersection {
-    times: Vec<f32>,
-}
+#[derive(Debug)]
+pub struct Intersection(Vec<f32>);
 
 impl Intersection {
     pub fn new(times: Vec<f32>) -> Intersection {
-        Intersection { times }
+        Intersection(times)
     }
 
-    pub fn count(&self) -> usize {
-        self.times.len()
+    pub fn intersections(&self) -> &Vec<f32> {
+        &self.0
     }
 }
 
 pub trait Intersectable {
-    fn intersection(ray: Ray) -> Intersection;
+    fn intersection(&self, ray: &Ray) -> Intersection;
 }
 
 #[derive(Debug)]
@@ -27,7 +26,7 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             origin: Default::default(),
             radius: 1.,
@@ -36,7 +35,7 @@ impl Sphere {
 }
 
 impl Intersectable for Sphere {
-    fn intersection(ray: Ray) -> Intersection {
+    fn intersection(&self, ray: &Ray) -> Intersection {
         Intersection::new(vec![])
     }
 }
