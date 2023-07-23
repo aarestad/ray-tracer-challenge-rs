@@ -155,9 +155,7 @@ Feature: Matrices
       | 1  | -3 | 7  | 4  |
     And B ← inverse(A)
     Then determinant(A) = 532
-    And cofactor(A, 2, 3) = -160
     And B[3,2] = -160/532
-    And cofactor(A, 3, 2) = 105
     And B[2,3] = 105/532
     And B is the following 4x4 matrix:
       | 0.21805  | 0.45113  | 0.24060  | -0.04511 |

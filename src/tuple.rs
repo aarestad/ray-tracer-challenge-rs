@@ -5,13 +5,14 @@ use std::{
     str::FromStr,
 };
 
+use crate::util::EPSILON;
+
 use nalgebra::{Matrix4, Vector3, Vector4};
 use regex::Regex;
 
-use crate::util::approx;
-
 #[derive(Debug, Default, PartialEq, Copy, Clone)]
 pub struct Tuple(Vector4<f32>);
+use approx::abs_diff_eq;
 
 impl Display for Tuple {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -158,10 +159,7 @@ impl Tuple {
     }
 
     pub fn approx_eq(&self, rhs: &Tuple) -> bool {
-        approx(self.x(), rhs.x())
-            && approx(self.y(), rhs.y())
-            && approx(self.z(), rhs.z())
-            && approx(self.w(), rhs.w())
+        abs_diff_eq!(self.0, rhs.0, epsilon = EPSILON)
     }
 
     pub fn is_point(&self) -> bool {
@@ -172,6 +170,7 @@ impl Tuple {
         self.tuple_type() == TupleType::Vector
     }
 
+    #[allow(dead_code)]
     pub fn magnitude(&self) -> f32 {
         self.0.magnitude()
     }
@@ -198,6 +197,7 @@ impl Tuple {
         Tuple::vector(prod[0], prod[1], prod[2])
     }
 
+    #[allow(dead_code)]
     pub fn rhs_mult(&self, lhs_matrix: &Matrix4<f32>) -> Tuple {
         Tuple(lhs_matrix * self.0)
     }

@@ -1,7 +1,8 @@
 use ray_tracer_challenge_rs::color::Color;
 use ray_tracer_challenge_rs::tuple::Tuple;
-use ray_tracer_challenge_rs::util::approx;
+use ray_tracer_challenge_rs::util::EPSILON;
 
+use approx::assert_abs_diff_eq;
 use core::convert::Infallible;
 use cucumber::{given, then, when, Parameter, World};
 use futures_lite::future;
@@ -298,13 +299,7 @@ fn assert_magnitude_with_f32(world: &mut TupleWorld, tuple_name: String, expecte
     let tuple = world.get_tuple_or_panic(&tuple_name);
     let actual = tuple.magnitude();
 
-    assert!(
-        approx(actual, expected),
-        "expected magnitude({}) to be {} but was {}",
-        tuple,
-        expected,
-        actual
-    );
+    assert_abs_diff_eq!(actual, expected, epsilon = EPSILON);
 }
 
 #[then(expr = r"magnitude\({word}\) = {sqrt}")]
@@ -312,13 +307,7 @@ fn assert_magnitude_with_sqrt(world: &mut TupleWorld, tuple_name: String, expect
     let tuple = world.get_tuple_or_panic(&tuple_name);
     let actual = tuple.magnitude();
 
-    assert!(
-        approx(actual, expected.0),
-        "expected magnitude({}) to be {} but was {}",
-        tuple,
-        expected,
-        actual
-    );
+    assert_abs_diff_eq!(actual, expected.0, epsilon = EPSILON);
 }
 
 #[then(regex = r"normalize\((\w+)\)\s*=\s*(approximately)?\s*(.+)")]

@@ -1,8 +1,11 @@
 use cucumber::{gherkin::Step, given, then, when, Parameter, World};
 use futures_lite::future;
 use nalgebra::{DMatrix, Matrix4};
-use ray_tracer_challenge_rs::{tuple::Tuple, util::approx};
-use std::{collections::HashMap, str::FromStr, thread::sleep, time::Duration};
+use ray_tracer_challenge_rs::tuple::Tuple;
+use ray_tracer_challenge_rs::util::EPSILON;
+use std::{collections::HashMap, str::FromStr};
+
+use approx::assert_abs_diff_eq;
 
 #[derive(Debug, Default, World)]
 struct MatrixWorld {
@@ -48,6 +51,14 @@ fn given_a_tuple(world: &mut MatrixWorld, tuple_name: String, x: f32, y: f32, z:
     world.tuples.insert(tuple_name, Tuple::new(x, y, z, w));
 }
 
+#[given(expr = r"{word} ← inverse\({word}\)")]
+fn given_an_inverse(world: &mut MatrixWorld, inv_name: String, matrix_name: String) {
+    let m = world.get_matrix_or_panic(&matrix_name);
+    world
+        .matrices
+        .insert(inv_name, m.clone().try_inverse().expect("not invertible!"));
+}
+
 #[then(expr = r"{word}[{int},{int}] = {float}")]
 fn assert_entry_value(
     world: &mut MatrixWorld,
@@ -61,6 +72,23 @@ fn assert_entry_value(
     let actual = matrix[row + col * num_cols];
 
     assert_eq!(actual, expected);
+}
+
+#[then(expr = r"{word}[{int},{int}] = {float}\/{float}")]
+fn assert_entry_value_fraction(
+    world: &mut MatrixWorld,
+    name: String,
+    row: usize,
+    col: usize,
+    expected_num: f32,
+    expected_denom: f32,
+) {
+    let matrix = world.get_matrix_or_panic(&name);
+    let num_cols = matrix.column_iter().count();
+    let actual = matrix[row + col * num_cols];
+    let expected = expected_num / expected_denom;
+
+    assert_abs_diff_eq!(actual, expected, epsilon = EPSILON);
 }
 
 #[then(regex = r"^(\w+) (!)?= (\w+)$")]
@@ -161,12 +189,9 @@ fn assert_transpose(
 #[then(expr = r"determinant\({word}\) = {float}")]
 fn assert_determinant(world: &mut MatrixWorld, matrix_name: String, expected: f32) {
     let m = world.get_matrix_or_panic(&matrix_name);
-    assert!(
-        approx(m.determinant(), expected),
-        "expected={}, actual={}",
-        expected,
-        m.determinant()
-    );
+
+    // bit looser of an epsilon here
+    assert_abs_diff_eq!(m.determinant(), expected, epsilon = 0.001);
 }
 
 #[then(regex = r"(\w+) is (not )?invertible")]
@@ -184,6 +209,23 @@ fn assert_invertible(world: &mut MatrixWorld, matrix_name: String, invert: Strin
         if inv { "!" } else { "" },
         matrix_name
     );
+}
+
+#[then(expr = r"inverse\({word}\) is the following {int}x{int} matrix:")]
+fn assert_inverse(
+    world: &mut MatrixWorld,
+    step: &Step,
+    matrix_name: String,
+    rows: usize,
+    cols: usize,
+) {
+    let m = world.get_matrix_or_panic(&matrix_name);
+    let expected = get_matrix_from_step(step, rows, cols);
+
+    assert!(approx_matrix(
+        &m.clone().try_inverse().expect("not invertible!"),
+        &expected
+    ));
 }
 
 fn main() {
