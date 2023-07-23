@@ -170,7 +170,6 @@ impl Tuple {
         self.tuple_type() == TupleType::Vector
     }
 
-    #[allow(dead_code)]
     pub fn magnitude(&self) -> f32 {
         self.0.magnitude()
     }
@@ -179,12 +178,10 @@ impl Tuple {
         Tuple(self.0.normalize())
     }
 
-    #[allow(dead_code)]
     pub fn dot(&self, rhs: Tuple) -> f32 {
         self.0.dot(&rhs.0)
     }
 
-    #[allow(dead_code)]
     pub fn cross(self, rhs_t: Tuple) -> Tuple {
         assert!(self.is_vector(), "must use vectors in cross");
         assert!(rhs_t.is_vector(), "must use vectors in cross");
@@ -197,8 +194,7 @@ impl Tuple {
         Tuple::vector(prod[0], prod[1], prod[2])
     }
 
-    #[allow(dead_code)]
-    pub fn rhs_mult(&self, lhs_matrix: &Matrix4<f32>) -> Tuple {
-        Tuple(lhs_matrix * self.0)
+    pub fn transform(&self, transform_matrix: &Matrix4<f32>) -> Tuple {
+        Tuple(transform_matrix * self.0)
     }
 }

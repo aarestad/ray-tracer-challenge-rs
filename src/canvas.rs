@@ -37,8 +37,8 @@ impl Canvas {
         self.pixels[y][x]
     }
 
-    pub fn write(&mut self, x: usize, y: usize, c: Color) {
-        self.pixels[y][x] = c;
+    pub fn write(&mut self, x: f32, y: f32, c: Color) {
+        self.pixels[y.floor() as usize][x.floor() as usize] = c;
     }
 
     pub fn to_ppm(&self) -> Ppm {

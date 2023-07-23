@@ -1,5 +1,5 @@
 use core::convert::Infallible;
-use cucumber::{gherkin::Step, given, then, when, Parameter, World};
+use cucumber::{given, then, when, Parameter, World};
 use futures_lite::future;
 use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::tuple::Tuple;
@@ -176,7 +176,7 @@ fn when_transform_applied(
 ) {
     let m = world.get_matrix_or_panic(&matrix_name);
     let p = world.get_tuple_or_panic(&point_name);
-    world.tuples.insert(result_point_name, p.rhs_mult(m));
+    world.tuples.insert(result_point_name, p.transform(m));
 }
 
 #[when(expr = r"{word} ← {word} * {word} * {word}")]
@@ -207,7 +207,7 @@ fn assert_point_transform_specified(
     let rhs = world.get_tuple_or_panic(&point_name);
     let expected = Tuple::point(x.0, y.0, z.0);
 
-    let actual = rhs.rhs_mult(lhs);
+    let actual = rhs.transform(lhs);
 
     assert!(
         expected.approx_eq(&actual),
@@ -247,7 +247,7 @@ fn assert_point_transform_name(
     let rhs = world.get_tuple_or_panic(&tuple_name);
     let expected = world.get_tuple_or_panic(&expected_name);
 
-    let actual = rhs.rhs_mult(lhs);
+    let actual = rhs.transform(lhs);
 
     assert!(
         expected.approx_eq(&actual),
@@ -271,7 +271,7 @@ fn assert_vector_transform_specified(
     let rhs = world.get_tuple_or_panic(&vector_name);
     let expected = Tuple::vector(x, y, z);
 
-    let actual = rhs.rhs_mult(lhs);
+    let actual = rhs.transform(lhs);
 
     assert!(
         expected.approx_eq(&actual),

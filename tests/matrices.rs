@@ -153,7 +153,7 @@ fn assert_matrix_tuple_mult(
     let lhs = world.get_matrix_or_panic(&lhs_name);
     let rhs = world.get_tuple_or_panic(&rhs_name);
     let expected = Tuple::new(x, y, z, w);
-    let actual = rhs.rhs_mult(&Matrix4::from_vec(lhs.data.as_vec().clone()));
+    let actual = rhs.transform(&Matrix4::from_vec(lhs.data.as_vec().clone()));
 
     assert_eq!(expected, actual);
 }
@@ -182,7 +182,7 @@ fn assert_tuple_identity_mult_lhs(
     let t = world.get_tuple_or_panic(&rhs_name);
     let identity = Matrix4::<f32>::identity();
 
-    assert_eq!(*t, t.rhs_mult(&identity),);
+    assert_eq!(*t, t.transform(&identity),);
 }
 
 #[then(expr = r"transpose\({word}\) is the following {int}x{int} matrix:")]
