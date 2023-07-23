@@ -1,4 +1,5 @@
-use ray_tracer_challenge_rs::objects::{Intersectable, Intersection, Sphere};
+use ray_tracer_challenge_rs::intersection::{Intersectable, Intersection};
+use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::tuple::Tuple;
 

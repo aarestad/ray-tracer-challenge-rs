@@ -1,28 +1,8 @@
+use crate::intersection::{Intersectable, Intersection};
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 use std::rc::Rc;
-
-#[derive(Debug)]
-pub struct Intersection {
-    pub t: f32,
-    pub object: Rc<dyn Intersectable>,
-}
-
-impl Intersection {
-    pub fn new(t: f32, object: Rc<dyn Intersectable>) -> Self {
-        Self {
-            t,
-            object: object.clone(),
-        }
-    }
-}
-
-pub trait Intersectable: Debug {
-    fn intersections(&self, ray: &Ray) -> Option<(Intersection, Intersection)>
-    where
-        Self: Sized;
-}
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct Sphere {

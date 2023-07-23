@@ -1,5 +1,5 @@
-use ray_tracer_challenge_rs::objects::{Intersection, Sphere};
-use ray_tracer_challenge_rs::ray::Ray;
+use ray_tracer_challenge_rs::intersection::Intersection;
+use ray_tracer_challenge_rs::objects::Sphere;
 
 use cucumber::{given, then, when, World};
 use futures_lite::future;
@@ -10,7 +10,6 @@ use std::rc::Rc;
 #[derive(Debug, Default, World)]
 struct IntersectionsWorld {
     spheres: HashMap<String, Sphere>,
-    rays: HashMap<String, Ray>,
     intersections: HashMap<String, Intersection>,
     // lol
     intersectionses: HashMap<String, Option<(Intersection, Intersection)>>,

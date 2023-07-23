@@ -1,5 +1,6 @@
 pub mod canvas;
 pub mod color;
+pub mod intersection;
 pub mod objects;
 pub mod ppm;
 pub mod ray;
