@@ -48,15 +48,22 @@ fn assert_entry_value(
     };
 }
 
-#[then(regex = r"(\w+) = (\w+)")]
-fn assert_matrix_equality(world: &mut MatrixWorld, lhs_name: String, rhs_name: String) {
+#[then(regex = r"(\w+) (!)?= (\w+)")]
+fn assert_matrix_equality(
+    world: &mut MatrixWorld,
+    lhs_name: String,
+    negation: String,
+    rhs_name: String,
+) {
     let lhs = world.get_matrix_or_panic(&lhs_name);
     let rhs = world.get_matrix_or_panic(&rhs_name);
+    let negate = negation == "!";
 
     assert!(
-        lhs == rhs,
-        "expected {} = {} but were not",
+        if negate { lhs != rhs } else { lhs == rhs },
+        "expected {} {}= {} but were not",
         lhs_name,
+        if negate { "!" } else { "" },
         rhs_name
     );
 }
