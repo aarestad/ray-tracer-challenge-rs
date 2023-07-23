@@ -7,6 +7,7 @@ pub enum RotationAxis {
     Z,
 }
 
+// TODO fluent api?
 nofmt::pls! {
     pub fn translation(x: f32, y: f32, z: f32) -> Matrix4<f32> {
         // remember, column-major!

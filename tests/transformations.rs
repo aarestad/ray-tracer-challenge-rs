@@ -179,6 +179,21 @@ fn when_transform_applied(
     world.tuples.insert(result_point_name, p.rhs_mult(m));
 }
 
+#[when(expr = r"{word} ← {word} * {word} * {word}")]
+fn when_chaining_transforms(
+    world: &mut TransformationsWorld,
+    result_name: String,
+    arg1_name: String,
+    arg2_name: String,
+    arg3_name: String,
+) {
+    let arg1 = world.get_matrix_or_panic(&arg1_name);
+    let arg2 = world.get_matrix_or_panic(&arg2_name);
+    let arg3 = world.get_matrix_or_panic(&arg3_name);
+
+    world.matrices.insert(result_name, arg1 * arg2 * arg3);
+}
+
 #[then(expr = r"{word} * {word} = point\({mathexpr}, {mathexpr}, {mathexpr}\)")]
 fn assert_point_transform_specified(
     world: &mut TransformationsWorld,
