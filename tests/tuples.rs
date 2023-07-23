@@ -351,7 +351,7 @@ fn when_normalizing_vec(
 fn assert_dot_product(world: &mut TupleWorld, lhs_name: String, rhs_name: String, expected: f32) {
     let lhs = world.get_tuple_or_panic(&lhs_name);
     let rhs = world.get_tuple_or_panic(&rhs_name);
-    let actual = lhs.dot(*rhs);
+    let actual = lhs.dot(rhs);
 
     assert!(
         actual == expected,
@@ -372,7 +372,7 @@ fn assert_cross_product(
 ) {
     let lhs = world.get_tuple_or_panic(&lhs_name);
     let rhs = world.get_tuple_or_panic(&rhs_name);
-    let actual = lhs.cross(*rhs);
+    let actual = lhs.cross(rhs);
 
     assert!(
         actual == expected,

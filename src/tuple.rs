@@ -180,17 +180,17 @@ impl Tuple {
         Tuple(self.0.normalize())
     }
 
-    pub fn dot(&self, rhs: Tuple) -> f32 {
+    pub fn dot(&self, rhs: &Tuple) -> f32 {
         self.0.dot(&rhs.0)
     }
 
-    pub fn cross(self, rhs_t: Tuple) -> Tuple {
+    pub fn cross(&self, rhs_t: &Tuple) -> Tuple {
         assert!(self.is_vector(), "must use vectors in cross");
         assert!(rhs_t.is_vector(), "must use vectors in cross");
 
         // cross product only works with 3D vectors
-        let lhs = Vector3::new(self.0[0], self.0[1], self.0[2]);
-        let rhs = Vector3::new(rhs_t.0[0], rhs_t.0[1], rhs_t.0[2]);
+        let lhs = Vector3::new(self.0.x, self.0.y, self.0.z);
+        let rhs = Vector3::new(rhs_t.0.x, rhs_t.0.y, rhs_t.0.z);
         let prod = lhs.cross(&rhs);
 
         Tuple::vector(prod[0], prod[1], prod[2])
