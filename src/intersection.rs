@@ -14,7 +14,5 @@ impl Intersection {
 }
 
 pub trait Intersectable: Debug {
-    fn intersections(&self, ray: &Ray) -> Option<(Intersection, Intersection)>
-    where
-        Self: Sized;
+    fn intersections(&self, ray: &Ray) -> Option<(Intersection, Intersection)>;
 }
