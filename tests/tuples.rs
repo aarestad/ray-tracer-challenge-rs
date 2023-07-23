@@ -176,10 +176,10 @@ fn assert_tuple_property(
     let tuple = world.get_tuple_or_panic(&tuple_name);
 
     let actual = match prop {
-        TupleProperty::X => tuple.x,
-        TupleProperty::Y => tuple.y,
-        TupleProperty::Z => tuple.z,
-        TupleProperty::W => tuple.w,
+        TupleProperty::X => tuple.x(),
+        TupleProperty::Y => tuple.y(),
+        TupleProperty::Z => tuple.z(),
+        TupleProperty::W => tuple.w(),
     };
 
     assert!(

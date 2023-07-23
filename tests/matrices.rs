@@ -1,7 +1,7 @@
 use cucumber::{gherkin::Step, given, then, when, Parameter, World};
 use futures_lite::future;
 use ndarray::Array2;
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr, thread::sleep, time::Duration};
 
 #[derive(Debug, Default, World)]
 struct MatrixWorld {
@@ -16,19 +16,22 @@ impl MatrixWorld {
     }
 }
 
+fn get_matrix_from_step(step: &Step, rows: usize, cols: usize) -> Array2<f32> {
+    let table = step.table.as_ref().expect("no table?");
+    let mut data: Vec<f32> = vec![];
+
+    for row in &table.rows {
+        data.extend(row.iter().map(|e| f32::from_str(e).expect("bad number")))
+    }
+
+    Array2::from_shape_vec((rows, cols), data).expect("bad array shape")
+}
+
 #[given(expr = r"the following {int}x{int} matrix {word}:")]
 fn given_a_matrix(world: &mut MatrixWorld, step: &Step, rows: usize, cols: usize, name: String) {
-    if let Some(table) = step.table.as_ref() {
-        let mut data: Vec<f32> = vec![];
-
-        for row in &table.rows {
-            data.extend(row.iter().map(|e| f32::from_str(e).expect("bad number")))
-        }
-
-        let arr = Array2::from_shape_vec((rows, cols), data).expect("bad array shape");
-
-        world.matrices.insert(name, arr);
-    }
+    world
+        .matrices
+        .insert(name, get_matrix_from_step(step, rows, cols));
 }
 
 #[then(expr = r"{word}[{int},{int}] = {float}")]
@@ -66,6 +69,31 @@ fn assert_matrix_equality(
         if negate { "!" } else { "" },
         rhs_name
     );
+}
+
+#[then(expr = r"{word} * {word} is the following {int}x{int} matrix:")]
+async fn assert_matrix_mult(
+    world: &mut MatrixWorld,
+    step: &Step,
+    lhs_name: String,
+    rhs_name: String,
+    rows: usize,
+    cols: usize,
+) {
+    let lhs = world.get_matrix_or_panic(&lhs_name);
+    let rhs = world.get_matrix_or_panic(&rhs_name);
+    let expected = get_matrix_from_step(step, rows, cols);
+    let actual = lhs.dot(rhs);
+    println!("lhs={}", lhs);
+    println!("rhs={}", rhs);
+    println!("expected={}", expected);
+    println!("actual={}", actual);
+
+    assert! {
+        expected == actual,
+        "expected {} * {} to be {} but was {}",
+        lhs_name, rhs_name, expected, actual,
+    };
 }
 
 fn main() {

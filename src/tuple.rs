@@ -5,17 +5,13 @@ use std::{
     str::FromStr,
 };
 
+use nalgebra::{Vector3, Vector4};
 use regex::Regex;
 
 use crate::util::approx;
 
 #[derive(Debug, Default, PartialEq, Copy, Clone)]
-pub struct Tuple {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub w: f32,
-}
+pub struct Tuple(Vector4<f32>);
 
 impl Display for Tuple {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -26,14 +22,11 @@ impl Display for Tuple {
         };
 
         if self_type == "tuple" {
-            f.write_fmt(format_args!(
-                "tuple({}, {}, {}, {})",
-                self.x, self.y, self.z, self.w
-            ))
+            f.write_fmt(format_args!("tuple({})", self.0))
         } else {
             f.write_fmt(format_args!(
                 "{}({}, {}, {})",
-                self_type, self.x, self.y, self.z
+                self_type, self.0[0], self.0[1], self.0[2],
             ))
         }
     }
@@ -49,12 +42,7 @@ impl Add for Tuple {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Tuple {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
+        Tuple(self.0 + rhs.0)
     }
 }
 
@@ -62,12 +50,7 @@ impl Neg for Tuple {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Tuple {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-            w: -self.w,
-        }
+        Tuple(-self.0)
     }
 }
 
@@ -75,7 +58,7 @@ impl Sub for Tuple {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        self + -rhs
+        Tuple(self.0 - rhs.0)
     }
 }
 
@@ -83,12 +66,7 @@ impl Mul<f32> for Tuple {
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        Tuple {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
-        }
+        Tuple(self.0 * rhs)
     }
 }
 
@@ -96,12 +74,7 @@ impl Div<f32> for Tuple {
     type Output = Self;
 
     fn div(self, rhs: f32) -> Self::Output {
-        Tuple {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
-        }
+        Tuple(self.0 / rhs)
     }
 }
 
@@ -128,13 +101,10 @@ impl FromStr for Tuple {
             return Err(s.to_string());
         }
 
+        let t = args.iter().map(|a| *a.as_ref().unwrap());
+
         match s {
-            s if s.starts_with("tuple") => Ok(Tuple {
-                x: *args[0].as_ref().unwrap(),
-                y: *args[1].as_ref().unwrap(),
-                z: *args[2].as_ref().unwrap(),
-                w: *args[3].as_ref().unwrap(),
-            }),
+            s if s.starts_with("tuple") => Ok(Tuple(Vector4::from_iterator(t))),
             s if s.starts_with("point") => Ok(Tuple::point(
                 *args[0].as_ref().unwrap(),
                 *args[1].as_ref().unwrap(),
@@ -152,7 +122,7 @@ impl FromStr for Tuple {
 
 impl Tuple {
     pub fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
-        Tuple { x, y, z, w }
+        Tuple(Vector4::from_vec(vec![x, y, z, w]))
     }
 
     pub fn point(x: f32, y: f32, z: f32) -> Tuple {
@@ -163,19 +133,35 @@ impl Tuple {
         Tuple::new(x, y, z, 0.0)
     }
 
+    pub fn x(&self) -> f32 {
+        self.0[0]
+    }
+
+    pub fn y(&self) -> f32 {
+        self.0[1]
+    }
+
+    pub fn z(&self) -> f32 {
+        self.0[2]
+    }
+
+    pub fn w(&self) -> f32 {
+        self.0[3]
+    }
+
     fn tuple_type(&self) -> TupleType {
-        match self.w {
+        match self.w() {
             w if w == 0.0 => TupleType::Vector,
             w if w == 1.0 => TupleType::Point,
-            _ => panic!("bad value for w: {}", self.w),
+            _ => panic!("bad value for w: {}", self.w()),
         }
     }
 
     pub fn approx_eq(&self, rhs: &Tuple) -> bool {
-        approx(self.x, rhs.x)
-            && approx(self.y, rhs.y)
-            && approx(self.z, rhs.z)
-            && approx(self.w, rhs.w)
+        approx(self.x(), rhs.x())
+            && approx(self.y(), rhs.y())
+            && approx(self.z(), rhs.z())
+            && approx(self.w(), rhs.w())
     }
 
     pub fn is_point(&self) -> bool {
@@ -187,34 +173,28 @@ impl Tuple {
     }
 
     pub fn magnitude(&self) -> f32 {
-        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
+        self.0.magnitude()
     }
 
     pub fn normalize(self) -> Tuple {
-        let mag = self.magnitude();
-
-        Tuple {
-            x: self.x / mag,
-            y: self.y / mag,
-            z: self.z / mag,
-            w: self.w / mag,
-        }
+        Tuple(self.0.normalize())
     }
 
     #[allow(dead_code)]
     pub fn dot(&self, rhs: Tuple) -> f32 {
-        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
+        self.0.dot(&rhs.0)
     }
 
     #[allow(dead_code)]
-    pub fn cross(self, rhs: Tuple) -> Tuple {
+    pub fn cross(self, rhs_t: Tuple) -> Tuple {
         assert!(self.is_vector(), "must use vectors in cross");
-        assert!(rhs.is_vector(), "must use vectors in cross");
+        assert!(rhs_t.is_vector(), "must use vectors in cross");
 
-        Tuple::vector(
-            self.y * rhs.z - self.z * rhs.y,
-            self.z * rhs.x - self.x * rhs.z,
-            self.x * rhs.y - self.y * rhs.x,
-        )
+        let lhs = Vector3::new(self.0[0], self.0[1], self.0[2]);
+        let rhs = Vector3::new(rhs_t.0[0], rhs_t.0[1], rhs_t.0[2]);
+
+        let prod = lhs.cross(&rhs);
+
+        Tuple::vector(prod[0], prod[1], prod[2])
     }
 }

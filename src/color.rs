@@ -35,20 +35,20 @@ impl Color {
     }
 
     pub fn red(&self) -> f32 {
-        self.0.x
+        self.0.x()
     }
 
     pub fn green(&self) -> f32 {
-        self.0.y
+        self.0.y()
     }
 
     pub fn blue(&self) -> f32 {
-        self.0.z
+        self.0.z()
     }
 
     #[allow(dead_code)]
     pub fn alpha(&self) -> f32 {
-        self.0.w
+        self.0.w()
     }
 
     #[allow(dead_code)]

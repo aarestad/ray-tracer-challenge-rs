@@ -43,7 +43,7 @@ pub fn ch1_playground() {
     );
     let env = Environment::new(Tuple::vector(0., -0.1, 0.), Tuple::vector(-0.01, 0., 0.));
 
-    while proj.position.y > 0. {
+    while proj.position.y() > 0. {
         proj = env.tick(proj);
         println!("proj now at {:?}", proj.position);
     }
@@ -60,10 +60,10 @@ pub fn ch2_playground(filename: &Path) -> Result<()> {
     let mut canvas = Canvas::new(900, 550);
     let color = Color::new(0.5, 0.7, 0.5);
 
-    while proj.position.y >= 0. {
+    while proj.position.y() >= 0. {
         canvas.write(
-            proj.position.x.floor() as usize,
-            550 - proj.position.y.floor() as usize,
+            proj.position.x().floor() as usize,
+            550 - proj.position.y().floor() as usize,
             color,
         );
 
