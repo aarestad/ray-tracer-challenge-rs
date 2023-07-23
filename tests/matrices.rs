@@ -1,30 +1,31 @@
 use cucumber::{gherkin::Step, given, then, when, Parameter, World};
 use futures_lite::future;
-use ndarray::Array2;
+use nalgebra::DMatrix;
 use std::{collections::HashMap, str::FromStr, thread::sleep, time::Duration};
 
 #[derive(Debug, Default, World)]
 struct MatrixWorld {
-    matrices: HashMap<String, Array2<f32>>,
+    matrices: HashMap<String, DMatrix<f32>>,
 }
 
 impl MatrixWorld {
-    fn get_matrix_or_panic(&self, matrix_name: &String) -> &Array2<f32> {
+    fn get_matrix_or_panic(&self, matrix_name: &String) -> &DMatrix<f32> {
         self.matrices
             .get(matrix_name)
             .expect(format!("missing array {}", matrix_name).as_str())
     }
 }
 
-fn get_matrix_from_step(step: &Step, rows: usize, cols: usize) -> Array2<f32> {
+fn get_matrix_from_step(step: &Step, rows: usize, cols: usize) -> DMatrix<f32> {
     let table = step.table.as_ref().expect("no table?");
     let mut data: Vec<f32> = vec![];
 
     for row in &table.rows {
-        data.extend(row.iter().map(|e| f32::from_str(e).expect("bad number")))
+        data.extend(row.iter().map(|e| f32::from_str(e).expect("bad number")));
     }
 
-    Array2::from_shape_vec((rows, cols), data).expect("bad array shape")
+    // data is read in row-major; matrix is stored col-major
+    DMatrix::from_vec(rows, cols, data).transpose()
 }
 
 #[given(expr = r"the following {int}x{int} matrix {word}:")]
@@ -43,7 +44,8 @@ fn assert_entry_value(
     expected: f32,
 ) {
     let matrix = world.get_matrix_or_panic(&name);
-    let actual = matrix[[row, col]];
+    let num_cols = matrix.column_iter().count();
+    let actual = matrix[row + col * num_cols];
 
     assert! {
         actual == expected,
@@ -83,11 +85,7 @@ async fn assert_matrix_mult(
     let lhs = world.get_matrix_or_panic(&lhs_name);
     let rhs = world.get_matrix_or_panic(&rhs_name);
     let expected = get_matrix_from_step(step, rows, cols);
-    let actual = lhs.dot(rhs);
-    println!("lhs={}", lhs);
-    println!("rhs={}", rhs);
-    println!("expected={}", expected);
-    println!("actual={}", actual);
+    let actual = lhs * rhs;
 
     assert! {
         expected == actual,
