@@ -6,8 +6,8 @@ use std::default::Default;
 pub struct Intersection(Vec<f32>);
 
 impl Intersection {
-    pub fn new(times: Vec<f32>) -> Intersection {
-        Intersection(times)
+    pub fn new(times: Vec<f32>) -> Self {
+        Self(times)
     }
 
     pub fn intersections(&self) -> &Vec<f32> {
