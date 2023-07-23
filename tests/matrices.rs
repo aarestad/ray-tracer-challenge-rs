@@ -1,4 +1,4 @@
-use cucumber::{gherkin::Step, given, then, when, Parameter, World};
+use cucumber::{gherkin::Step, given, then, World};
 use futures_lite::future;
 use nalgebra::{DMatrix, Matrix4};
 use ray_tracer_challenge_rs::tuple::Tuple;
@@ -57,6 +57,18 @@ fn given_an_inverse(world: &mut MatrixWorld, inv_name: String, matrix_name: Stri
     world
         .matrices
         .insert(inv_name, m.clone().try_inverse().expect("not invertible!"));
+}
+
+#[given(expr = r"{word} ← {word} * {word}")]
+fn given_matrix_mul(
+    world: &mut MatrixWorld,
+    product_name: String,
+    lhs_name: String,
+    rhs_name: String,
+) {
+    let lhs = world.get_matrix_or_panic(&lhs_name);
+    let rhs = world.get_matrix_or_panic(&rhs_name);
+    world.matrices.insert(product_name, lhs * rhs);
 }
 
 #[then(expr = r"{word}[{int},{int}] = {float}")]
@@ -240,7 +252,25 @@ fn assert_given_matrix_equality(
     let actual = world.get_matrix_or_panic(&matrix_name);
     let expected = get_matrix_from_step(step, rows, cols);
 
-    assert_abs_diff_eq!(actual, &expected, epsilon = EPSILON,);
+    assert_abs_diff_eq!(actual, &expected, epsilon = EPSILON);
+}
+
+#[then(expr = r"{word} * inverse\({word}\) = {word}")]
+fn assert_inverse_mult(
+    world: &mut MatrixWorld,
+    lhs_name: String,
+    rhs_name: String,
+    expected_name: String,
+) {
+    let lhs = world.get_matrix_or_panic(&lhs_name);
+    let rhs = world.get_matrix_or_panic(&rhs_name);
+    let expected = world.get_matrix_or_panic(&expected_name);
+
+    assert_abs_diff_eq!(
+        lhs * &rhs.clone().try_inverse().expect("not invertible!"),
+        &expected,
+        epsilon = EPSILON
+    );
 }
 
 fn main() {
