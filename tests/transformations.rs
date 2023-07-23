@@ -21,9 +21,7 @@ impl FromStr for MathExpr {
         }
 
         let mut chars = s.chars();
-
-        let first_char = chars.next().expect("empty string?");
-        let negate = first_char == '-';
+        let negate = chars.next().expect("empty string?") == '-';
 
         let rest = if negate {
             chars.collect::<String>()
