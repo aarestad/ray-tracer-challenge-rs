@@ -30,3 +30,7 @@ harness = false
 [[test]]
 name = "transformations"
 harness = false
+
+[[test]]
+name = "rays"
+harness = false
