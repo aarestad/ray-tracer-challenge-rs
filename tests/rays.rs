@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use cucumber::{gherkin::Step, given, then, when, World};
+use cucumber::{given, then, when, World};
 use futures_lite::future;
 use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::ray::Ray;
