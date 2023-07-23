@@ -5,7 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use nalgebra::{Vector3, Vector4};
+use nalgebra::{Matrix4, Vector3, Vector4};
 use regex::Regex;
 
 use crate::util::approx;
@@ -196,5 +196,9 @@ impl Tuple {
         let prod = lhs.cross(&rhs);
 
         Tuple::vector(prod[0], prod[1], prod[2])
+    }
+
+    pub fn rhs_mult(&self, lhs_matrix: &Matrix4<f32>) -> Tuple {
+        Tuple(lhs_matrix * self.0)
     }
 }
