@@ -222,10 +222,11 @@ fn assert_inverse(
     let m = world.get_matrix_or_panic(&matrix_name);
     let expected = get_matrix_from_step(step, rows, cols);
 
-    assert!(approx_matrix(
+    assert_abs_diff_eq!(
         &m.clone().try_inverse().expect("not invertible!"),
-        &expected
-    ));
+        &expected,
+        epsilon = EPSILON,
+    );
 }
 
 fn main() {
