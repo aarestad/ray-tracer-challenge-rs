@@ -101,19 +101,19 @@ impl FromStr for Tuple {
             return Err(s.to_string());
         }
 
-        let t = args.iter().map(|a| *a.as_ref().unwrap());
+        let mut t = args.iter().map(|a| *a.as_ref().unwrap());
 
         match s {
             s if s.starts_with("tuple") => Ok(Tuple(Vector4::from_iterator(t))),
             s if s.starts_with("point") => Ok(Tuple::point(
-                *args[0].as_ref().unwrap(),
-                *args[1].as_ref().unwrap(),
-                *args[2].as_ref().unwrap(),
+                t.next().unwrap(),
+                t.next().unwrap(),
+                t.next().unwrap(),
             )),
             s if s.starts_with("vector") => Ok(Tuple::vector(
-                *args[0].as_ref().unwrap(),
-                *args[1].as_ref().unwrap(),
-                *args[2].as_ref().unwrap(),
+                t.next().unwrap(),
+                t.next().unwrap(),
+                t.next().unwrap(),
             )),
             _ => Err(s.to_string()),
         }
@@ -134,19 +134,19 @@ impl Tuple {
     }
 
     pub fn x(&self) -> f32 {
-        self.0[0]
+        self.0.x
     }
 
     pub fn y(&self) -> f32 {
-        self.0[1]
+        self.0.y
     }
 
     pub fn z(&self) -> f32 {
-        self.0[2]
+        self.0.z
     }
 
     pub fn w(&self) -> f32 {
-        self.0[3]
+        self.0.w
     }
 
     fn tuple_type(&self) -> TupleType {
@@ -190,9 +190,9 @@ impl Tuple {
         assert!(self.is_vector(), "must use vectors in cross");
         assert!(rhs_t.is_vector(), "must use vectors in cross");
 
+        // cross product only works with 3D vectors
         let lhs = Vector3::new(self.0[0], self.0[1], self.0[2]);
         let rhs = Vector3::new(rhs_t.0[0], rhs_t.0[1], rhs_t.0[2]);
-
         let prod = lhs.cross(&rhs);
 
         Tuple::vector(prod[0], prod[1], prod[2])
