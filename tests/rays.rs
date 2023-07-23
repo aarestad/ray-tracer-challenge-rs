@@ -31,6 +31,25 @@ fn new_tuple(world: &mut RaysWorld, tuple_name: String, tuple: Tuple) {
     world.tuples.insert(tuple_name, tuple);
 }
 
+#[given(
+    expr = r"{word} ← ray\(point\({float}, {float}, {float}\), vector\({float}, {float}, {float}\)\)"
+)]
+fn given_a_ray(
+    world: &mut RaysWorld,
+    ray_name: String,
+    ox: f32,
+    oy: f32,
+    oz: f32,
+    dx: f32,
+    dy: f32,
+    dz: f32,
+) {
+    world.rays.insert(
+        ray_name,
+        Ray::new(Tuple::point(ox, oy, oz), Tuple::vector(dx, dy, dz)),
+    );
+}
+
 #[when(expr = r"{word} ← ray\({word}, {word}\)")]
 fn when_ray_constructed(
     world: &mut RaysWorld,
@@ -57,6 +76,15 @@ fn assert_direction(world: &mut RaysWorld, ray_name: String, direction_name: Str
     let direction = world.get_tuple_or_panic(&direction_name);
 
     assert_eq!(&ray.direction, direction);
+}
+
+#[then(expr = r"position\({word}, {float}\) = point\({float}, {float}, {float}\)")]
+fn assert_position(world: &mut RaysWorld, ray_name: String, t: f32, px: f32, py: f32, pz: f32) {
+    let ray = world.get_ray_or_panic(&ray_name);
+    let expected = Tuple::point(px, py, pz);
+    let actual = ray.position(t);
+
+    assert!(expected.approx_eq(&actual));
 }
 
 fn main() {
