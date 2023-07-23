@@ -1,10 +1,79 @@
-use cucumber::{gherkin::Step, given, then, World};
+use core::convert::Infallible;
+use cucumber::{gherkin::Step, given, then, Parameter, World};
 use futures_lite::future;
 use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::tuple::Tuple;
-use std::collections::HashMap;
+use std::f32::consts::PI;
+use std::{collections::HashMap, str::FromStr};
 
 use ray_tracer_challenge_rs::transforms::*;
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"(-?(π|√\d+)\s*/\s*\d+)|(-?\d+)")]
+struct MathExpr(f32);
+
+impl FromStr for MathExpr {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(val) = f32::from_str(s) {
+            return Ok(MathExpr(val));
+        }
+
+        let mut chars = s.chars();
+
+        let first_char = chars.next().expect("empty string?");
+        let negate = first_char == '-';
+
+        let rest = if negate {
+            chars.collect::<String>()
+        } else {
+            s.to_string()
+        };
+
+        let parts = rest.split("/").map(|s| s.trim()).collect::<Vec<&str>>();
+
+        let [dividend_str, divisor_str] = parts[0..2] else {
+          return Err("bad format".to_string());
+        };
+
+        let dividend = match dividend_str {
+            "π" => PI,
+            d if dividend_str.starts_with("√") => {
+                let operand = d.chars().skip(1).collect::<String>();
+                (f32::from_str(&operand).expect(&format!("bad dividend: {}", dividend_str))).sqrt()
+            }
+            _ => return Err(format!("bad dividend: {}", dividend_str)),
+        };
+
+        let divisor = f32::from_str(&divisor_str).expect(&format!("bad divisor: {}", divisor_str));
+
+        let result = if negate {
+            -dividend / divisor
+        } else {
+            dividend / divisor
+        };
+
+        Ok(MathExpr(result))
+    }
+}
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"x|y|z")]
+struct Axis(RotationAxis);
+
+impl FromStr for Axis {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Axis(match s {
+            "x" => RotationAxis::X,
+            "y" => RotationAxis::Y,
+            "z" => RotationAxis::Z,
+            _ => unreachable!(),
+        }))
+    }
+}
 
 #[derive(Debug, Default, World)]
 struct TransformationsWorld {
@@ -72,18 +141,29 @@ fn given_a_vector(world: &mut TransformationsWorld, point_name: String, x: f32, 
     world.tuples.insert(point_name, Tuple::vector(x, y, z));
 }
 
-#[then(expr = r"{word} * {word} = point\({float}, {float}, {float}\)")]
+#[given(expr = r"{word} ← rotation_{axis}\({mathexpr}\)")]
+fn given_a_rotation(
+    world: &mut TransformationsWorld,
+    matrix_name: String,
+    axis: Axis,
+    r: MathExpr,
+) {
+    let matrix = rotation(axis.0, r.0);
+    world.matrices.insert(matrix_name, matrix);
+}
+
+#[then(expr = r"{word} * {word} = point\({mathexpr}, {mathexpr}, {mathexpr}\)")]
 fn assert_point_transform_specified(
     world: &mut TransformationsWorld,
     matrix_name: String,
     point_name: String,
-    x: f32,
-    y: f32,
-    z: f32,
+    x: MathExpr,
+    y: MathExpr,
+    z: MathExpr,
 ) {
     let lhs = world.get_matrix_or_panic(&matrix_name);
     let rhs = world.get_tuple_or_panic(&point_name);
-    let expected = Tuple::point(x, y, z);
+    let expected = Tuple::point(x.0, y.0, z.0);
 
     let actual = rhs.rhs_mult(lhs);
 
