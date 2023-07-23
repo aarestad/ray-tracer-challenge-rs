@@ -1,4 +1,4 @@
-use ray_tracer_challenge_rs::intersection::Intersection;
+use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
 use ray_tracer_challenge_rs::objects::Sphere;
 
 use cucumber::{given, then, when, World};
@@ -12,7 +12,7 @@ struct IntersectionsWorld {
     spheres: HashMap<String, Sphere>,
     intersections: HashMap<String, Intersection>,
     // lol
-    intersectionses: HashMap<String, Option<(Intersection, Intersection)>>,
+    intersectionses: HashMap<String, Intersections>,
 }
 
 impl IntersectionsWorld {
@@ -31,7 +31,7 @@ impl IntersectionsWorld {
         Intersection::new(inter.t, inter.object.clone())
     }
 
-    fn get_ints_or_panic(&self, ints_name: &String) -> &Option<(Intersection, Intersection)> {
+    fn get_ints_or_panic(&self, ints_name: &String) -> &Intersections {
         self.intersectionses
             .get(ints_name)
             .expect(format!("missing intersections named {}", ints_name).as_str())
@@ -67,7 +67,9 @@ fn when_intersections_created(
 ) {
     let int1 = world.get_int_or_panic(&int1_name);
     let int2 = world.get_int_or_panic(&int2_name);
-    world.intersectionses.insert(ints_name, Some((int1, int2)));
+    world
+        .intersectionses
+        .insert(ints_name, Intersections::new(vec![int1, int2]));
 }
 
 #[then(regex = r"^(\w+).t = (.+)")]
@@ -79,13 +81,9 @@ fn assert_t(world: &mut IntersectionsWorld, int_name: String, expected_t: f32) {
 
 #[then(expr = r"{word}.count = {int}")]
 fn assert_intersection_count(world: &mut IntersectionsWorld, int_name: String, expected: usize) {
-    let intersect = world.get_ints_or_panic(&int_name);
+    let intersects = world.get_ints_or_panic(&int_name);
 
-    if expected == 0 {
-        assert!(intersect.is_none())
-    }
-
-    // asserting the length of a tuple is redundant
+    assert_eq!(intersects.ints().len(), expected)
 }
 
 #[then(regex = r"^(\w+)\[(\d)\]\.t = (.+)")]
@@ -95,16 +93,9 @@ fn assert_nth_intersection(
     nth: usize,
     expected: f32,
 ) {
-    let (i0, i1) = world
-        .get_ints_or_panic(&int_name)
-        .as_ref()
-        .expect("no intersection");
+    let ints = world.get_ints_or_panic(&int_name);
 
-    let actual = match nth {
-        0 => i0,
-        1 => i1,
-        _ => panic!("bad nth value"),
-    };
+    let actual = &ints.ints()[nth];
 
     assert_eq!(actual.t, expected);
 }

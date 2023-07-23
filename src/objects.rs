@@ -1,4 +1,4 @@
-use crate::intersection::{Intersectable, Intersection};
+use crate::intersection::{Intersectable, Intersection, Intersections};
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
@@ -24,7 +24,7 @@ impl Sphere {
 }
 
 impl Intersectable for Sphere {
-    fn intersections(&self, ray: &Ray) -> Option<(Intersection, Intersection)> {
+    fn intersections(&self, ray: &Ray) -> Intersections {
         let sphere_to_ray = ray.origin - self.center;
         let a = ray.direction.dot(&ray.direction);
         let b = 2. * ray.direction.dot(&sphere_to_ray);
@@ -33,12 +33,12 @@ impl Intersectable for Sphere {
         let discriminant = b.powi(2) - 4. * a * c;
 
         if discriminant < 0. {
-            return None;
+            return Intersections::empty();
         }
 
-        Some((
+        Intersections::new(vec![
             Intersection::new((-b - discriminant.sqrt()) / (2. * a), Rc::new(*self)),
             Intersection::new((-b + discriminant.sqrt()) / (2. * a), Rc::new(*self)),
-        ))
+        ])
     }
 }

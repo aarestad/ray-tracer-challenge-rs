@@ -1,4 +1,4 @@
-use ray_tracer_challenge_rs::intersection::{Intersectable, Intersection};
+use ray_tracer_challenge_rs::intersection::{Intersectable, Intersections};
 use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::tuple::Tuple;
@@ -12,7 +12,7 @@ use std::fmt::Debug;
 struct SpheresWorld {
     spheres: HashMap<String, Sphere>,
     rays: HashMap<String, Ray>,
-    intersections: HashMap<String, Option<(Intersection, Intersection)>>,
+    intersectionses: HashMap<String, Intersections>,
 }
 
 impl SpheresWorld {
@@ -28,13 +28,10 @@ impl SpheresWorld {
             .expect(format!("missing ray named {}", ray_name).as_str())
     }
 
-    fn get_intersection_or_panic(
-        &self,
-        int_name: &String,
-    ) -> &Option<(Intersection, Intersection)> {
-        self.intersections
+    fn get_intersections_or_panic(&self, int_name: &String) -> &Intersections {
+        self.intersectionses
             .get(int_name)
-            .expect(format!("missing intersection named {}", int_name).as_str())
+            .expect(format!("missing intersections named {}", int_name).as_str())
     }
 }
 
@@ -72,33 +69,22 @@ fn when_ray_intersects_sphere(
     let sphere = world.get_sphere_or_panic(&sphere_name);
     let ray = world.get_ray_or_panic(&ray_name);
     world
-        .intersections
+        .intersectionses
         .insert(int_name, sphere.intersections(ray));
 }
 
 #[then(expr = r"{word}.count = {int}")]
 fn assert_intersection_count(world: &mut SpheresWorld, int_name: String, expected: usize) {
-    let intersect = world.get_intersection_or_panic(&int_name);
+    let intersects = world.get_intersections_or_panic(&int_name);
 
-    if expected == 0 {
-        assert!(intersect.is_none())
-    }
-
-    // asserting the length of a tuple is redundant
+    assert!(intersects.ints().len() == expected);
 }
 
 #[then(expr = r"{word}[{int}] = {float}")]
 fn assert_nth_intersection(world: &mut SpheresWorld, int_name: String, nth: usize, expected: f32) {
-    let (i0, i1) = world
-        .get_intersection_or_panic(&int_name)
-        .as_ref()
-        .expect("no intersection");
+    let ints = world.get_intersections_or_panic(&int_name);
 
-    let actual = match nth {
-        0 => i0,
-        1 => i1,
-        _ => panic!("bad nth value"),
-    };
+    let actual = &ints.ints()[nth];
 
     assert_eq!(actual.t, expected);
 }

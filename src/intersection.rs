@@ -13,6 +13,40 @@ impl Intersection {
     }
 }
 
+#[derive(Debug)]
+pub struct Intersections {
+    intersections: Vec<Intersection>,
+}
+
+impl Intersections {
+    pub fn new(intersections: Vec<Intersection>) -> Intersections {
+        Intersections { intersections }
+    }
+
+    pub fn empty() -> Intersections {
+        Intersections {
+            intersections: vec![],
+        }
+    }
+
+    pub fn ints(&self) -> &Vec<Intersection> {
+        &self.intersections
+    }
+
+    pub fn hit(&self) -> Option<&Intersection> {
+        let mut nonnegative_t_ints: Vec<&Intersection> =
+            self.intersections.iter().filter(|i| i.t >= 0.).collect();
+
+        if nonnegative_t_ints.is_empty() {
+            return None;
+        }
+
+        nonnegative_t_ints.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
+
+        Some(nonnegative_t_ints.first().unwrap())
+    }
+}
+
 pub trait Intersectable: Debug {
-    fn intersections(&self, ray: &Ray) -> Option<(Intersection, Intersection)>;
+    fn intersections(&self, ray: &Ray) -> Intersections;
 }
