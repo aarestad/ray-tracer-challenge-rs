@@ -229,6 +229,20 @@ fn assert_inverse(
     );
 }
 
+#[then(regex = r"^(\w+) is the following (\d)x(\d) matrix:")]
+fn assert_given_matrix_equality(
+    world: &mut MatrixWorld,
+    step: &Step,
+    matrix_name: String,
+    rows: usize,
+    cols: usize,
+) {
+    let actual = world.get_matrix_or_panic(&matrix_name);
+    let expected = get_matrix_from_step(step, rows, cols);
+
+    assert_abs_diff_eq!(actual, &expected, epsilon = EPSILON,);
+}
+
 fn main() {
     future::block_on(MatrixWorld::run("tests/features/matrices.feature"));
 }
