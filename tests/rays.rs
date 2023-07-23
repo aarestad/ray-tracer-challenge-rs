@@ -2,13 +2,16 @@ use std::collections::HashMap;
 
 use cucumber::{gherkin::Step, given, then, when, World};
 use futures_lite::future;
+use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::ray::Ray;
+use ray_tracer_challenge_rs::transforms::{scaling, translation};
 use ray_tracer_challenge_rs::tuple::Tuple;
 
 #[derive(Debug, Default, World)]
 struct RaysWorld {
     tuples: HashMap<String, Tuple>,
     rays: HashMap<String, Ray>,
+    matrices: HashMap<String, Matrix4<f32>>,
 }
 
 impl RaysWorld {
@@ -22,6 +25,12 @@ impl RaysWorld {
         self.rays
             .get(ray_name)
             .expect(format!("missing ray named {}", ray_name).as_str())
+    }
+
+    fn get_matrix_or_panic(&self, matrix_name: &String) -> &Matrix4<f32> {
+        self.matrices
+            .get(matrix_name)
+            .expect(format!("missing matrix named {}", matrix_name).as_str())
     }
 }
 
@@ -50,6 +59,16 @@ fn given_a_ray(
     );
 }
 
+#[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
+fn given_a_translation(world: &mut RaysWorld, matrix_name: String, x: f32, y: f32, z: f32) {
+    world.matrices.insert(matrix_name, translation(x, y, z));
+}
+
+#[given(expr = r"{word} ← scaling\({float}, {float}, {float}\)")]
+fn given_a_scaling(world: &mut RaysWorld, matrix_name: String, x: f32, y: f32, z: f32) {
+    world.matrices.insert(matrix_name, scaling(x, y, z));
+}
+
 #[when(expr = r"{word} ← ray\({word}, {word}\)")]
 fn when_ray_constructed(
     world: &mut RaysWorld,
@@ -62,6 +81,20 @@ fn when_ray_constructed(
     world.rays.insert(ray_name, Ray::new(*origin, *direction));
 }
 
+#[when(expr = r"{word} ← transform\({word}, {word}\)")]
+fn when_ray_transformed(
+    world: &mut RaysWorld,
+    transformed_name: String,
+    ray_name: String,
+    matrix_name: String,
+) {
+    let ray = world.get_ray_or_panic(&ray_name);
+    let matrix = world.get_matrix_or_panic(&matrix_name);
+    world
+        .rays
+        .insert(transformed_name, ray.clone().transform(matrix));
+}
+
 #[then(expr = r"{word}.origin = {word}")]
 fn assert_origin(world: &mut RaysWorld, ray_name: String, origin_name: String) {
     let ray = world.get_ray_or_panic(&ray_name);
@@ -70,12 +103,26 @@ fn assert_origin(world: &mut RaysWorld, ray_name: String, origin_name: String) {
     assert_eq!(&ray.origin, origin);
 }
 
+#[then(expr = r"{word}.origin = point\({float}, {float}, {float}\)")]
+fn assert_specific_origin(world: &mut RaysWorld, ray_name: String, x: f32, y: f32, z: f32) {
+    let ray = world.get_ray_or_panic(&ray_name);
+
+    assert_eq!(ray.origin, Tuple::point(x, y, z));
+}
+
 #[then(expr = r"{word}.direction = {word}")]
 fn assert_direction(world: &mut RaysWorld, ray_name: String, direction_name: String) {
     let ray = world.get_ray_or_panic(&ray_name);
     let direction = world.get_tuple_or_panic(&direction_name);
 
     assert_eq!(&ray.direction, direction);
+}
+
+#[then(expr = r"{word}.direction = vector\({float}, {float}, {float}\)")]
+fn assert_specific_direction(world: &mut RaysWorld, ray_name: String, x: f32, y: f32, z: f32) {
+    let ray = world.get_ray_or_panic(&ray_name);
+
+    assert_eq!(ray.direction, Tuple::vector(x, y, z));
 }
 
 #[then(expr = r"position\({word}, {float}\) = point\({float}, {float}, {float}\)")]

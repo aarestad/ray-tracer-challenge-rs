@@ -1,6 +1,7 @@
 use crate::tuple::Tuple;
+use nalgebra::Matrix4;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Ray {
     pub origin: Tuple,
     pub direction: Tuple,
@@ -15,5 +16,12 @@ impl Ray {
 
     pub fn position(&self, t: f32) -> Tuple {
         self.origin + self.direction * t
+    }
+
+    pub fn transform(self, transform: &Matrix4<f32>) -> Ray {
+        Ray::new(
+            self.origin.transform(transform),
+            self.direction.transform(transform),
+        )
     }
 }
