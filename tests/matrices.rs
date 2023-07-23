@@ -48,6 +48,19 @@ fn assert_entry_value(
     };
 }
 
+#[then(regex = r"(\w+) = (\w+)")]
+fn assert_matrix_equality(world: &mut MatrixWorld, lhs_name: String, rhs_name: String) {
+    let lhs = world.get_matrix_or_panic(&lhs_name);
+    let rhs = world.get_matrix_or_panic(&rhs_name);
+
+    assert!(
+        lhs == rhs,
+        "expected {} = {} but were not",
+        lhs_name,
+        rhs_name
+    );
+}
+
 fn main() {
     future::block_on(MatrixWorld::run("tests/features/matrices.feature"));
 }
