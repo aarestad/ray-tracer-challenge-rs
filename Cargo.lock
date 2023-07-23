@@ -702,6 +702,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "nofmt"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b06910a54adb901a01dfd9c475e7959c41acd55a078101ec70fb180f01b7435f"
+
+[[package]]
 name = "nom"
 version = "7.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -870,6 +876,7 @@ dependencies = [
  "cucumber",
  "futures-lite",
  "nalgebra",
+ "nofmt",
  "regex",
 ]
 

@@ -4,7 +4,7 @@ use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::tuple::Tuple;
 use std::collections::HashMap;
 
-use ray_tracer_challenge_rs::transforms::translation;
+use ray_tracer_challenge_rs::transforms::*;
 
 #[derive(Debug, Default, World)]
 struct TransformationsWorld {
@@ -35,6 +35,18 @@ fn given_a_translation_matrix(
     z: f32,
 ) {
     world.matrices.insert(matrix_name, translation(x, y, z));
+}
+
+// TODO generalize with above
+#[given(expr = r"{word} ← scaling\({float}, {float}, {float}\)")]
+fn given_a_scaling_matrix(
+    world: &mut TransformationsWorld,
+    matrix_name: String,
+    x: f32,
+    y: f32,
+    z: f32,
+) {
+    world.matrices.insert(matrix_name, scaling(x, y, z));
 }
 
 #[given(expr = r"{word} ← inverse\({word}\)")]
@@ -93,6 +105,30 @@ fn assert_point_transform_name(
     let lhs = world.get_matrix_or_panic(&matrix_name);
     let rhs = world.get_tuple_or_panic(&tuple_name);
     let expected = world.get_tuple_or_panic(&expected_name);
+
+    let actual = rhs.rhs_mult(lhs);
+
+    assert!(
+        expected.approx_eq(&actual),
+        "expected {} but was {}",
+        expected,
+        actual
+    );
+}
+
+// TODO generalize with above
+#[then(expr = r"{word} * {word} = vector\({float}, {float}, {float}\)")]
+fn assert_vector_transform_specified(
+    world: &mut TransformationsWorld,
+    matrix_name: String,
+    vector_name: String,
+    x: f32,
+    y: f32,
+    z: f32,
+) {
+    let lhs = world.get_matrix_or_panic(&matrix_name);
+    let rhs = world.get_tuple_or_panic(&vector_name);
+    let expected = Tuple::vector(x, y, z);
 
     let actual = rhs.rhs_mult(lhs);
 
