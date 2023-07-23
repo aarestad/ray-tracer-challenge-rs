@@ -1,5 +1,5 @@
 use core::convert::Infallible;
-use cucumber::{gherkin::Step, given, then, Parameter, World};
+use cucumber::{gherkin::Step, given, then, when, Parameter, World};
 use futures_lite::future;
 use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::tuple::Tuple;
@@ -116,6 +116,23 @@ fn given_a_scaling_matrix(
     world.matrices.insert(matrix_name, scaling(x, y, z));
 }
 
+// TODO generalize with above
+#[given(expr = r"{word} ← shearing\({float}, {float}, {float}, {float}, {float}, {float}\)")]
+fn given_a_shearing_matrix(
+    world: &mut TransformationsWorld,
+    matrix_name: String,
+    xy: f32,
+    xz: f32,
+    yx: f32,
+    yz: f32,
+    zx: f32,
+    zy: f32,
+) {
+    world
+        .matrices
+        .insert(matrix_name, shearing(xy, xz, yx, yz, zx, zy));
+}
+
 #[given(expr = r"{word} ← inverse\({word}\)")]
 fn given_an_inverse(
     world: &mut TransformationsWorld,
@@ -150,6 +167,18 @@ fn given_a_rotation(
     world.matrices.insert(matrix_name, matrix);
 }
 
+#[when(expr = r"{word} ← {word} * {word}")]
+fn when_transform_applied(
+    world: &mut TransformationsWorld,
+    result_point_name: String,
+    matrix_name: String,
+    point_name: String,
+) {
+    let m = world.get_matrix_or_panic(&matrix_name);
+    let p = world.get_tuple_or_panic(&point_name);
+    world.tuples.insert(result_point_name, p.rhs_mult(m));
+}
+
 #[then(expr = r"{word} * {word} = point\({mathexpr}, {mathexpr}, {mathexpr}\)")]
 fn assert_point_transform_specified(
     world: &mut TransformationsWorld,
@@ -164,6 +193,25 @@ fn assert_point_transform_specified(
     let expected = Tuple::point(x.0, y.0, z.0);
 
     let actual = rhs.rhs_mult(lhs);
+
+    assert!(
+        expected.approx_eq(&actual),
+        "expected {} but was {}",
+        expected,
+        actual
+    );
+}
+
+#[then(expr = r"{word} = point\({mathexpr}, {mathexpr}, {mathexpr}\)")]
+fn assert_point_value(
+    world: &mut TransformationsWorld,
+    point_name: String,
+    x: MathExpr,
+    y: MathExpr,
+    z: MathExpr,
+) {
+    let expected = Tuple::point(x.0, y.0, z.0);
+    let actual = world.get_tuple_or_panic(&point_name);
 
     assert!(
         expected.approx_eq(&actual),

@@ -49,4 +49,13 @@ nofmt::pls! {
            ]),
         }
     }
+
+    pub fn shearing(xy: f32, xz: f32, yx: f32, yz: f32, zx: f32, zy: f32) -> Matrix4<f32> {
+        Matrix4::from_vec(vec![
+            1., yx, zx, 0.,
+            xy, 1., zy, 0.,
+            xz, yz, 1., 0.,
+            0., 0., 0., 1.,
+        ])
+    }
 }
