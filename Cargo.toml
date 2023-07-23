@@ -38,3 +38,7 @@ harness = false
 [[test]]
 name = "spheres"
 harness = false
+
+[[test]]
+name = "intersections"
+harness = false

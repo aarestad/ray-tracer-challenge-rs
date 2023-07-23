@@ -2,7 +2,7 @@ use ray_tracer_challenge_rs::objects::{Intersectable, Intersection, Sphere};
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::tuple::Tuple;
 
-use cucumber::{given, then, when, Parameter, World};
+use cucumber::{given, then, when, World};
 use futures_lite::future;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -11,7 +11,7 @@ use std::fmt::Debug;
 struct SpheresWorld {
     spheres: HashMap<String, Sphere>,
     rays: HashMap<String, Ray>,
-    intersections: HashMap<String, Intersection>,
+    intersections: HashMap<String, Option<(Intersection, Intersection)>>,
 }
 
 impl SpheresWorld {
@@ -27,7 +27,10 @@ impl SpheresWorld {
             .expect(format!("missing ray named {}", ray_name).as_str())
     }
 
-    fn get_intersection_or_panic(&self, int_name: &String) -> &Intersection {
+    fn get_intersection_or_panic(
+        &self,
+        int_name: &String,
+    ) -> &Option<(Intersection, Intersection)> {
         self.intersections
             .get(int_name)
             .expect(format!("missing intersection named {}", int_name).as_str())
@@ -76,14 +79,27 @@ fn when_ray_intersects_sphere(
 fn assert_intersection_count(world: &mut SpheresWorld, int_name: String, expected: usize) {
     let intersect = world.get_intersection_or_panic(&int_name);
 
-    assert_eq!(intersect.intersections().len(), expected);
+    if expected == 0 {
+        assert!(intersect.is_none())
+    }
+
+    // asserting the length of a tuple is redundant
 }
 
 #[then(expr = r"{word}[{int}] = {float}")]
 fn assert_nth_intersection(world: &mut SpheresWorld, int_name: String, nth: usize, expected: f32) {
-    let intersect = world.get_intersection_or_panic(&int_name);
+    let (i0, i1) = world
+        .get_intersection_or_panic(&int_name)
+        .as_ref()
+        .expect("no intersection");
 
-    assert_eq!(intersect.intersections()[nth], expected);
+    let actual = match nth {
+        0 => i0,
+        1 => i1,
+        _ => panic!("bad nth value"),
+    };
+
+    assert_eq!(actual.t, expected);
 }
 
 fn main() {

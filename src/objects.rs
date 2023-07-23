@@ -1,41 +1,61 @@
 use crate::ray::Ray;
 use crate::tuple::Tuple;
-use std::default::Default;
+use std::fmt::Debug;
 
 #[derive(Debug)]
-pub struct Intersection(Vec<f32>);
+pub struct Intersection {
+    pub t: f32,
+    pub object: Box<dyn Intersectable>,
+}
 
 impl Intersection {
-    pub fn new(times: Vec<f32>) -> Self {
-        Self(times)
-    }
-
-    pub fn intersections(&self) -> &Vec<f32> {
-        &self.0
+    pub fn new(t: f32, object: impl Intersectable + 'static) -> Self {
+        Self {
+            t,
+            object: Box::new(object),
+        }
     }
 }
 
-pub trait Intersectable {
-    fn intersection(&self, ray: &Ray) -> Intersection;
+pub trait Intersectable: Debug {
+    fn intersection(&self, ray: &Ray) -> Option<(Intersection, Intersection)>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Sphere {
-    origin: Tuple,
+    center: Tuple,
     radius: f32,
 }
 
 impl Sphere {
     pub fn new() -> Self {
         Self {
-            origin: Default::default(),
+            center: Tuple::point(0., 0., 0.),
             radius: 1.,
         }
+    }
+
+    pub fn center(&self) -> &Tuple {
+        &self.center
     }
 }
 
 impl Intersectable for Sphere {
-    fn intersection(&self, ray: &Ray) -> Intersection {
-        Intersection::new(vec![])
+    fn intersection(&self, ray: &Ray) -> Option<(Intersection, Intersection)> {
+        let sphere_to_ray = ray.origin - self.center;
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2. * ray.direction.dot(&sphere_to_ray);
+        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.;
+
+        let discriminant = b.powi(2) - 4. * a * c;
+
+        if discriminant < 0. {
+            return None;
+        }
+
+        Some((
+            Intersection::new((-b - discriminant.sqrt()) / (2. * a), *self),
+            Intersection::new((-b + discriminant.sqrt()) / (2. * a), *self),
+        ))
     }
 }
