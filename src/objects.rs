@@ -1,24 +1,27 @@
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Intersection {
     pub t: f32,
-    pub object: Box<dyn Intersectable>,
+    pub object: Rc<dyn Intersectable>,
 }
 
 impl Intersection {
-    pub fn new(t: f32, object: impl Intersectable + 'static) -> Self {
+    pub fn new(t: f32, object: Rc<dyn Intersectable>) -> Self {
         Self {
             t,
-            object: Box::new(object),
+            object: object.clone(),
         }
     }
 }
 
 pub trait Intersectable: Debug {
-    fn intersection(&self, ray: &Ray) -> Option<(Intersection, Intersection)>;
+    fn intersections(&self, ray: &Ray) -> Option<(Intersection, Intersection)>
+    where
+        Self: Sized;
 }
 
 #[derive(Debug, Copy, Clone, Default)]
@@ -41,7 +44,7 @@ impl Sphere {
 }
 
 impl Intersectable for Sphere {
-    fn intersection(&self, ray: &Ray) -> Option<(Intersection, Intersection)> {
+    fn intersections(&self, ray: &Ray) -> Option<(Intersection, Intersection)> {
         let sphere_to_ray = ray.origin - self.center;
         let a = ray.direction.dot(&ray.direction);
         let b = 2. * ray.direction.dot(&sphere_to_ray);
@@ -54,8 +57,8 @@ impl Intersectable for Sphere {
         }
 
         Some((
-            Intersection::new((-b - discriminant.sqrt()) / (2. * a), *self),
-            Intersection::new((-b + discriminant.sqrt()) / (2. * a), *self),
+            Intersection::new((-b - discriminant.sqrt()) / (2. * a), Rc::new(*self)),
+            Intersection::new((-b + discriminant.sqrt()) / (2. * a), Rc::new(*self)),
         ))
     }
 }

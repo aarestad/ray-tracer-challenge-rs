@@ -72,7 +72,7 @@ fn when_ray_intersects_sphere(
     let ray = world.get_ray_or_panic(&ray_name);
     world
         .intersections
-        .insert(int_name, sphere.intersection(ray));
+        .insert(int_name, sphere.intersections(ray));
 }
 
 #[then(expr = r"{word}.count = {int}")]
