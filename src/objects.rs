@@ -44,7 +44,7 @@ impl Sphere {
     }
 
     pub fn normal_at(&self, p: Tuple) -> Tuple {
-        Tuple::vector(0., 0., 0.)
+        (p - self.center).normalize()
     }
 }
 

@@ -1,18 +1,7 @@
-use cucumber::{gherkin::Step, given, then, when, World};
+use cucumber::{gherkin::Step, then, when, World};
 use futures_lite::future;
-use ray_tracer_challenge_rs::canvas::Canvas;
 use ray_tracer_challenge_rs::color::Color;
 use testutils::world::RayTracerWorld;
-
-#[given(expr = r"{word} ← canvas\({int}, {int}\)")]
-fn given_a_canvas(world: &mut RayTracerWorld, name: String, width: usize, height: usize) {
-    world.canvases.insert(name, Canvas::new(width, height));
-}
-
-#[given(expr = r"{word} ← color\({float}, {float}, {float}\)")]
-fn given_a_color(world: &mut RayTracerWorld, name: String, r: f32, g: f32, b: f32) {
-    world.colors.insert(name, Color::new(r, g, b));
-}
 
 #[when(expr = r"write_pixel\({word}, {int}, {int}, {word}\)")]
 fn when_write_pixel(
