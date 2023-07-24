@@ -13,7 +13,13 @@ impl Intersection {
     }
 }
 
-#[derive(Debug)]
+impl PartialEq for Intersection {
+    fn eq(&self, other: &Self) -> bool {
+        self.t == other.t && self.object.id() == other.object.id()
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Intersections {
     intersections: Vec<Intersection>,
 }
@@ -49,4 +55,5 @@ impl Intersections {
 
 pub trait Intersectable: Debug {
     fn intersections(&self, ray: &Ray) -> Intersections;
+    fn id(&self) -> i64;
 }

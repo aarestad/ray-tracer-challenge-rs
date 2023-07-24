@@ -41,4 +41,8 @@ impl Intersectable for Sphere {
             Intersection::new((-b + discriminant.sqrt()) / (2. * a), Rc::new(*self)),
         ])
     }
+
+    fn id(&self) -> i64 {
+        self.center.magnitude() as i64
+    }
 }
