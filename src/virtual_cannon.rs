@@ -61,7 +61,11 @@ pub fn ch2_playground(filename: &Path) -> Result<()> {
     let color = Color::new(0.5, 0.7, 0.5);
 
     while proj.position.y() >= 0. {
-        canvas.write(proj.position.x(), 550. - proj.position.y(), color);
+        canvas.write(
+            proj.position.x().floor() as usize,
+            550 - proj.position.y() as usize,
+            color,
+        );
 
         proj = env.tick(proj);
     }

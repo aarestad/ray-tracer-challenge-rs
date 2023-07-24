@@ -21,7 +21,11 @@ pub fn ch4_playground(filename: &Path) -> Result<()> {
 
     for _ in 0..12 {
         let canvas_loc = current_loc.transform(&canvas_translation);
-        canvas.write(canvas_loc.x(), canvas_loc.y(), color);
+        canvas.write(
+            canvas_loc.x().floor() as usize,
+            canvas_loc.y().floor() as usize,
+            color,
+        );
         current_loc = current_loc.transform(&rotation);
     }
 
