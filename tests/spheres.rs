@@ -85,6 +85,7 @@ fn given_a_scaling(world: &mut SpheresWorld, trans_name: String, x: f32, y: f32,
     world.transforms.insert(trans_name, scaling(x, y, z));
 }
 
+#[given(expr = r"{word} ← intersect\({word}, {word}\)")]
 #[when(expr = r"{word} ← intersect\({word}, {word}\)")]
 fn when_ray_intersects_sphere(
     world: &mut SpheresWorld,
@@ -126,6 +127,18 @@ fn assert_transform(world: &mut SpheresWorld, sphere_name: String, trans_name: S
     };
 
     assert_eq!(*s.transform(), t)
+}
+
+#[then(expr = r"{word}[{int}].t = {float}")]
+fn assert_nth_intersection_t(
+    world: &mut SpheresWorld,
+    int_name: String,
+    nth: usize,
+    expected: f32,
+) {
+    let intersects = world.get_intersections_or_panic(&int_name);
+
+    assert_eq!(intersects.ints()[nth].t, expected);
 }
 
 fn main() {

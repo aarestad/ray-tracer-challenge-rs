@@ -47,9 +47,16 @@ impl Sphere {
 
 impl Intersectable for Sphere {
     fn intersections(&self, ray: &Ray) -> Intersections {
-        let sphere_to_ray = ray.origin - self.center;
-        let a = ray.direction.dot(&ray.direction);
-        let b = 2. * ray.direction.dot(&sphere_to_ray);
+        let transformed_ray = ray.transform(
+            &self
+                .transform
+                .try_inverse()
+                .expect("cannot invert transform"),
+        );
+
+        let sphere_to_ray = transformed_ray.origin - self.center;
+        let a = transformed_ray.direction.dot(&transformed_ray.direction);
+        let b = 2. * transformed_ray.direction.dot(&sphere_to_ray);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.;
 
         let discriminant = b.powi(2) - 4. * a * c;
