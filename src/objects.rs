@@ -1,3 +1,5 @@
+use nalgebra::Matrix4;
+
 use crate::intersection::{Intersectable, Intersection, Intersections};
 use crate::ray::Ray;
 use crate::tuple::Tuple;
@@ -8,6 +10,7 @@ use std::rc::Rc;
 pub struct Sphere {
     center: Tuple,
     radius: f32,
+    transform: Matrix4<f32>,
 }
 
 impl Sphere {
@@ -15,11 +18,20 @@ impl Sphere {
         Self {
             center: Tuple::point(0., 0., 0.),
             radius: 1.,
+            transform: Matrix4::identity(),
         }
     }
 
     pub fn center(&self) -> &Tuple {
         &self.center
+    }
+
+    pub fn transform(&self) -> &Matrix4<f32> {
+        &self.transform
+    }
+
+    pub fn set_transform(&mut self, transform: Matrix4<f32>) {
+        self.transform = transform;
     }
 }
 

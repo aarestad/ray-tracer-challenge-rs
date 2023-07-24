@@ -1,24 +1,34 @@
+use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::intersection::{Intersectable, Intersections};
 use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ray::Ray;
+use ray_tracer_challenge_rs::transforms::translation;
 use ray_tracer_challenge_rs::tuple::Tuple;
 
 use cucumber::{given, then, when, World};
 use futures_lite::future;
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::rc::Rc;
 
 #[derive(Debug, Default, World)]
 struct SpheresWorld {
     spheres: HashMap<String, Sphere>,
     rays: HashMap<String, Ray>,
     intersectionses: HashMap<String, Intersections>,
+    transforms: HashMap<String, Matrix4<f32>>,
 }
 
 impl SpheresWorld {
     fn get_sphere_or_panic(&self, sphere_name: &String) -> &Sphere {
         self.spheres
             .get(sphere_name)
+            .expect(format!("missing sphere named {}", sphere_name).as_str())
+    }
+
+    fn get_mut_sphere_or_panic(&mut self, sphere_name: &String) -> &mut Sphere {
+        self.spheres
+            .get_mut(sphere_name)
             .expect(format!("missing sphere named {}", sphere_name).as_str())
     }
 
@@ -32,6 +42,13 @@ impl SpheresWorld {
         self.intersectionses
             .get(int_name)
             .expect(format!("missing intersections named {}", int_name).as_str())
+    }
+
+    fn get_transform_or_panic(&self, trans_name: &String) -> Matrix4<f32> {
+        self.transforms
+            .get(trans_name)
+            .expect(format!("missing transform named {}", trans_name).as_str())
+            .clone()
     }
 }
 
@@ -57,6 +74,11 @@ fn given_a_ray(
 #[given(expr = r"{word} ← sphere\(\)")]
 fn given_a_sphere(world: &mut SpheresWorld, sphere_name: String) {
     world.spheres.insert(sphere_name, Sphere::new());
+}
+
+#[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
+fn given_a_translation(world: &mut SpheresWorld, trans_name: String, x: f32, y: f32, z: f32) {
+    world.transforms.insert(trans_name, translation(x, y, z));
 }
 
 #[when(expr = r"{word} ← intersect\({word}, {word}\)")]
@@ -87,6 +109,19 @@ fn assert_nth_intersection(world: &mut SpheresWorld, int_name: String, nth: usiz
     let actual = &ints.ints()[nth];
 
     assert_eq!(actual.t, expected);
+}
+
+#[then(expr = r"{word}.transform = {word}")]
+fn assert_transform(world: &mut SpheresWorld, sphere_name: String, trans_name: String) {
+    let s = world.get_sphere_or_panic(&sphere_name);
+
+    let t = if trans_name == "identity_matrix" {
+        Matrix4::identity()
+    } else {
+        world.get_transform_or_panic(&trans_name)
+    };
+
+    assert_eq!(*s.transform(), t)
 }
 
 fn main() {
