@@ -1,0 +1,10 @@
+/Users/aarestad/ray-tracer-challenge-rs/testutils/target/debug/deps/io_lifetimes-3247a95a3755a966.rmeta: /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/lib.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/portability.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/traits.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/example_ffi.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/raw.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/views.rs
+
+/Users/aarestad/ray-tracer-challenge-rs/testutils/target/debug/deps/io_lifetimes-3247a95a3755a966.d: /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/lib.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/portability.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/traits.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/example_ffi.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/raw.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/views.rs
+
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/lib.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/portability.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/traits.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/example_ffi.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/raw.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/io-lifetimes-1.0.11/src/views.rs:

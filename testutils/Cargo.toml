@@ -1,0 +1,8 @@
+[package]
+name = "testutils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cucumber = "0.20"
+ray-tracer-challenge-rs = { path = ".." }

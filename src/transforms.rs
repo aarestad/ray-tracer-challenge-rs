@@ -2,7 +2,7 @@
 
 use nalgebra::Matrix4;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum RotationAxis {
     X,
     Y,

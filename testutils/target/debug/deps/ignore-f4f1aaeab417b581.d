@@ -1,0 +1,12 @@
+/Users/aarestad/ray-tracer-challenge-rs/testutils/target/debug/deps/ignore-f4f1aaeab417b581.rmeta: /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/lib.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/default_types.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/dir.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/gitignore.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/overrides.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/pathutil.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/types.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/walk.rs
+
+/Users/aarestad/ray-tracer-challenge-rs/testutils/target/debug/deps/ignore-f4f1aaeab417b581.d: /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/lib.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/default_types.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/dir.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/gitignore.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/overrides.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/pathutil.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/types.rs /Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/walk.rs
+
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/lib.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/default_types.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/dir.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/gitignore.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/overrides.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/pathutil.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/types.rs:
+/Users/aarestad/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ignore-0.4.20/src/walk.rs:

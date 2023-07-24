@@ -43,9 +43,8 @@ impl Sphere {
         &self.transform
     }
 
-    #[allow(dead_code)]
-    pub fn set_transform(&mut self, transform: Matrix4<f32>) {
-        self.transform = transform;
+    pub fn normal_at(&self, p: Tuple) -> Tuple {
+        Tuple::vector(0., 0., 0.)
     }
 }
 
