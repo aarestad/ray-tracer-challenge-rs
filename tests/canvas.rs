@@ -53,8 +53,8 @@ fn given_a_color(world: &mut CanvasWorld, name: String, r: f32, g: f32, b: f32) 
 fn when_write_pixel(
     world: &mut CanvasWorld,
     canvas_name: String,
-    x: f32,
-    y: f32,
+    x: usize,
+    y: usize,
     color_name: String,
 ) {
     let color = world.get_color_or_panic(&color_name).clone();
@@ -74,7 +74,7 @@ fn when_every_pixel_set(world: &mut CanvasWorld, canvas_name: String, r: f32, g:
 
     for y in 0..canvas.height() {
         for x in 0..canvas.width() {
-            canvas.write(x as f32, y as f32, Color::new(r, g, b));
+            canvas.write(x, y, Color::new(r, g, b));
         }
     }
 }

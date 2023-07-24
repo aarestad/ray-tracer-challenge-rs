@@ -9,6 +9,7 @@ use std::rc::Rc;
 #[derive(Debug, Copy, Clone)]
 pub struct Sphere {
     center: Tuple,
+    #[allow(dead_code)]
     radius: f32,
     transform: Matrix4<f32>,
 }
@@ -32,14 +33,17 @@ impl Sphere {
         }
     }
 
+    #[allow(dead_code)]
     pub fn center(&self) -> &Tuple {
         &self.center
     }
 
+    #[allow(dead_code)]
     pub fn transform(&self) -> &Matrix4<f32> {
         &self.transform
     }
 
+    #[allow(dead_code)]
     pub fn set_transform(&mut self, transform: Matrix4<f32>) {
         self.transform = transform;
     }
