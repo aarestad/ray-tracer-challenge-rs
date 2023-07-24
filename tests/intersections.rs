@@ -44,7 +44,7 @@ impl IntersectionsWorld {
 
 #[given(expr = r"{word} ← sphere\(\)")]
 fn given_a_sphere(world: &mut IntersectionsWorld, sphere_name: String) {
-    world.spheres.insert(sphere_name, Sphere::new());
+    world.spheres.insert(sphere_name, Sphere::default());
 }
 
 #[given(expr = r"{word} ← intersection\({float}, {word}\)")]

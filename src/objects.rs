@@ -6,19 +6,29 @@ use crate::tuple::Tuple;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone)]
 pub struct Sphere {
     center: Tuple,
     radius: f32,
     transform: Matrix4<f32>,
 }
 
-impl Sphere {
-    pub fn new() -> Self {
+impl Default for Sphere {
+    fn default() -> Self {
         Self {
             center: Tuple::point(0., 0., 0.),
             radius: 1.,
             transform: Matrix4::identity(),
+        }
+    }
+}
+
+impl Sphere {
+    pub fn new(transform: Matrix4<f32>) -> Self {
+        Self {
+            center: Tuple::point(0., 0., 0.),
+            radius: 1.,
+            transform,
         }
     }
 

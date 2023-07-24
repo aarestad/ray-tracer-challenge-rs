@@ -2,14 +2,13 @@ use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::intersection::{Intersectable, Intersections};
 use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ray::Ray;
-use ray_tracer_challenge_rs::transforms::translation;
+use ray_tracer_challenge_rs::transforms::{scaling, translation};
 use ray_tracer_challenge_rs::tuple::Tuple;
 
 use cucumber::{given, then, when, World};
 use futures_lite::future;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::rc::Rc;
 
 #[derive(Debug, Default, World)]
 struct SpheresWorld {
@@ -23,12 +22,6 @@ impl SpheresWorld {
     fn get_sphere_or_panic(&self, sphere_name: &String) -> &Sphere {
         self.spheres
             .get(sphere_name)
-            .expect(format!("missing sphere named {}", sphere_name).as_str())
-    }
-
-    fn get_mut_sphere_or_panic(&mut self, sphere_name: &String) -> &mut Sphere {
-        self.spheres
-            .get_mut(sphere_name)
             .expect(format!("missing sphere named {}", sphere_name).as_str())
     }
 
@@ -73,12 +66,23 @@ fn given_a_ray(
 
 #[given(expr = r"{word} ← sphere\(\)")]
 fn given_a_sphere(world: &mut SpheresWorld, sphere_name: String) {
-    world.spheres.insert(sphere_name, Sphere::new());
+    world.spheres.insert(sphere_name, Sphere::default());
+}
+
+#[given(expr = r"{word} ← sphere\({word}\)")]
+fn given_a_sphere_with_trans(world: &mut SpheresWorld, sphere_name: String, trans_name: String) {
+    let trans = world.get_transform_or_panic(&trans_name);
+    world.spheres.insert(sphere_name, Sphere::new(trans));
 }
 
 #[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
 fn given_a_translation(world: &mut SpheresWorld, trans_name: String, x: f32, y: f32, z: f32) {
     world.transforms.insert(trans_name, translation(x, y, z));
+}
+
+#[given(expr = r"{word} ← scaling\({float}, {float}, {float}\)")]
+fn given_a_scaling(world: &mut SpheresWorld, trans_name: String, x: f32, y: f32, z: f32) {
+    world.transforms.insert(trans_name, scaling(x, y, z));
 }
 
 #[when(expr = r"{word} ← intersect\({word}, {word}\)")]
