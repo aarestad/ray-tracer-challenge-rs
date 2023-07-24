@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 cucumber = "0.20"
+nalgebra = "0.32.3"
 ray-tracer-challenge-rs = { path = ".." }

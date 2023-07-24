@@ -1,19 +1,29 @@
 use core::convert::Infallible;
 use cucumber::Parameter;
 use std::f32::consts::PI;
+use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
 use ray_tracer_challenge_rs::transforms::RotationAxis;
 
+pub trait SingleValue<T> {
+    fn val(&self) -> T;
+}
+
+macro_rules! impl_single_value {
+    ($t:ty,$rt:ty) => {
+        impl SingleValue<$rt> for $t {
+            fn val(&self) -> $rt {
+                self.0
+            }
+        }
+    };
+}
+
 #[derive(Debug, Parameter)]
 #[param(regex = r"(-?(π|√\d+)\s*/\s*\d+)|(-?\d+)")]
 pub struct MathExpr(f32);
-
-impl MathExpr {
-    pub fn val(&self) -> f32 {
-        self.0
-    }
-}
+impl_single_value!(MathExpr, f32);
 
 impl FromStr for MathExpr {
     type Err = String;
@@ -62,6 +72,7 @@ impl FromStr for MathExpr {
 #[derive(Debug, Parameter, Copy, Clone)]
 #[param(regex = r"x|y|z")]
 pub struct Axis(RotationAxis);
+impl_single_value!(Axis, RotationAxis);
 
 impl FromStr for Axis {
     type Err = Infallible;
@@ -76,8 +87,134 @@ impl FromStr for Axis {
     }
 }
 
-impl Axis {
-    pub fn val(&self) -> RotationAxis {
-        self.0
+#[derive(Debug, Parameter)]
+#[param(regex = r"x|y|z|w")]
+pub enum TupleProperty {
+    X,
+    Y,
+    Z,
+    W,
+}
+
+impl FromStr for TupleProperty {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "x" => TupleProperty::X,
+            "y" => TupleProperty::Y,
+            "z" => TupleProperty::Z,
+            "w" => TupleProperty::W,
+            _ => unreachable!(),
+        })
+    }
+}
+
+impl Display for TupleProperty {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.to_string().as_str())
+    }
+}
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"red|green|blue")]
+pub enum ColorProperty {
+    Red,
+    Green,
+    Blue,
+}
+
+impl FromStr for ColorProperty {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "red" => ColorProperty::Red,
+            "green" => ColorProperty::Green,
+            "blue" => ColorProperty::Blue,
+            _ => unreachable!(),
+        })
+    }
+}
+
+impl Display for ColorProperty {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.to_string().as_str())
+    }
+}
+
+// TODO consolidate with MathExpr
+#[derive(Debug, Parameter)]
+#[param(regex = r"√(\d+)")]
+pub struct Sqrt(f32);
+impl_single_value!(Sqrt, f32);
+
+impl FromStr for Sqrt {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Sqrt(f32::from_str(s).unwrap().sqrt()))
+    }
+}
+
+impl Display for Sqrt {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{}", self.0))
+    }
+}
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"[+-]")]
+pub enum AddSub {
+    Add,
+    Sub,
+}
+
+impl FromStr for AddSub {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "+" => Ok(AddSub::Add),
+            "-" => Ok(AddSub::Sub),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Display for AddSub {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            AddSub::Add => "+",
+            AddSub::Sub => "-",
+        })
+    }
+}
+
+#[derive(Debug, Parameter)]
+#[param(regex = r"[*/]")]
+pub enum MulDiv {
+    Mul,
+    Div,
+}
+
+impl FromStr for MulDiv {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "*" => Ok(MulDiv::Mul),
+            "/" => Ok(MulDiv::Div),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Display for MulDiv {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            MulDiv::Mul => "*",
+            MulDiv::Div => "/",
+        })
     }
 }

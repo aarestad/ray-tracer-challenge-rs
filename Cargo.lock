@@ -1119,6 +1119,7 @@ name = "testutils"
 version = "0.1.0"
 dependencies = [
  "cucumber",
+ "nalgebra",
  "ray-tracer-challenge-rs",
 ]
 
