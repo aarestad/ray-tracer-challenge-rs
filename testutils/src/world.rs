@@ -1,13 +1,13 @@
 use cucumber::World;
-use std::collections::HashMap;
-
 use ray_tracer_challenge_rs::canvas::Canvas;
 use ray_tracer_challenge_rs::color::Color;
 use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
 use ray_tracer_challenge_rs::light::PointLight;
+use ray_tracer_challenge_rs::material::Material;
 use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ppm::Ppm;
 use ray_tracer_challenge_rs::ray::Ray;
+use std::collections::HashMap;
 
 use nalgebra::{DMatrix, Matrix4};
 use ray_tracer_challenge_rs::tuple::Tuple;
@@ -26,8 +26,10 @@ pub struct RayTracerWorld {
     pub rays: HashMap<String, Ray>,
     pub transforms: HashMap<String, Matrix4<f32>>,
     pub lights: HashMap<String, PointLight>,
+    pub materials: HashMap<String, Material>,
 }
 
+// TODO this seems like a job for... a macro!
 impl RayTracerWorld {
     pub fn get_canvas_or_panic(&self, canvas_name: &String) -> &Canvas {
         self.canvases
@@ -106,5 +108,11 @@ impl RayTracerWorld {
         self.lights
             .get(light_name)
             .expect(format!("missing light {}", light_name).as_str())
+    }
+
+    pub fn get_material_or_panic(&self, material_name: &String) -> &Material {
+        self.materials
+            .get(material_name)
+            .expect(format!("missing material {}", material_name).as_str())
     }
 }

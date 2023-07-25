@@ -20,7 +20,7 @@ pub fn ch5_playground(filename: &Path, transform: Matrix4<f32>) -> Result<()> {
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
     let red = Color::new(1., 0., 0.);
-    let sphere = Sphere::new(transform);
+    let sphere = Sphere::new(transform, Default::default());
 
     for y in 0..canvas_pixels {
         let world_y = half - pixel_size * (y as f32);

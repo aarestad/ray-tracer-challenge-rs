@@ -120,8 +120,8 @@ Feature: Spheres
     Then m = material()
 
   Scenario: A sphere may be assigned a material
-    Given s ← sphere()
-    And m ← material()
+    Given m ← material()
+    And s ← sphere(default, m)
     And m.ambient ← 1
     When s.material ← m
     Then s.material = m

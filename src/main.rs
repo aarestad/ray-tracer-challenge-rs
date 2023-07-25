@@ -11,6 +11,7 @@ mod canvas;
 mod clock_face;
 mod color;
 mod intersection;
+mod material;
 mod objects;
 mod ppm;
 mod ray;

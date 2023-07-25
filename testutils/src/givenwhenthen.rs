@@ -3,18 +3,20 @@ use crate::{
     world::RayTracerWorld,
 };
 use cucumber::{given, then, when};
+use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::{
     canvas::Canvas,
     color::Color,
     intersection::Intersectable,
     light::PointLight,
+    material::Material,
     objects::Sphere,
     ray::Ray,
     transforms::{rotation, scaling, translation},
     tuple::Tuple,
 };
 
-#[given(regex = r"^(\w+)\s*←\s*((tuple|point|vector).+)$")]
+#[given(regex = r"^(\w+)\s*←\s*((tuple|point|vector)\(.+)$")]
 fn given_a_tuple(world: &mut RayTracerWorld, tuple_name: String, tuple: Tuple) {
     world.tuples.insert(tuple_name, tuple);
 }
@@ -27,6 +29,11 @@ fn given_a_canvas(world: &mut RayTracerWorld, name: String, width: usize, height
 #[given(expr = r"{word} ← color\({float}, {float}, {float}\)")]
 fn given_a_color(world: &mut RayTracerWorld, name: String, r: f32, g: f32, b: f32) {
     world.colors.insert(name, Color::new(r, g, b));
+}
+
+#[given(expr = r"{word} ← material\(\)")]
+fn given_default_material(world: &mut RayTracerWorld, name: String) {
+    world.materials.insert(name, Material::default());
 }
 
 #[given(
@@ -60,7 +67,21 @@ fn given_a_sphere_with_transform(
     transform_name: String,
 ) {
     let trans = world.get_transform_or_panic(&transform_name);
-    world.spheres.insert(sphere_name, Sphere::new(*trans));
+    world
+        .spheres
+        .insert(sphere_name, Sphere::new(*trans, Default::default()));
+}
+
+#[given(expr = r"{word} ← sphere\(default, {word}\)")]
+fn given_a_sphere_with_default_transform_and_material(
+    world: &mut RayTracerWorld,
+    sphere_name: String,
+    material_name: String,
+) {
+    world.spheres.insert(
+        sphere_name,
+        Sphere::new(Matrix4::identity(), Default::default()),
+    );
 }
 
 #[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
@@ -141,6 +162,12 @@ fn when_light_created(
     world.lights.insert(light_name, PointLight::new(*p, *i));
 }
 
+#[when(expr = r"{word} ← {word}.material")]
+fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, sphere_name: String) {
+    let s = world.get_sphere_or_panic(&sphere_name);
+    world.materials.insert(mat_name, s.material);
+}
+
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
     let actual = world.get_tuple_or_panic(&vector_name);
@@ -174,4 +201,40 @@ fn assert_vector_normalized(world: &mut RayTracerWorld, lhs_name: String, rhs_na
     let rhs = world.get_tuple_or_panic(&rhs_name);
 
     assert!(lhs.approx_eq(&rhs.normalize()));
+}
+
+#[then(expr = r"{word} = material\(\)")]
+fn assert_default_material(world: &mut RayTracerWorld, mat_name: String) {
+    let m = world.get_material_or_panic(&mat_name);
+    assert_eq!(*m, Material::default());
+}
+
+#[then(expr = r"{word}.color = color\({float}, {float}, {float}\)")]
+fn assert_mat_color(world: &mut RayTracerWorld, mat_name: String, r: f32, g: f32, b: f32) {
+    let m = world.get_material_or_panic(&mat_name);
+    assert_eq!(m.color, Color::new(r, g, b));
+}
+
+#[then(expr = r"{word}.ambient = {float}")]
+fn assert_mat_ambient(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
+    let m = world.get_material_or_panic(&mat_name);
+    assert_eq!(m.ambient, expected);
+}
+
+#[then(expr = r"{word}.diffuse = {float}")]
+fn assert_mat_diffuse(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
+    let m = world.get_material_or_panic(&mat_name);
+    assert_eq!(m.diffuse, expected);
+}
+
+#[then(expr = r"{word}.specular = {float}")]
+fn assert_mat_specular(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
+    let m = world.get_material_or_panic(&mat_name);
+    assert_eq!(m.specular, expected);
+}
+
+#[then(expr = r"{word}.shininess = {float}")]
+fn assert_mat_shininess(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
+    let m = world.get_material_or_panic(&mat_name);
+    assert_eq!(m.shininess, expected);
 }

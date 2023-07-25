@@ -45,5 +45,5 @@ name = "intersections"
 harness = false
 
 [[test]]
-name = "lights"
+name = "the_rest"
 harness = false
