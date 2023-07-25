@@ -11,7 +11,6 @@ use std::rc::Rc;
 #[derive(Debug, Copy, Clone)]
 pub struct Sphere {
     center: Tuple,
-    radius: f32,
     transform: Matrix4<f32>,
     pub material: Material,
 }
@@ -20,7 +19,6 @@ impl Default for Sphere {
     fn default() -> Self {
         Self {
             center: Tuple::point(0., 0., 0.),
-            radius: 1.,
             transform: Matrix4::identity(),
             material: Default::default(),
         }
@@ -31,7 +29,6 @@ impl Sphere {
     pub fn new(transform: Matrix4<f32>, material: Material) -> Self {
         Self {
             center: Tuple::point(0., 0., 0.),
-            radius: 1.,
             transform,
             material,
         }
@@ -46,7 +43,7 @@ impl Sphere {
         let object_point = p.transform(&t);
         let object_normal = object_point - self.center;
         let world_normal = object_normal.transform(&t.transpose());
-        return world_normal.normalize();
+        world_normal.normalize()
     }
 }
 

@@ -78,7 +78,6 @@ fn given_a_sphere_with_transform(
 fn given_a_sphere_with_default_transform_and_material(
     world: &mut RayTracerWorld,
     sphere_name: String,
-    material_name: String,
 ) {
     world.spheres.insert(
         sphere_name,
