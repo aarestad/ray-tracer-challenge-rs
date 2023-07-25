@@ -15,11 +15,6 @@ fn given_a_matrix(world: &mut RayTracerWorld, step: &Step, rows: usize, cols: us
         .insert(name, get_matrix_from_step(step, rows, cols));
 }
 
-#[given(expr = r"{word} ← tuple\({float}, {float}, {float}, {float}\)")]
-fn given_a_tuple(world: &mut RayTracerWorld, tuple_name: String, x: f32, y: f32, z: f32, w: f32) {
-    world.tuples.insert(tuple_name, Tuple::new(x, y, z, w));
-}
-
 #[given(expr = r"{word} ← inverse\({word}\)")]
 fn given_an_inverse(world: &mut RayTracerWorld, inv_name: String, matrix_name: String) {
     let m = world.get_matrix_or_panic(&matrix_name);

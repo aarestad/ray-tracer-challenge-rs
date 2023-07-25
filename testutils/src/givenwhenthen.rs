@@ -1,5 +1,5 @@
 use crate::{
-    parameters::{MathExpr, SingleValue},
+    parameters::{Axis, SingleValue},
     world::RayTracerWorld,
 };
 use cucumber::{given, then, when};
@@ -9,9 +9,14 @@ use ray_tracer_challenge_rs::{
     intersection::Intersectable,
     objects::Sphere,
     ray::Ray,
-    transforms::{scaling, translation},
+    transforms::{rotation, scaling, translation},
     tuple::Tuple,
 };
+
+#[given(regex = r"^(\w+)\s*←\s*((tuple|point|vector).+)$")]
+fn new_tuple(world: &mut RayTracerWorld, tuple_name: String, tuple: Tuple) {
+    world.tuples.insert(tuple_name, tuple);
+}
 
 #[given(expr = r"{word} ← canvas\({int}, {int}\)")]
 fn given_a_canvas(world: &mut RayTracerWorld, name: String, width: usize, height: usize) {
@@ -67,6 +72,21 @@ fn given_a_scaling(world: &mut RayTracerWorld, trans_name: String, x: f32, y: f3
     world.transforms.insert(trans_name, scaling(x, y, z));
 }
 
+#[given(expr = r"{word} ← scaling\({float}, {float}, {float}\) * rotation_{axis}\({float}\)")]
+fn given_rotation_scaling(
+    world: &mut RayTracerWorld,
+    trans_name: String,
+    sx: f32,
+    sy: f32,
+    sz: f32,
+    axis: Axis,
+    rot: f32,
+) {
+    let s = scaling(sx, sy, sz);
+    let r = rotation(axis.val(), rot);
+    world.transforms.insert(trans_name, s * r);
+}
+
 #[given(expr = r"{word} ← intersect\({word}, {word}\)")]
 #[when(expr = r"{word} ← intersect\({word}, {word}\)")]
 fn when_ray_intersects_sphere(
@@ -82,32 +102,31 @@ fn when_ray_intersects_sphere(
         .insert(int_name, sphere.intersections(ray));
 }
 
-#[when(expr = r"{word} ← normal_at\({word}, point\({mathexpr}, {mathexpr}, {mathexpr}\)\)")]
+#[when(expr = r"{word} ← normal_at\({word}, point\({float}, {float}, {float}\)\)")]
 fn when_sphere_normal_at(
     world: &mut RayTracerWorld,
     normal_name: String,
     sphere_name: String,
-    x: MathExpr,
-    y: MathExpr,
-    z: MathExpr,
+    x: f32,
+    y: f32,
+    z: f32,
 ) {
     let s = world.get_sphere_or_panic(&sphere_name);
-    let p = Tuple::point(x.val(), y.val(), z.val());
+    let p = Tuple::point(x, y, z);
     world.tuples.insert(normal_name, s.normal_at(p));
 }
 
-#[then(expr = r"{word} = vector\({mathexpr}, {mathexpr}, {mathexpr}\)")]
-fn assert_vector(
-    world: &mut RayTracerWorld,
-    vector_name: String,
-    x: MathExpr,
-    y: MathExpr,
-    z: MathExpr,
-) {
+#[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
+fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
     let actual = world.get_tuple_or_panic(&vector_name);
-    let expected = Tuple::vector(x.val(), y.val(), z.val());
+    let expected = Tuple::vector(x, y, z);
 
-    assert!(actual.approx_eq(&expected));
+    assert!(
+        actual.approx_eq(&expected),
+        "expected {}, was {}",
+        actual,
+        expected
+    );
 }
 
 #[then(expr = r"{word} = normalize\({word}\)")]

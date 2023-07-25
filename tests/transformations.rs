@@ -1,28 +1,11 @@
 use cucumber::{given, then, when, World};
 use futures_lite::future;
 use ray_tracer_challenge_rs::tuple::Tuple;
+use testutils::parameters::Axis;
 use testutils::parameters::SingleValue;
-use testutils::parameters::{Axis, MathExpr};
 use testutils::world::RayTracerWorld;
 
 use ray_tracer_challenge_rs::transforms::*;
-
-#[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
-fn given_a_translation_matrix(
-    world: &mut RayTracerWorld,
-    matrix_name: String,
-    x: f32,
-    y: f32,
-    z: f32,
-) {
-    world.transforms.insert(matrix_name, translation(x, y, z));
-}
-
-// TODO generalize with above
-#[given(expr = r"{word} ← scaling\({float}, {float}, {float}\)")]
-fn given_a_scaling_matrix(world: &mut RayTracerWorld, matrix_name: String, x: f32, y: f32, z: f32) {
-    world.transforms.insert(matrix_name, scaling(x, y, z));
-}
 
 // TODO generalize with above
 #[given(expr = r"{word} ← shearing\({float}, {float}, {float}, {float}, {float}, {float}\)")]
@@ -50,19 +33,9 @@ fn given_an_inverse(world: &mut RayTracerWorld, inverted_matrix_name: String, ma
     );
 }
 
-#[given(expr = r"{word} ← point\({float}, {float}, {float}\)")]
-fn given_a_point(world: &mut RayTracerWorld, point_name: String, x: f32, y: f32, z: f32) {
-    world.tuples.insert(point_name, Tuple::point(x, y, z));
-}
-
-#[given(expr = r"{word} ← vector\({float}, {float}, {float}\)")]
-fn given_a_vector(world: &mut RayTracerWorld, point_name: String, x: f32, y: f32, z: f32) {
-    world.tuples.insert(point_name, Tuple::vector(x, y, z));
-}
-
-#[given(expr = r"{word} ← rotation_{axis}\({mathexpr}\)")]
-fn given_a_rotation(world: &mut RayTracerWorld, matrix_name: String, axis: Axis, r: MathExpr) {
-    let matrix = rotation(axis.val(), r.val());
+#[given(expr = r"{word} ← rotation_{axis}\({float}\)")]
+fn given_a_rotation(world: &mut RayTracerWorld, matrix_name: String, axis: Axis, r: f32) {
+    let matrix = rotation(axis.val(), r);
     world.transforms.insert(matrix_name, matrix);
 }
 
@@ -93,18 +66,18 @@ fn when_chaining_transforms(
     world.transforms.insert(result_name, arg1 * arg2 * arg3);
 }
 
-#[then(expr = r"{word} * {word} = point\({mathexpr}, {mathexpr}, {mathexpr}\)")]
+#[then(expr = r"{word} * {word} = point\({float}, {float}, {float}\)")]
 fn assert_point_transform_specified(
     world: &mut RayTracerWorld,
     matrix_name: String,
     point_name: String,
-    x: MathExpr,
-    y: MathExpr,
-    z: MathExpr,
+    x: f32,
+    y: f32,
+    z: f32,
 ) {
     let lhs = world.get_transform_or_panic(&matrix_name);
     let rhs = world.get_tuple_or_panic(&point_name);
-    let expected = Tuple::point(x.val(), y.val(), z.val());
+    let expected = Tuple::point(x, y, z);
 
     let actual = rhs.transform(lhs);
 
@@ -116,15 +89,9 @@ fn assert_point_transform_specified(
     );
 }
 
-#[then(expr = r"{word} = point\({mathexpr}, {mathexpr}, {mathexpr}\)")]
-fn assert_point_value(
-    world: &mut RayTracerWorld,
-    point_name: String,
-    x: MathExpr,
-    y: MathExpr,
-    z: MathExpr,
-) {
-    let expected = Tuple::point(x.val(), y.val(), z.val());
+#[then(expr = r"{word} = point\({float}, {float}, {float}\)")]
+fn assert_point_value(world: &mut RayTracerWorld, point_name: String, x: f32, y: f32, z: f32) {
+    let expected = Tuple::point(x, y, z);
     let actual = world.get_tuple_or_panic(&point_name);
 
     assert!(

@@ -197,6 +197,9 @@ impl Tuple {
     }
 
     pub fn transform(&self, transform_matrix: &Matrix4<f32>) -> Tuple {
-        Tuple(transform_matrix * self.0)
+        let originl_w = self.0.w;
+        let mut t = Tuple(transform_matrix * self.0);
+        t.0.w = originl_w; // preserve the point/vectorness
+        t
     }
 }

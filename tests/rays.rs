@@ -5,42 +5,6 @@ use ray_tracer_challenge_rs::transforms::{scaling, translation};
 use ray_tracer_challenge_rs::tuple::Tuple;
 use testutils::world::RayTracerWorld;
 
-// TODO move to shared lib
-#[given(regex = r"(\w+)\s*←\s*((tuple|point|vector).+)")]
-fn new_tuple(world: &mut RayTracerWorld, tuple_name: String, tuple: Tuple) {
-    world.tuples.insert(tuple_name, tuple);
-}
-
-// TODO move to shared lib
-#[given(
-    expr = r"{word} ← ray\(point\({float}, {float}, {float}\), vector\({float}, {float}, {float}\)\)"
-)]
-fn given_a_ray(
-    world: &mut RayTracerWorld,
-    ray_name: String,
-    ox: f32,
-    oy: f32,
-    oz: f32,
-    dx: f32,
-    dy: f32,
-    dz: f32,
-) {
-    world.rays.insert(
-        ray_name,
-        Ray::new(Tuple::point(ox, oy, oz), Tuple::vector(dx, dy, dz)),
-    );
-}
-
-#[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
-fn given_a_translation(world: &mut RayTracerWorld, matrix_name: String, x: f32, y: f32, z: f32) {
-    world.transforms.insert(matrix_name, translation(x, y, z));
-}
-
-#[given(expr = r"{word} ← scaling\({float}, {float}, {float}\)")]
-fn given_a_scaling(world: &mut RayTracerWorld, matrix_name: String, x: f32, y: f32, z: f32) {
-    world.transforms.insert(matrix_name, scaling(x, y, z));
-}
-
 #[when(expr = r"{word} ← ray\({word}, {word}\)")]
 fn when_ray_constructed(
     world: &mut RayTracerWorld,
@@ -90,7 +54,7 @@ fn assert_direction(world: &mut RayTracerWorld, ray_name: String, direction_name
     assert_eq!(&ray.direction, direction);
 }
 
-#[then(expr = r"{word}.direction = vector\({float}, {float}, {float}\)")]
+#[then(regex = r"(\w+).direction = vector\((\d+), (\d+), (\d+)\)")]
 fn assert_specific_direction(world: &mut RayTracerWorld, ray_name: String, x: f32, y: f32, z: f32) {
     let ray = world.get_ray_or_panic(&ray_name);
 

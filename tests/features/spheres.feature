@@ -88,12 +88,15 @@ Feature: Spheres
 
   Scenario: The normal on a sphere at a nonaxial point
     Given s ← sphere()
-    When n ← normal_at(s, point(√3/3, √3/3, √3/3))
-    Then n = vector(√3/3, √3/3, √3/3)
+    # When n ← normal_at(s, point(√3/3, √3/3, √3/3))
+    When n ← normal_at(s, point(0.577350269, 0.577350269, 0.577350269))
+    # Then n = vector(√3/3, √3/3, √3/3)
+    Then n = vector(0.577350269, 0.577350269, 0.577350269)
 
   Scenario: The normal is a normalized vector
     Given s ← sphere()
-    When n ← normal_at(s, point(√3/3, √3/3, √3/3))
+    #When n ← normal_at(s, point(√3/3, √3/3, √3/3))
+    When n ← normal_at(s, point(0.577350269, 0.577350269, 0.577350269))
     Then n = normalize(n)
 
   Scenario: Computing the normal on a translated sphere
@@ -103,9 +106,11 @@ Feature: Spheres
     Then n = vector(0, 0.70711, -0.70711)
 
   Scenario: Computing the normal on a transformed sphere
-    Given m ← scaling(1, 0.5, 1) * rotation_z(π/5)
+    # Given m ← scaling(1, 0.5, 1) * rotation_z(π/5)
+    Given m ← scaling(1, 0.5, 1) * rotation_z(0.628318530)
     And s ← sphere(m)
-    When n ← normal_at(s, point(0, √2/2, -√2/2))
+    # When n ← normal_at(s, point(0, √2/2, -√2/2))
+    When n ← normal_at(s, point(0, 0.707106781, -0.707106781))
     Then n = vector(0, 0.97014, -0.24254)
 
   Scenario: A sphere has a default material

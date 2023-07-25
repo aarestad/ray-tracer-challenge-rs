@@ -9,7 +9,6 @@ use std::rc::Rc;
 #[derive(Debug, Copy, Clone)]
 pub struct Sphere {
     center: Tuple,
-    #[allow(dead_code)]
     radius: f32,
     transform: Matrix4<f32>,
 }
@@ -33,18 +32,16 @@ impl Sphere {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn center(&self) -> &Tuple {
-        &self.center
-    }
-
-    #[allow(dead_code)]
     pub fn transform(&self) -> &Matrix4<f32> {
         &self.transform
     }
 
     pub fn normal_at(&self, p: Tuple) -> Tuple {
-        (p - self.center).normalize()
+        let t = self.transform.try_inverse().expect("not invertible");
+        let object_point = p.transform(&t);
+        let object_normal = object_point - self.center;
+        let world_normal = object_normal.transform(&t.transpose());
+        return world_normal.normalize();
     }
 }
 

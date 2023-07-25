@@ -21,7 +21,7 @@ macro_rules! impl_single_value {
 }
 
 #[derive(Debug, Parameter)]
-#[param(regex = r"(-?(π|√\d+)\s*/\s*\d+)|(-?\d+)")]
+#[param(regex = r"(-?((π|√\d+)/\d+)|(\d+(\.\d*)?))")]
 pub struct MathExpr(f32);
 impl_single_value!(MathExpr, f32);
 
@@ -29,6 +29,11 @@ impl FromStr for MathExpr {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            println!("empty string...");
+            return Ok(MathExpr(0.));
+        }
+
         if let Ok(val) = f32::from_str(s) {
             return Ok(MathExpr(val));
         }

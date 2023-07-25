@@ -10,11 +10,6 @@ use std::str::FromStr;
 
 use testutils::parameters::{AddSub, ColorProperty, MulDiv, SingleValue, Sqrt, TupleProperty};
 
-#[given(regex = r"(\w+)\s*←\s*((tuple|point|vector).+)")]
-fn new_tuple(world: &mut RayTracerWorld, tuple_name: String, tuple: Tuple) {
-    world.tuples.insert(tuple_name, tuple);
-}
-
 #[then(expr = r"{word}.{tupleproperty} = {float}")]
 fn assert_tuple_property(
     world: &mut RayTracerWorld,
@@ -241,11 +236,6 @@ fn assert_cross_product(
         expected,
         actual
     );
-}
-
-#[given(expr = r"{word} ← color\({float}, {float}, {float}\)")]
-fn given_color(world: &mut RayTracerWorld, color_name: String, r: f32, g: f32, b: f32) {
-    world.colors.insert(color_name, Color::new(r, g, b));
 }
 
 #[then(expr = r"{word}.{colorproperty} = {float}")]

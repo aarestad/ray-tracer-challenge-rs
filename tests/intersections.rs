@@ -1,15 +1,9 @@
 use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
-use ray_tracer_challenge_rs::objects::Sphere;
 
 use cucumber::{given, then, when, World};
 use futures_lite::future;
 use std::rc::Rc;
 use testutils::world::RayTracerWorld;
-
-#[given(expr = r"{word} ← sphere\(\)")]
-fn given_a_sphere(world: &mut RayTracerWorld, sphere_name: String) {
-    world.spheres.insert(sphere_name, Sphere::default());
-}
 
 #[given(expr = r"{word} ← intersection\({float}, {word}\)")]
 #[when(expr = r"{word} ← intersection\({float}, {word}\)")]
@@ -38,6 +32,24 @@ fn when_intersections_created(
     world
         .intersectionses
         .insert(ints_name, Intersections::new(vec![int1, int2]));
+}
+
+#[given(expr = r"{word} ← intersections\({word}, {word}, {word}, {word}\)")]
+fn given_mega_intersections(
+    world: &mut RayTracerWorld,
+    ints_name: String,
+    int1_name: String,
+    int2_name: String,
+    int3_name: String,
+    int4_name: String,
+) {
+    let int1 = world.get_int_or_panic(&int1_name).unwrap();
+    let int2 = world.get_int_or_panic(&int2_name).unwrap();
+    let int3 = world.get_int_or_panic(&int3_name).unwrap();
+    let int4 = world.get_int_or_panic(&int4_name).unwrap();
+    world
+        .intersectionses
+        .insert(ints_name, Intersections::new(vec![int1, int2, int3, int4]));
 }
 
 #[when(expr = r"{word} ← hit\({word}\)")]
