@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use ray_tracer_challenge_rs::canvas::Canvas;
 use ray_tracer_challenge_rs::color::Color;
 use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
+use ray_tracer_challenge_rs::light::PointLight;
 use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ppm::Ppm;
 use ray_tracer_challenge_rs::ray::Ray;
@@ -24,6 +25,7 @@ pub struct RayTracerWorld {
     pub tuples: HashMap<String, Tuple>,
     pub rays: HashMap<String, Ray>,
     pub transforms: HashMap<String, Matrix4<f32>>,
+    pub lights: HashMap<String, PointLight>,
 }
 
 impl RayTracerWorld {
@@ -73,7 +75,7 @@ impl RayTracerWorld {
     pub fn get_ints_or_panic(&self, ints_name: &String) -> &Intersections {
         self.intersectionses
             .get(ints_name)
-            .expect(format!("missing intersections named {}", ints_name).as_str())
+            .expect(format!("missing intersections {}", ints_name).as_str())
     }
 
     pub fn get_matrix_or_panic(&self, matrix_name: &String) -> &DMatrix<f32> {
@@ -91,12 +93,18 @@ impl RayTracerWorld {
     pub fn get_ray_or_panic(&self, ray_name: &String) -> &Ray {
         self.rays
             .get(ray_name)
-            .expect(format!("missing ray named {}", ray_name).as_str())
+            .expect(format!("missing ray {}", ray_name).as_str())
     }
 
     pub fn get_transform_or_panic(&self, matrix_name: &String) -> &Matrix4<f32> {
         self.transforms
             .get(matrix_name)
-            .expect(format!("missing transform named {}", matrix_name).as_str())
+            .expect(format!("missing transform {}", matrix_name).as_str())
+    }
+
+    pub fn get_light_or_panic(&self, light_name: &String) -> &PointLight {
+        self.lights
+            .get(light_name)
+            .expect(format!("missing light {}", light_name).as_str())
     }
 }

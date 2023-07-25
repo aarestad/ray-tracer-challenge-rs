@@ -7,6 +7,7 @@ use ray_tracer_challenge_rs::{
     canvas::Canvas,
     color::Color,
     intersection::Intersectable,
+    light::PointLight,
     objects::Sphere,
     ray::Ray,
     transforms::{rotation, scaling, translation},
@@ -14,7 +15,7 @@ use ray_tracer_challenge_rs::{
 };
 
 #[given(regex = r"^(\w+)\s*←\s*((tuple|point|vector).+)$")]
-fn new_tuple(world: &mut RayTracerWorld, tuple_name: String, tuple: Tuple) {
+fn given_a_tuple(world: &mut RayTracerWorld, tuple_name: String, tuple: Tuple) {
     world.tuples.insert(tuple_name, tuple);
 }
 
@@ -127,6 +128,19 @@ fn when_reflection(
     let n = world.get_tuple_or_panic(&norm_name);
     world.tuples.insert(reflection_name, v.reflect(n));
 }
+
+#[when(expr = r"{word} ← point_light\({word}, {word}\)")]
+fn when_light_created(
+    world: &mut RayTracerWorld,
+    light_name: String,
+    pos_name: String,
+    intensity_name: String,
+) {
+    let p = world.get_tuple_or_panic(&pos_name);
+    let i = world.get_color_or_panic(&intensity_name);
+    world.lights.insert(light_name, PointLight::new(*p, *i));
+}
+
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
     let actual = world.get_tuple_or_panic(&vector_name);
@@ -140,10 +154,24 @@ fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32
     );
 }
 
+#[then(expr = r"{word}.position = {word}")]
+fn assert_light_position(world: &mut RayTracerWorld, light_name: String, pos_name: String) {
+    let l = world.get_light_or_panic(&light_name);
+    let p = world.get_tuple_or_panic(&pos_name);
+    assert_eq!(&l.position, p);
+}
+
+#[then(expr = r"{word}.intensity = {word}")]
+fn assert_light_intensity(world: &mut RayTracerWorld, light_name: String, color_name: String) {
+    let l = world.get_light_or_panic(&light_name);
+    let c = world.get_color_or_panic(&color_name);
+    assert_eq!(&l.intensity, c);
+}
+
 #[then(expr = r"{word} = normalize\({word}\)")]
 fn assert_vector_normalized(world: &mut RayTracerWorld, lhs_name: String, rhs_name: String) {
     let lhs = world.get_tuple_or_panic(&lhs_name);
-    let rhs = world.get_tuple_or_panic(&lhs_name);
+    let rhs = world.get_tuple_or_panic(&rhs_name);
 
     assert!(lhs.approx_eq(&rhs.normalize()));
 }

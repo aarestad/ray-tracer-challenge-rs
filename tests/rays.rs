@@ -1,7 +1,6 @@
-use cucumber::{given, then, when, World};
+use cucumber::{then, when, World};
 use futures_lite::future;
 use ray_tracer_challenge_rs::ray::Ray;
-use ray_tracer_challenge_rs::transforms::{scaling, translation};
 use ray_tracer_challenge_rs::tuple::Tuple;
 use testutils::world::RayTracerWorld;
 
