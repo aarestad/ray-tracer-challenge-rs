@@ -116,6 +116,17 @@ fn when_sphere_normal_at(
     world.tuples.insert(normal_name, s.normal_at(p));
 }
 
+#[when(expr = r"{word} ← reflect\({word}, {word}\)")]
+fn when_reflection(
+    world: &mut RayTracerWorld,
+    reflection_name: String,
+    vec_name: String,
+    norm_name: String,
+) {
+    let v = world.get_tuple_or_panic(&vec_name);
+    let n = world.get_tuple_or_panic(&norm_name);
+    world.tuples.insert(reflection_name, v.reflect(n));
+}
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
     let actual = world.get_tuple_or_panic(&vector_name);

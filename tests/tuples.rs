@@ -62,7 +62,7 @@ fn assert_tuple_type(
     );
 }
 
-#[then(regex = r"^(\w+) = (.+)")]
+#[then(regex = r"^(\w+) = ((tuple|point).+)")]
 fn assert_tuple_equality(world: &mut RayTracerWorld, tuple_name: String, expected: Tuple) {
     let actual = world.get_tuple_or_panic(&tuple_name);
 

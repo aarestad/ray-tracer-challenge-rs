@@ -202,4 +202,8 @@ impl Tuple {
         t.0.w = originl_w; // preserve the point/vectorness
         t
     }
+
+    pub fn reflect(&self, normal: &Tuple) -> Tuple {
+        *self - *normal * 2. * self.dot(normal)
+    }
 }
