@@ -43,6 +43,7 @@ Feature: Spheres
     And s ← sphere()
     When xs ← intersect(s, r)
     Then xs.count = 2
+  # TODO object equality doesn't really work with trait objects
   # And xs[0].object = s
   # And xs[1].object = s
 

@@ -20,6 +20,7 @@ macro_rules! impl_single_value {
     };
 }
 
+// TODO make this work some day
 #[derive(Debug, Parameter)]
 #[param(regex = r"(-?((π|√\d+)/\d+)|(\d+(\.\d*)?))")]
 pub struct MathExpr(f32);
@@ -145,26 +146,6 @@ impl FromStr for ColorProperty {
 impl Display for ColorProperty {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.to_string().as_str())
-    }
-}
-
-// TODO consolidate with MathExpr
-#[derive(Debug, Parameter)]
-#[param(regex = r"√(\d+)")]
-pub struct Sqrt(f32);
-impl_single_value!(Sqrt, f32);
-
-impl FromStr for Sqrt {
-    type Err = Infallible;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Sqrt(f32::from_str(s).unwrap().sqrt()))
-    }
-}
-
-impl Display for Sqrt {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{}", self.0))
     }
 }
 

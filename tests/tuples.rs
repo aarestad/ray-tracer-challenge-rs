@@ -4,11 +4,11 @@ use ray_tracer_challenge_rs::util::EPSILON;
 use testutils::world::RayTracerWorld;
 
 use approx::assert_abs_diff_eq;
-use cucumber::{given, then, when, World};
+use cucumber::{then, when, World};
 use futures_lite::future;
 use std::str::FromStr;
 
-use testutils::parameters::{AddSub, ColorProperty, MulDiv, SingleValue, Sqrt, TupleProperty};
+use testutils::parameters::{AddSub, ColorProperty, MulDiv, TupleProperty};
 
 #[then(expr = r"{word}.{tupleproperty} = {float}")]
 fn assert_tuple_property(
@@ -149,14 +149,6 @@ fn assert_magnitude_with_f32(world: &mut RayTracerWorld, tuple_name: String, exp
     let actual = tuple.magnitude();
 
     assert_abs_diff_eq!(actual, expected, epsilon = EPSILON);
-}
-
-#[then(expr = r"magnitude\({word}\) = {sqrt}")]
-fn assert_magnitude_with_sqrt(world: &mut RayTracerWorld, tuple_name: String, expected: Sqrt) {
-    let tuple = world.get_tuple_or_panic(&tuple_name);
-    let actual = tuple.magnitude();
-
-    assert_abs_diff_eq!(actual, expected.val(), epsilon = EPSILON);
 }
 
 #[then(regex = r"normalize\((\w+)\)\s*=\s*(approximately)?\s*(.+)")]
