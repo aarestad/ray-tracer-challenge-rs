@@ -1,3 +1,4 @@
+use approx::assert_abs_diff_eq;
 use cucumber::{given, then, when, World};
 use futures_lite::future;
 use ray_tracer_challenge_rs::tuple::Tuple;
@@ -81,12 +82,7 @@ fn assert_point_transform_specified(
 
     let actual = rhs.transform(lhs);
 
-    assert!(
-        expected.approx_eq(&actual),
-        "expected {} but was {}",
-        expected,
-        actual
-    );
+    assert_abs_diff_eq!(expected, &actual);
 }
 
 #[then(expr = r"{word} = point\({float}, {float}, {float}\)")]
@@ -94,12 +90,7 @@ fn assert_point_value(world: &mut RayTracerWorld, point_name: String, x: f32, y:
     let expected = Tuple::point(x, y, z);
     let actual = world.get_tuple_or_panic(&point_name);
 
-    assert!(
-        expected.approx_eq(&actual),
-        "expected {} but was {}",
-        expected,
-        actual
-    );
+    assert_abs_diff_eq!(expected, &actual,);
 }
 
 #[then(expr = r"{word} * {word} = {word}")]
@@ -115,12 +106,7 @@ fn assert_point_transform_name(
 
     let actual = rhs.transform(lhs);
 
-    assert!(
-        expected.approx_eq(&actual),
-        "expected {} but was {}",
-        expected,
-        actual
-    );
+    assert_abs_diff_eq!(expected, &actual);
 }
 
 // TODO generalize with above
@@ -139,12 +125,7 @@ fn assert_vector_transform_specified(
 
     let actual = rhs.transform(lhs);
 
-    assert!(
-        expected.approx_eq(&actual),
-        "expected {} but was {}",
-        expected,
-        actual
-    );
+    assert_abs_diff_eq!(expected, &actual);
 }
 
 fn main() {

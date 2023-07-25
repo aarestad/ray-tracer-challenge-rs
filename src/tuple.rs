@@ -7,14 +7,14 @@ use std::{
     str::FromStr,
 };
 
-use crate::util::EPSILON;
-
+use approx::{abs_diff_eq, AbsDiffEq};
 use nalgebra::{Matrix4, Vector3, Vector4};
 use regex::Regex;
 
+use crate::util::EPSILON;
+
 #[derive(Debug, Default, PartialEq, Copy, Clone)]
 pub struct Tuple(Vector4<f32>);
-use approx::abs_diff_eq;
 
 impl Display for Tuple {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -123,9 +123,21 @@ impl FromStr for Tuple {
     }
 }
 
+impl AbsDiffEq for Tuple {
+    type Epsilon = f32;
+
+    fn default_epsilon() -> Self::Epsilon {
+        EPSILON
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        abs_diff_eq!(self.0, other.0, epsilon = epsilon)
+    }
+}
+
 impl Tuple {
-    pub fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
-        Tuple(Vector4::from_vec(vec![x, y, z, w]))
+    pub const fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+        Tuple(Vector4::new(x, y, z, w))
     }
 
     pub fn point(x: f32, y: f32, z: f32) -> Tuple {
@@ -158,10 +170,6 @@ impl Tuple {
             w if w == 1.0 => TupleType::Point,
             _ => panic!("bad value for w: {}", self.w()),
         }
-    }
-
-    pub fn approx_eq(&self, rhs: &Tuple) -> bool {
-        abs_diff_eq!(self.0, rhs.0, epsilon = EPSILON)
     }
 
     pub fn is_point(&self) -> bool {

@@ -3,7 +3,7 @@ use ray_tracer_challenge_rs::tuple::Tuple;
 use ray_tracer_challenge_rs::util::EPSILON;
 use testutils::world::RayTracerWorld;
 
-use approx::assert_abs_diff_eq;
+use approx::{abs_diff_eq, assert_abs_diff_eq};
 use cucumber::{then, when, World};
 use futures_lite::future;
 use std::str::FromStr;
@@ -164,7 +164,7 @@ fn assert_normalize_approx(
 
     assert!(
         if approx_test {
-            actual.approx_eq(&expected)
+            abs_diff_eq!(actual, &expected)
         } else {
             actual == expected
         },
@@ -273,15 +273,7 @@ fn assert_color_addsub(
         AddSub::Sub => *lhs - *rhs,
     };
 
-    assert!(
-        expected.approx_eq(&actual),
-        "expected {} {} {} to be {} but was {}",
-        lhs_name,
-        op,
-        rhs_name,
-        expected,
-        actual,
-    );
+    assert_abs_diff_eq!(expected, &actual);
 }
 
 #[then(expr = r"{word} * {word} = color\({float}, {float}, {float}\)")]
@@ -304,14 +296,7 @@ fn assert_color_mul(
 
     let expected = Color::new(r, g, b);
 
-    assert!(
-        expected.approx_eq(&actual),
-        "expected {} * {} to be {} but was {}",
-        lhs_name,
-        rhs,
-        expected,
-        actual,
-    );
+    assert_abs_diff_eq!(expected, &actual);
 }
 
 fn main() {

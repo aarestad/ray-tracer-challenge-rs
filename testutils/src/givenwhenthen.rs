@@ -16,6 +16,8 @@ use ray_tracer_challenge_rs::{
     tuple::Tuple,
 };
 
+use approx::assert_abs_diff_eq;
+
 #[given(regex = r"^(\w+)\s*←\s*((tuple|point|vector)\(.+)$")]
 fn given_a_tuple(world: &mut RayTracerWorld, tuple_name: String, tuple: Tuple) {
     world.tuples.insert(tuple_name, tuple);
@@ -109,6 +111,24 @@ fn given_rotation_scaling(
     world.transforms.insert(trans_name, s * r);
 }
 
+#[given(
+    expr = r"{word} ← point_light\(point\({float}, {float}, {float}\), color\({float}, {float}, {float}\)\)"
+)]
+fn given_point_light(
+    world: &mut RayTracerWorld,
+    light: String,
+    x: f32,
+    y: f32,
+    z: f32,
+    r: f32,
+    g: f32,
+    b: f32,
+) {
+    let p = Tuple::point(x, y, z);
+    let c = Color::new(r, g, b);
+    world.lights.insert(light, PointLight::new(p, c));
+}
+
 #[given(expr = r"{word} ← intersect\({word}, {word}\)")]
 #[when(expr = r"{word} ← intersect\({word}, {word}\)")]
 fn when_ray_intersects_sphere(
@@ -168,17 +188,31 @@ fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, spher
     world.materials.insert(mat_name, s.material);
 }
 
+#[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}\)")]
+fn when_lighting_material(
+    world: &mut RayTracerWorld,
+    result: String,
+    mat: String,
+    light: String,
+    position: String,
+    eyev: String,
+    normalv: String,
+) {
+    let m = world.get_material_or_panic(&mat);
+    let l = *world.get_light_or_panic(&light);
+    let p = *world.get_tuple_or_panic(&position);
+    let e = *world.get_tuple_or_panic(&eyev);
+    let n = *world.get_tuple_or_panic(&normalv);
+
+    world.colors.insert(result, m.lighting(l, p, e, n));
+}
+
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
     let actual = world.get_tuple_or_panic(&vector_name);
     let expected = Tuple::vector(x, y, z);
 
-    assert!(
-        actual.approx_eq(&expected),
-        "expected {}, was {}",
-        actual,
-        expected
-    );
+    assert_abs_diff_eq!(actual, &expected);
 }
 
 #[then(expr = r"{word}.position = {word}")]
@@ -200,41 +234,47 @@ fn assert_vector_normalized(world: &mut RayTracerWorld, lhs_name: String, rhs_na
     let lhs = world.get_tuple_or_panic(&lhs_name);
     let rhs = world.get_tuple_or_panic(&rhs_name);
 
-    assert!(lhs.approx_eq(&rhs.normalize()));
+    assert_abs_diff_eq!(lhs, &rhs.normalize());
 }
 
 #[then(expr = r"{word} = material\(\)")]
 fn assert_default_material(world: &mut RayTracerWorld, mat_name: String) {
     let m = world.get_material_or_panic(&mat_name);
-    assert_eq!(*m, Material::default());
+    assert_abs_diff_eq!(*m, Material::default());
 }
 
-#[then(expr = r"{word}.color = color\({float}, {float}, {float}\)")]
+#[then(regex = r"^(\w+) = color\((.+), (.+), (.+)\)")]
+fn assert_color(world: &mut RayTracerWorld, color: String, r: f32, g: f32, b: f32) {
+    let c = world.get_color_or_panic(&color);
+    assert_abs_diff_eq!(*c, Color::new(r, g, b));
+}
+
+#[then(regex = r"^(\w+).color = color\((.+), (.+), (.+)\)")]
 fn assert_mat_color(world: &mut RayTracerWorld, mat_name: String, r: f32, g: f32, b: f32) {
     let m = world.get_material_or_panic(&mat_name);
-    assert_eq!(m.color, Color::new(r, g, b));
+    assert_abs_diff_eq!(m.color, Color::new(r, g, b));
 }
 
 #[then(expr = r"{word}.ambient = {float}")]
 fn assert_mat_ambient(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
     let m = world.get_material_or_panic(&mat_name);
-    assert_eq!(m.ambient, expected);
+    assert_abs_diff_eq!(m.ambient, expected);
 }
 
 #[then(expr = r"{word}.diffuse = {float}")]
 fn assert_mat_diffuse(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
     let m = world.get_material_or_panic(&mat_name);
-    assert_eq!(m.diffuse, expected);
+    assert_abs_diff_eq!(m.diffuse, expected);
 }
 
 #[then(expr = r"{word}.specular = {float}")]
 fn assert_mat_specular(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
     let m = world.get_material_or_panic(&mat_name);
-    assert_eq!(m.specular, expected);
+    assert_abs_diff_eq!(m.specular, expected);
 }
 
 #[then(expr = r"{word}.shininess = {float}")]
 fn assert_mat_shininess(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
     let m = world.get_material_or_panic(&mat_name);
-    assert_eq!(m.shininess, expected);
+    assert_abs_diff_eq!(m.shininess, expected);
 }

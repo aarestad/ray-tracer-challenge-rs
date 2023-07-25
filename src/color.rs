@@ -5,9 +5,13 @@ use std::{
     str::FromStr,
 };
 
+use approx::{abs_diff_eq, AbsDiffEq};
 use regex::Regex;
 
 use crate::tuple::Tuple;
+use crate::util::EPSILON;
+
+pub const BLACK: Color = Color::new(0., 0., 0.);
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Color(Tuple);
@@ -29,8 +33,20 @@ impl Display for Color {
     }
 }
 
+impl AbsDiffEq for Color {
+    type Epsilon = f32;
+
+    fn default_epsilon() -> Self::Epsilon {
+        EPSILON
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        abs_diff_eq!(self.0, other.0, epsilon = epsilon)
+    }
+}
+
 impl Color {
-    pub fn new(r: f32, g: f32, b: f32) -> Color {
+    pub const fn new(r: f32, g: f32, b: f32) -> Color {
         Color(Tuple::new(r, g, b, 1.0))
     }
 
@@ -49,11 +65,6 @@ impl Color {
     #[allow(dead_code)]
     pub fn alpha(&self) -> f32 {
         self.0.w()
-    }
-
-    #[allow(dead_code)]
-    pub fn approx_eq(&self, rhs: &Color) -> bool {
-        self.0.approx_eq(&rhs.0)
     }
 
     pub fn as_ppm_string(&self) -> String {

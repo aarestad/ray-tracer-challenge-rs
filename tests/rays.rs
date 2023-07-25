@@ -1,3 +1,4 @@
+use approx::assert_abs_diff_eq;
 use cucumber::{then, when, World};
 use futures_lite::future;
 use ray_tracer_challenge_rs::ray::Ray;
@@ -73,7 +74,7 @@ fn assert_position(
     let expected = Tuple::point(px, py, pz);
     let actual = ray.position(t);
 
-    assert!(expected.approx_eq(&actual));
+    assert_abs_diff_eq!(expected, &actual);
 }
 
 fn main() {
