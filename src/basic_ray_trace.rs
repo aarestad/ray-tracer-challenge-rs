@@ -3,6 +3,8 @@ use nalgebra::Matrix4;
 use crate::canvas::Canvas;
 use crate::color::Color;
 use crate::intersection::Intersectable;
+use crate::light::PointLight;
+use crate::material::Material;
 use crate::objects::Sphere;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
@@ -18,9 +20,11 @@ pub fn ch5_playground(filename: &Path, transform: Matrix4<f32>) -> Result<()> {
     let pixel_size = wall_size / (canvas_pixels as f32);
     let half = wall_size / 2.;
 
+    let light = PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.));
+
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
-    let red = Color::new(1., 0., 0.);
-    let sphere = Sphere::new(transform, Default::default());
+
+    let sphere = Sphere::new(transform, Material::new(Color::new(1., 0.2, 1.)));
 
     for y in 0..canvas_pixels {
         let world_y = half - pixel_size * (y as f32);
@@ -31,8 +35,13 @@ pub fn ch5_playground(filename: &Path, transform: Matrix4<f32>) -> Result<()> {
             let ray = Ray::new(ray_origin, (position - ray_origin).normalize());
             let ints = sphere.intersections(&ray);
 
-            if ints.hit().is_some() {
-                canvas.write(x, y, red);
+            if let Some(hit) = ints.hit() {
+                let p = ray.position(hit.t);
+                let n = hit.object.normal_at(p);
+                let e = -ray.direction;
+                let c = hit.object.material().lighting(light, p, e, n);
+
+                canvas.write(x, y, c);
             }
         }
     }

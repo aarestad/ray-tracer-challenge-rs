@@ -46,6 +46,12 @@ impl AbsDiffEq for Material {
 }
 
 impl Material {
+    pub fn new(c: Color) -> Self {
+        let mut m = Self::default();
+        m.color = c;
+        m
+    }
+
     pub fn lighting(&self, light: PointLight, point: Tuple, eyev: Tuple, normalv: Tuple) -> Color {
         // combine the surface color with the light's color/intensity
         let effective_color = self.color * light.intensity;

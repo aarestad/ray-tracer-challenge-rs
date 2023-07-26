@@ -12,7 +12,7 @@ use std::rc::Rc;
 pub struct Sphere {
     center: Tuple,
     transform: Matrix4<f32>,
-    pub material: Material,
+    material: Material,
 }
 
 impl Default for Sphere {
@@ -36,14 +36,6 @@ impl Sphere {
 
     pub fn transform(&self) -> &Matrix4<f32> {
         &self.transform
-    }
-
-    pub fn normal_at(&self, p: Tuple) -> Tuple {
-        let t = self.transform.try_inverse().expect("not invertible");
-        let object_point = p.transform(&t);
-        let object_normal = object_point - self.center;
-        let world_normal = object_normal.transform(&t.transpose());
-        world_normal.normalize()
     }
 }
 
@@ -73,7 +65,15 @@ impl Intersectable for Sphere {
         ])
     }
 
-    fn id(&self) -> i64 {
-        self.center.magnitude() as i64
+    fn material(&self) -> Material {
+        self.material
+    }
+
+    fn normal_at(&self, p: Tuple) -> Tuple {
+        let t = self.transform.try_inverse().expect("not invertible");
+        let object_point = p.transform(&t);
+        let object_normal = object_point - self.center;
+        let world_normal = object_normal.transform(&t.transpose());
+        world_normal.normalize()
     }
 }

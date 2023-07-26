@@ -1,4 +1,4 @@
-use crate::ray::Ray;
+use crate::{material::Material, ray::Ray, tuple::Tuple};
 use std::{fmt::Debug, rc::Rc};
 
 #[derive(Debug)]
@@ -15,7 +15,7 @@ impl Intersection {
 
 impl PartialEq for Intersection {
     fn eq(&self, other: &Self) -> bool {
-        self.t == other.t && self.object.id() == other.object.id()
+        self.t == other.t
     }
 }
 
@@ -56,5 +56,6 @@ impl Intersections {
 
 pub trait Intersectable: Debug {
     fn intersections(&self, ray: &Ray) -> Intersections;
-    fn id(&self) -> i64;
+    fn material(&self) -> Material;
+    fn normal_at(&self, p: Tuple) -> Tuple;
 }
