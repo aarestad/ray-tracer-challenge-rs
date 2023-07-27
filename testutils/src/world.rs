@@ -107,4 +107,10 @@ impl RayTracerWorld {
             .get(material_name)
             .expect(format!("missing material {}", material_name).as_str())
     }
+
+    pub fn get_world_or_panic(&self, world_name: &String) -> &World {
+        self.worlds
+            .get(world_name)
+            .expect(format!("missing world {}", world_name).as_str())
+    }
 }

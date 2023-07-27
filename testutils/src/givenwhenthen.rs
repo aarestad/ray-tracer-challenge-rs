@@ -13,6 +13,7 @@ use ray_tracer_challenge_rs::{
     ray::Ray,
     transforms::{identity, rotation, scaling, translation},
     tuple::Tuple,
+    world::World,
 };
 
 use std::str::FromStr;
@@ -65,6 +66,20 @@ fn given_a_default_sphere(world: &mut RayTracerWorld, sphere_name: String) {
     world.spheres.insert(sphere_name, Sphere::default());
 }
 
+fn parse_three_args(s: &str) -> (f32, f32, f32) {
+    let three_args_re = Regex::new(r"\((.+), (.+), (.+)\)").unwrap();
+
+    let args: Vec<f32> = three_args_re
+        .captures(s)
+        .unwrap()
+        .iter()
+        .skip(1)
+        .map(|c| f32::from_str(c.unwrap().as_str()).unwrap())
+        .collect();
+
+    (args[0], args[1], args[2])
+}
+
 #[given(expr = r"{word} ← sphere\(\) with:")]
 fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) {
     let table = step.table().unwrap();
@@ -72,37 +87,30 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
     let mut material_builder = MaterialBuilder::default();
     let mut transform = identity();
 
-    let three_args_re = Regex::new(r"\((.+), (.+), (.+)\)").unwrap();
     let prop_re = Regex::new(r"\.(\w+)").unwrap();
 
     for row in table.rows.iter() {
         if let [prop, val] = &row[0..2] {
             match prop {
                 _ if prop == "transform" => {
-                    let args = three_args_re
-                        .find_iter(val)
-                        .map(|v| f32::from_str(v.into()).unwrap())
-                        .collect::<Vec<_>>();
+                    let args = parse_three_args(val);
 
                     match val {
                         _ if val.starts_with("scaling") => {
-                            transform = scaling(args[0], args[1], args[2]);
+                            transform = scaling(args.0, args.1, args.2);
                         }
-                        _ => unimplemented!(),
+                        _ => panic!("bad transform val: {}", val),
                     }
                 }
                 _ if prop.starts_with("material") => {
-                    let mat_prop_name = &prop_re.captures(val).unwrap()[1];
+                    let mat_prop_name = &prop_re.captures(prop).unwrap()[1];
 
                     match mat_prop_name {
                         "color" => {
-                            let args = three_args_re
-                                .find_iter(val)
-                                .map(|v| f32::from_str(v.into()).unwrap())
-                                .collect::<Vec<_>>();
+                            let args = parse_three_args(val);
 
                             material_builder =
-                                material_builder.color(Color::new(args[0], args[1], args[2]));
+                                material_builder.color(Color::new(args.0, args.1, args.2));
                         }
                         "diffuse" => {
                             material_builder =
@@ -112,10 +120,10 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
                             material_builder =
                                 material_builder.specular(f32::from_str(val).unwrap());
                         }
-                        _ => unimplemented!(),
+                        _ => panic!("bad mat prop: {}", mat_prop_name),
                     }
                 }
-                _ => unimplemented!(),
+                _ => panic!("bad prop: {}", prop),
             }
         } else {
             panic!("row too short");
@@ -272,6 +280,11 @@ fn when_lighting_material(
     world.colors.insert(result, m.lighting(l, p, e, n));
 }
 
+#[when(expr = r"{word} ← default_world\(\)")]
+fn when_default_world(world: &mut RayTracerWorld, world_name: String) {
+    world.worlds.insert(world_name, World::default_world());
+}
+
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
     let actual = world.get_tuple_or_panic(&vector_name);
@@ -342,4 +355,28 @@ fn assert_mat_specular(world: &mut RayTracerWorld, mat_name: String, expected: f
 fn assert_mat_shininess(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
     let m = world.get_material_or_panic(&mat_name);
     assert_abs_diff_eq!(m.shininess, expected);
+}
+
+// very specific re for this
+#[then(regex = r"^w.light = light$")]
+fn assert_world_light(world: &mut RayTracerWorld) {
+    assert_eq!(
+        &world.get_world_or_panic(&"w".into()).light_source,
+        world.get_light_or_panic(&"light".into()),
+    );
+}
+
+#[then(expr = r"{word} contains {word}")]
+fn assert_world_contains_sphere(world: &mut RayTracerWorld, w: String, s: String) {
+    let render_world = world.get_world_or_panic(&w);
+    let sphere = world.get_sphere_or_panic(&s);
+
+    assert!(render_world.objects.iter().any(|o| {
+        let s: &Sphere = match o.as_any().downcast_ref::<Sphere>() {
+            Some(s) => s,
+            None => panic!("not a wphere"),
+        };
+
+        s == sphere
+    }));
 }

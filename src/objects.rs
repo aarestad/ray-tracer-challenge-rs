@@ -4,17 +4,19 @@ use crate::intersection::{Intersection, Intersections};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
+use std::any::Any;
 use std::default::Default;
 use std::fmt::Debug;
 use std::rc::Rc;
 
 pub trait Object: Debug {
+    fn as_any(&self) -> &dyn Any;
     fn intersections(&self, ray: &Ray) -> Intersections;
     fn material(&self) -> Material;
     fn normal_at(&self, p: Tuple) -> Tuple;
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Sphere {
     center: Tuple,
     transform: Matrix4<f32>,
@@ -46,6 +48,10 @@ impl Sphere {
 }
 
 impl Object for Sphere {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn intersections(&self, ray: &Ray) -> Intersections {
         let transformed_ray = ray.transform(
             &self

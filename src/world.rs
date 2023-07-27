@@ -11,8 +11,8 @@ use crate::{
 
 #[derive(Debug, Default)]
 pub struct World {
-    objects: Vec<Rc<dyn Object>>,
-    light_source: PointLight,
+    pub objects: Vec<Rc<dyn Object>>,
+    pub light_source: PointLight,
 }
 
 impl World {
