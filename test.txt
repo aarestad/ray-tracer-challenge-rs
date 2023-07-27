@@ -1,0 +1,184 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+Feature: Lights
+  Scenario: A point light has a position and intensity
+   ✔  Given intensity ← color(1, 1, 1)
+   ✔  And position ← point(0, 0, 0)
+   ✔  When light ← point_light(position, intensity)
+   ✔  Then light.position = position
+   ✔  And light.intensity = intensity
+[Summary]
+1 feature
+1 scenario (1 passed)
+5 steps (5 passed)
+Feature: Materials
+  Scenario: The default material
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given m ← material()
+   ✔  Then m.color = color(1, 1, 1)
+   ✔  And m.ambient = 0.1
+   ✔  And m.diffuse = 0.9
+   ✔  And m.specular = 0.9
+   ✔  And m.shininess = 200.0
+  Scenario: Reflectivity for the default material
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given m ← material()
+   ?  Then m.reflective = 0.0
+      Step skipped: tests/features/materials.feature:17:5
+  Scenario: Transparency and Refractive Index for the default material
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given m ← material()
+   ?  Then m.transparency = 0.0
+      Step skipped: tests/features/materials.feature:21:5
+  Scenario: Lighting with the eye between the light and the surface
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given eyev ← vector(0, 0, -1)
+   ✔  And normalv ← vector(0, 0, -1)
+   ✔  And light ← point_light(point(0, 0, -10), color(1, 1, 1))
+   ✔  When result ← lighting(m, light, position, eyev, normalv)
+   ✔  Then result = color(1.9, 1.9, 1.9)
+  Scenario: Lighting with the eye between light and surface, eye offset 45°
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given eyev ← vector(0, 0.70710678, -0.70710678)
+   ✔  And normalv ← vector(0, 0, -1)
+   ✔  And light ← point_light(point(0, 0, -10), color(1, 1, 1))
+   ✔  When result ← lighting(m, light, position, eyev, normalv)
+   ✔  Then result = color(1.0, 1.0, 1.0)
+  Scenario: Lighting with eye opposite surface, light offset 45°
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given eyev ← vector(0, 0, -1)
+   ✔  And normalv ← vector(0, 0, -1)
+   ✔  And light ← point_light(point(0, 10, -10), color(1, 1, 1))
+   ✔  When result ← lighting(m, light, position, eyev, normalv)
+   ✔  Then result = color(0.7364, 0.7364, 0.7364)
+  Scenario: Lighting with eye in the path of the reflection vector
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given eyev ← vector(0, -0.70710678, -0.70710678)
+   ✔  And normalv ← vector(0, 0, -1)
+   ✔  And light ← point_light(point(0, 10, -10), color(1, 1, 1))
+   ✔  When result ← lighting(m, light, position, eyev, normalv)
+   ✔  Then result = color(1.6364, 1.6364, 1.6364)
+  Scenario: Lighting with the light behind the surface
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given eyev ← vector(0, 0, -1)
+   ✔  And normalv ← vector(0, 0, -1)
+   ✔  And light ← point_light(point(0, 0, 10), color(1, 1, 1))
+   ✔  When result ← lighting(m, light, position, eyev, normalv)
+   ✔  Then result = color(0.1, 0.1, 0.1)
+  Scenario: Lighting with the surface in shadow
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ✔  Given eyev ← vector(0, 0, -1)
+   ✔  And normalv ← vector(0, 0, -1)
+   ✔  And light ← point_light(point(0, 0, -10), color(1, 1, 1))
+   ?  And in_shadow ← true
+      Step skipped: tests/features/materials.feature:63:5
+  Scenario: Lighting with a pattern applied
+   ✔> Given m ← material()
+   ✔> And position ← point(0, 0, 0)
+   ?  Given m.pattern ← stripe_pattern(color(1, 1, 1), color(0, 0, 0))
+      Step skipped: tests/features/materials.feature:68:5
+[Summary]
+1 feature
+10 scenarios (6 passed, 4 skipped)
+60 steps (56 passed, 4 skipped)
+Feature: World
+  Scenario: Creating a world
+   ?  Given w ← world()
+      Step skipped: tests/features/world.feature:4:3
+  Scenario: The default world
+   ✔  Given light ← point_light(point(-10, 10, -10), color(1, 1, 1))
+   ✘  And s1 ← sphere() with:
+       | material.color    | (0.8, 1.0, 0.6) |
+       | material.diffuse  | 0.7             |
+       | material.specular | 0.2             |
+      Step failed:
+      Defined: tests/features/world.feature:10:5
+      Matched: testutils/src/givenwhenthen.rs:68:1
+      Step panicked. Captured output: not implemented
+  Scenario: Intersect a world with a ray
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:22:3
+  Scenario: Shading an intersection
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:32:3
+  Scenario: Shading an intersection from the inside
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:41:3
+  Scenario: The color when a ray misses
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:51:3
+  Scenario: The color when a ray hits
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:57:3
+  Scenario: The color with an intersection behind the ray
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:63:3
+  Scenario: There is no shadow when nothing is collinear with point and light
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:73:3
+  Scenario: The shadow when an object is between the point and the light
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:78:3
+  Scenario: There is no shadow when an object is behind the light
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:83:3
+  Scenario: There is no shadow when an object is behind the point
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:88:3
+  Scenario: shade_hit() is given an intersection in shadow
+   ?  Given w ← world()
+      Step skipped: tests/features/world.feature:93:3
+  Scenario: The reflected color for a nonreflective material
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:107:3
+  Scenario: The reflected color for a reflective material
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:117:3
+  Scenario: shade_hit() with a reflective material
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:129:3
+  Scenario: color_at() with mutually reflective surfaces
+   ?  Given w ← world()
+      Step skipped: tests/features/world.feature:141:3
+  Scenario: The reflected color at the maximum recursive depth
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:155:3
+  Scenario: The refracted color with an opaque surface
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:167:3
+  Scenario: The refracted color at the maximum recursive depth
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:176:3
+  Scenario: The refracted color under total internal reflection
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:188:3
+  Scenario: The refracted color with a refracted ray
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:202:3
+  Scenario: shade_hit() with a transparent material
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:218:3
+  Scenario: shade_hit() with a reflective, transparent material
+   ?  Given w ← default_world()
+      Step skipped: tests/features/world.feature:236:3
+[Summary]
+1 feature
+24 scenarios (23 skipped, 1 failed)
+25 steps (1 passed, 23 skipped, 1 failed)

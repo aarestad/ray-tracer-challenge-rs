@@ -2,17 +2,16 @@ use nalgebra::Matrix4;
 
 use crate::canvas::Canvas;
 use crate::color::Color;
-use crate::intersection::Intersectable;
 use crate::light::PointLight;
-use crate::material::Material;
-use crate::objects::Sphere;
+use crate::material::MaterialBuilder;
+use crate::objects::{Object, Sphere};
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::fs::File;
 use std::io::{Result, Write};
 use std::path::Path;
 
-pub fn ch5_playground(filename: &Path, transform: Matrix4<f32>) -> Result<()> {
+pub fn basic_ray_trace(filename: &Path, transform: Matrix4<f32>) -> Result<()> {
     let ray_origin = Tuple::point(0., 0., -5.);
     let wall_z = 10f32;
     let wall_size = 7f32;
@@ -24,7 +23,14 @@ pub fn ch5_playground(filename: &Path, transform: Matrix4<f32>) -> Result<()> {
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
 
-    let sphere = Sphere::new(transform, Material::new(Color::new(1., 0.2, 1.)));
+    let sphere = Sphere::new(
+        transform,
+        MaterialBuilder::default()
+            .color(Color::new(1., 0.2, 1.))
+            .diffuse(0.9)
+            .specular(0.9)
+            .build(),
+    );
 
     for y in 0..canvas_pixels {
         let world_y = half - pixel_size * (y as f32);

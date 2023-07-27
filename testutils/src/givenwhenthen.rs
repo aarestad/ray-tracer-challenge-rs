@@ -2,19 +2,22 @@ use crate::{
     parameters::{Axis, SingleValue},
     world::RayTracerWorld,
 };
-use cucumber::{given, then, when};
+use cucumber::{gherkin::Step, given, then, when};
 use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::{
     canvas::Canvas,
     color::Color,
-    intersection::Intersectable,
     light::PointLight,
-    material::Material,
-    objects::Sphere,
+    material::{Material, MaterialBuilder},
+    objects::{Object, Sphere},
     ray::Ray,
-    transforms::{rotation, scaling, translation},
+    transforms::{identity, rotation, scaling, translation},
     tuple::Tuple,
 };
+
+use std::str::FromStr;
+
+use regex::Regex;
 
 use approx::assert_abs_diff_eq;
 
@@ -60,6 +63,69 @@ fn given_a_ray(
 #[given(expr = r"{word} ← sphere\(\)")]
 fn given_a_default_sphere(world: &mut RayTracerWorld, sphere_name: String) {
     world.spheres.insert(sphere_name, Sphere::default());
+}
+
+#[given(expr = r"{word} ← sphere\(\) with:")]
+fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) {
+    let table = step.table().unwrap();
+
+    let mut material_builder = MaterialBuilder::default();
+    let mut transform = identity();
+
+    let three_args_re = Regex::new(r"\((.+), (.+), (.+)\)").unwrap();
+    let prop_re = Regex::new(r"\.(\w+)").unwrap();
+
+    for row in table.rows.iter() {
+        if let [prop, val] = &row[0..2] {
+            match prop {
+                _ if prop == "transform" => {
+                    let args = three_args_re
+                        .find_iter(val)
+                        .map(|v| f32::from_str(v.into()).unwrap())
+                        .collect::<Vec<_>>();
+
+                    match val {
+                        _ if val.starts_with("scaling") => {
+                            transform = scaling(args[0], args[1], args[2]);
+                        }
+                        _ => unimplemented!(),
+                    }
+                }
+                _ if prop.starts_with("material") => {
+                    let mat_prop_name = &prop_re.captures(val).unwrap()[1];
+
+                    match mat_prop_name {
+                        "color" => {
+                            let args = three_args_re
+                                .find_iter(val)
+                                .map(|v| f32::from_str(v.into()).unwrap())
+                                .collect::<Vec<_>>();
+
+                            material_builder =
+                                material_builder.color(Color::new(args[0], args[1], args[2]));
+                        }
+                        "diffuse" => {
+                            material_builder =
+                                material_builder.diffuse(f32::from_str(val).unwrap());
+                        }
+                        "specular" => {
+                            material_builder =
+                                material_builder.specular(f32::from_str(val).unwrap());
+                        }
+                        _ => unimplemented!(),
+                    }
+                }
+                _ => unimplemented!(),
+            }
+        } else {
+            panic!("row too short");
+        }
+    }
+
+    world.spheres.insert(
+        sphere_name,
+        Sphere::new(transform, material_builder.build()),
+    );
 }
 
 #[given(expr = r"{word} ← sphere\({word}\)")]
@@ -184,7 +250,7 @@ fn when_light_created(
 #[when(expr = r"{word} ← {word}.material")]
 fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, sphere_name: String) {
     let s = world.get_sphere_or_panic(&sphere_name);
-    world.materials.insert(mat_name, s.material);
+    world.materials.insert(mat_name, s.material());
 }
 
 #[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}\)")]

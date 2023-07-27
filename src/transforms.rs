@@ -11,6 +11,10 @@ pub enum RotationAxis {
 
 // TODO fluent api?
 nofmt::pls! {
+    pub fn identity() -> Matrix4<f32> {
+        Matrix4::identity()
+    }
+
     pub fn translation(x: f32, y: f32, z: f32) -> Matrix4<f32> {
         // remember, column-major!
         Matrix4::from_vec(vec![

@@ -1,14 +1,14 @@
-use crate::{material::Material, ray::Ray, tuple::Tuple};
+use crate::objects::Object;
 use std::{fmt::Debug, rc::Rc};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Intersection {
     pub t: f32,
-    pub object: Rc<dyn Intersectable>,
+    pub object: Rc<dyn Object>,
 }
 
 impl Intersection {
-    pub fn new(t: f32, object: Rc<dyn Intersectable>) -> Self {
+    pub fn new(t: f32, object: Rc<dyn Object>) -> Self {
         Self { t, object }
     }
 }
@@ -52,10 +52,4 @@ impl Intersections {
 
         Some(nonnegative_t_ints.first().unwrap())
     }
-}
-
-pub trait Intersectable: Debug {
-    fn intersections(&self, ray: &Ray) -> Intersections;
-    fn material(&self) -> Material;
-    fn normal_at(&self, p: Tuple) -> Tuple;
 }

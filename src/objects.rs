@@ -1,12 +1,18 @@
 use nalgebra::Matrix4;
 
-use crate::intersection::{Intersectable, Intersection, Intersections};
+use crate::intersection::{Intersection, Intersections};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::default::Default;
 use std::fmt::Debug;
 use std::rc::Rc;
+
+pub trait Object: Debug {
+    fn intersections(&self, ray: &Ray) -> Intersections;
+    fn material(&self) -> Material;
+    fn normal_at(&self, p: Tuple) -> Tuple;
+}
 
 #[derive(Debug, Copy, Clone)]
 pub struct Sphere {
@@ -39,7 +45,7 @@ impl Sphere {
     }
 }
 
-impl Intersectable for Sphere {
+impl Object for Sphere {
     fn intersections(&self, ray: &Ray) -> Intersections {
         let transformed_ray = ray.transform(
             &self

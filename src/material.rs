@@ -8,6 +8,63 @@ use crate::{
 
 use crate::util::EPSILON;
 
+pub struct MaterialBuilder {
+    color: Color,
+    ambient: f32,
+    diffuse: f32,
+    specular: f32,
+    shininess: f32,
+}
+
+impl Default for MaterialBuilder {
+    fn default() -> Self {
+        Self {
+            color: Color::new(1., 1., 1.),
+            ambient: 0.1,
+            diffuse: 0.9,
+            specular: 0.9,
+            shininess: 200.,
+        }
+    }
+}
+
+impl MaterialBuilder {
+    pub fn color(mut self, c: Color) -> Self {
+        self.color = c;
+        self
+    }
+
+    pub fn ambient(mut self, a: f32) -> Self {
+        self.ambient = a;
+        self
+    }
+
+    pub fn diffuse(mut self, d: f32) -> Self {
+        self.diffuse = d;
+        self
+    }
+
+    pub fn specular(mut self, sp: f32) -> Self {
+        self.specular = sp;
+        self
+    }
+
+    pub fn shininess(mut self, sh: f32) -> Self {
+        self.shininess = sh;
+        self
+    }
+
+    pub fn build(&self) -> Material {
+        Material {
+            color: self.color,
+            ambient: self.ambient,
+            diffuse: self.diffuse,
+            specular: self.specular,
+            shininess: self.shininess,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Material {
     pub color: Color,
@@ -19,13 +76,7 @@ pub struct Material {
 
 impl Default for Material {
     fn default() -> Self {
-        Self {
-            color: Color::new(1., 1., 1.),
-            ambient: 0.1,
-            diffuse: 0.9,
-            specular: 0.9,
-            shininess: 200.,
-        }
+        MaterialBuilder::default().build()
     }
 }
 
@@ -46,12 +97,6 @@ impl AbsDiffEq for Material {
 }
 
 impl Material {
-    pub fn new(c: Color) -> Self {
-        let mut m = Self::default();
-        m.color = c;
-        m
-    }
-
     pub fn lighting(&self, light: PointLight, point: Tuple, eyev: Tuple, normalv: Tuple) -> Color {
         // combine the surface color with the light's color/intensity
         let effective_color = self.color * light.intensity;

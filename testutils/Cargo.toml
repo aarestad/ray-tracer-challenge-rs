@@ -7,4 +7,5 @@ edition = "2021"
 cucumber = "0.20"
 nalgebra = "0.32.3"
 approx = "0.5.1"
+regex = "1.9.1"
 ray-tracer-challenge-rs = { path = ".." }

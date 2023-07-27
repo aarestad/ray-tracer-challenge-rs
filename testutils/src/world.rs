@@ -1,4 +1,3 @@
-use cucumber::World;
 use ray_tracer_challenge_rs::canvas::Canvas;
 use ray_tracer_challenge_rs::color::Color;
 use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
@@ -7,18 +6,19 @@ use ray_tracer_challenge_rs::material::Material;
 use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ppm::Ppm;
 use ray_tracer_challenge_rs::ray::Ray;
+use ray_tracer_challenge_rs::world::World;
 use std::collections::HashMap;
 
 use nalgebra::{DMatrix, Matrix4};
 use ray_tracer_challenge_rs::tuple::Tuple;
 
-#[derive(Debug, Default, World)]
+#[derive(Debug, Default, cucumber::World)]
 pub struct RayTracerWorld {
     pub canvases: HashMap<String, Canvas>,
     pub colors: HashMap<String, Color>,
     pub ppms: HashMap<String, Ppm>,
     pub spheres: HashMap<String, Sphere>,
-    pub intersections: HashMap<String, Option<Intersection>>,
+    pub intersections: HashMap<String, Intersection>,
     // lol
     pub intersectionses: HashMap<String, Intersections>,
     pub matrices: HashMap<String, DMatrix<f32>>,
@@ -27,6 +27,7 @@ pub struct RayTracerWorld {
     pub transforms: HashMap<String, Matrix4<f32>>,
     pub lights: HashMap<String, PointLight>,
     pub materials: HashMap<String, Material>,
+    pub worlds: HashMap<String, World>,
 }
 
 // TODO this seems like a job for... a macro!
@@ -61,17 +62,8 @@ impl RayTracerWorld {
             .expect(format!("missing sphere named {}", sphere_name).as_str())
     }
 
-    pub fn get_int_or_panic(&self, int_name: &String) -> Option<Intersection> {
-        let int = self
-            .intersections
-            .get(int_name)
-            .expect(format!("missing intersection named {}", int_name).as_str());
-
-        if let Some(i) = int {
-            Some(Intersection::new(i.t, i.object.clone()))
-        } else {
-            None
-        }
+    pub fn get_optional_int(&self, int_name: &String) -> Option<&Intersection> {
+        self.intersections.get(int_name)
     }
 
     pub fn get_ints_or_panic(&self, ints_name: &String) -> &Intersections {
