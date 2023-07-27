@@ -2,9 +2,11 @@ use std::rc::Rc;
 
 use crate::{
     color::Color,
+    intersection::Intersections,
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{Object, Sphere},
+    ray::Ray,
     transforms::{identity, scaling},
     tuple::Tuple,
 };
@@ -38,5 +40,9 @@ impl World {
             ],
             PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )
+    }
+
+    pub fn intersects_with(&self, r: &Ray) -> Intersections {
+        Intersections::empty()
     }
 }

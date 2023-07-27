@@ -280,9 +280,19 @@ fn when_lighting_material(
     world.colors.insert(result, m.lighting(l, p, e, n));
 }
 
+#[given(expr = r"{word} ← default_world\(\)")]
 #[when(expr = r"{word} ← default_world\(\)")]
-fn when_default_world(world: &mut RayTracerWorld, world_name: String) {
+fn given_or_when_default_world(world: &mut RayTracerWorld, world_name: String) {
     world.worlds.insert(world_name, World::default_world());
+}
+
+#[when(expr = r"{word} ← intersect_world\({word}, {word}\)")]
+fn when_ray_intersects_world(world: &mut RayTracerWorld, ints: String, w: String, r: String) {
+    let rt_world = world.get_world_or_panic(&w);
+    let ray = world.get_ray_or_panic(&r);
+    world
+        .intersectionses
+        .insert(ints, rt_world.intersects_with(ray));
 }
 
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
@@ -375,4 +385,25 @@ fn assert_world_contains_sphere(world: &mut RayTracerWorld, w: String, s: String
         .objects
         .iter()
         .any(|o| { o.as_sphere() == sphere }));
+}
+
+#[then(regex = r"^(\w+)\.count = (\d+)$")]
+fn assert_intersection_count(world: &mut RayTracerWorld, int_name: String, expected: usize) {
+    let intersects = world.get_ints_or_panic(&int_name);
+
+    assert_eq!(intersects.ints().len(), expected)
+}
+
+#[then(regex = r"^(\w+)\[(\d)\]\.t = (.+)")]
+fn assert_nth_intersection(
+    world: &mut RayTracerWorld,
+    int_name: String,
+    nth: usize,
+    expected: f32,
+) {
+    let ints = world.get_ints_or_panic(&int_name);
+
+    let actual = &ints.ints()[nth];
+
+    assert_eq!(actual.t, expected);
 }

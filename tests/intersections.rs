@@ -75,27 +75,6 @@ fn assert_t(world: &mut RayTracerWorld, int_name: String, expected_t: f32) {
     assert_eq!(i.t, expected_t);
 }
 
-#[then(regex = r"^(\w+)\.count = (\d+)$")]
-fn assert_intersection_count(world: &mut RayTracerWorld, int_name: String, expected: usize) {
-    let intersects = world.get_ints_or_panic(&int_name);
-
-    assert_eq!(intersects.ints().len(), expected)
-}
-
-#[then(regex = r"^(\w+)\[(\d)\]\.t = (.+)")]
-fn assert_nth_intersection(
-    world: &mut RayTracerWorld,
-    int_name: String,
-    nth: usize,
-    expected: f32,
-) {
-    let ints = world.get_ints_or_panic(&int_name);
-
-    let actual = &ints.ints()[nth];
-
-    assert_eq!(actual.t, expected);
-}
-
 #[then(regex = r"^([\w\d]+) = ([\w\d]+)$")]
 fn assert_intersection_eq(world: &mut RayTracerWorld, lhs_name: String, rhs_name: String) {
     let lhs = world.get_optional_int(&lhs_name);

@@ -19,7 +19,7 @@ impl PartialEq for Intersection {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Intersections {
     intersections: Vec<Intersection>,
 }
@@ -30,9 +30,7 @@ impl Intersections {
     }
 
     pub fn empty() -> Intersections {
-        Intersections {
-            intersections: vec![],
-        }
+        Self::default()
     }
 
     #[allow(dead_code)]
