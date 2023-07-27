@@ -7,6 +7,7 @@ use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::{
     canvas::Canvas,
     color::Color,
+    intersection::Intersection,
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{Object, Sphere},
@@ -16,7 +17,7 @@ use ray_tracer_challenge_rs::{
     world::World,
 };
 
-use std::str::FromStr;
+use std::{rc::Rc, str::FromStr};
 
 use regex::Regex;
 
@@ -61,6 +62,20 @@ fn given_a_ray(
     );
 }
 
+#[given(expr = r"{word} ← intersection\({float}, {word}\)")]
+#[when(expr = r"{word} ← intersection\({float}, {word}\)")]
+fn when_intersection_created(
+    world: &mut RayTracerWorld,
+    int_name: String,
+    t: f32,
+    object_name: String,
+) {
+    let o = world.get_sphere_or_panic(&object_name);
+    world
+        .intersections
+        .insert(int_name, Intersection::new(t, Rc::new(*o)));
+}
+
 #[given(expr = r"{word} ← sphere\(\)")]
 fn given_a_default_sphere(world: &mut RayTracerWorld, sphere_name: String) {
     world.spheres.insert(sphere_name, Sphere::default());
@@ -98,6 +113,9 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
                     match val {
                         _ if val.starts_with("scaling") => {
                             transform = scaling(args.0, args.1, args.2);
+                        }
+                        _ if val.starts_with("translation") => {
+                            transform = translation(args.0, args.1, args.2);
                         }
                         _ => panic!("bad transform val: {}", val),
                     }
@@ -295,6 +313,13 @@ fn when_ray_intersects_world(world: &mut RayTracerWorld, ints: String, w: String
         .insert(ints, rt_world.intersects_with(ray));
 }
 
+#[when(expr = r"{word} ← prepare_computations\({word}, {word}\)")]
+fn when_precomputing(world: &mut RayTracerWorld, pc: String, i: String, r: String) {
+    let int = world.get_optional_int(&i).unwrap();
+    let ray = world.get_ray_or_panic(&r);
+    world.precomps.insert(pc, int.precompute_with(ray));
+}
+
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
     let actual = world.get_tuple_or_panic(&vector_name);
@@ -406,4 +431,36 @@ fn assert_nth_intersection(
     let actual = &ints.ints()[nth];
 
     assert_eq!(actual.t, expected);
+}
+
+#[then(regex = r"^comps\.(\w+) = (.+)$")]
+fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, prop_expr: String) {
+    let pc = world.get_precomp_or_panic(&"comps".to_string());
+
+    match prop_name.as_str() {
+        "t" => {
+            let i_name = prop_expr.split('.').next().expect(prop_expr.as_str());
+            let i = world.get_optional_int(&i_name.to_string()).expect(i_name);
+            assert_eq!(pc.intersection.t, i.t);
+        }
+        "object" => {
+            let i_name = prop_expr.split('.').next().unwrap();
+            let i = world.get_optional_int(&i_name.to_string()).unwrap();
+            assert_eq!(pc.intersection.object.as_sphere(), i.object.as_sphere());
+        }
+        "point" => {
+            let p = Tuple::from_str(prop_expr.as_str()).unwrap();
+            assert_eq!(pc.point, p);
+        }
+        "eyev" | "normalv" => {
+            let v = Tuple::from_str(prop_expr.as_str()).unwrap();
+
+            if prop_name == "eyev" {
+                assert_eq!(pc.eyev, v);
+            } else {
+                assert_eq!(pc.normalv, v);
+            }
+        }
+        _ => panic!("bad prop name {}", prop_name),
+    }
 }

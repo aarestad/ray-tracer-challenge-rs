@@ -2,22 +2,7 @@ use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
 
 use cucumber::{given, then, when, World};
 use futures_lite::future;
-use std::rc::Rc;
 use testutils::world::RayTracerWorld;
-
-#[given(expr = r"{word} ← intersection\({float}, {word}\)")]
-#[when(expr = r"{word} ← intersection\({float}, {word}\)")]
-fn when_intersection_created(
-    world: &mut RayTracerWorld,
-    int_name: String,
-    t: f32,
-    object_name: String,
-) {
-    let o = world.get_sphere_or_panic(&object_name);
-    world
-        .intersections
-        .insert(int_name, Intersection::new(t, Rc::new(*o)));
-}
 
 #[given(expr = r"{word} ← intersections\({word}, {word}\)")]
 #[when(expr = r"{word} ← intersections\({word}, {word}\)")]
@@ -59,16 +44,14 @@ fn when_hit_queried(world: &mut RayTracerWorld, hit_name: String, ints_name: Str
     let i = world.get_ints_or_panic(&ints_name);
     let maybe_hit = i.hit();
 
-    let hit = if let Some(i) = maybe_hit {
-        Some(Intersection::new(i.t, i.object.clone()))
-    } else {
-        None
-    };
-
-    world.intersections.insert(hit_name, hit.unwrap());
+    if let Some(i) = maybe_hit {
+        world
+            .intersections
+            .insert(hit_name, Intersection::new(i.t, i.object.clone()));
+    }
 }
 
-#[then(regex = r"^(\w+).t = (.+)")]
+#[then(regex = r"^(\w+)\.t = (\d+\.?\d+)")]
 fn assert_t(world: &mut RayTracerWorld, int_name: String, expected_t: f32) {
     let i = world.get_optional_int(&int_name).unwrap();
 

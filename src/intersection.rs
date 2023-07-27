@@ -1,16 +1,29 @@
-use crate::objects::Object;
+use crate::{objects::Object, ray::Ray, tuple::Tuple};
 use std::{fmt::Debug, rc::Rc};
+
+#[derive(Debug, Clone)]
+pub struct Precompute {
+    pub intersection: Intersection,
+    pub point: Tuple,
+    pub eyev: Tuple,
+    pub normalv: Tuple,
+}
+
+impl Precompute {
+    pub fn new(i: Intersection, p: Tuple, e: Tuple, n: Tuple) -> Self {
+        Self {
+            intersection: i,
+            point: p,
+            eyev: e,
+            normalv: n,
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Intersection {
     pub t: f32,
     pub object: Rc<dyn Object>,
-}
-
-impl Intersection {
-    pub fn new(t: f32, object: Rc<dyn Object>) -> Self {
-        Self { t, object }
-    }
 }
 
 impl PartialEq for Intersection {
@@ -22,6 +35,23 @@ impl PartialEq for Intersection {
 impl PartialOrd for Intersection {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.t.partial_cmp(&other.t)
+    }
+}
+
+impl Intersection {
+    pub fn new(t: f32, object: Rc<dyn Object>) -> Self {
+        Self { t, object }
+    }
+
+    pub fn precompute_with(&self, r: &Ray) -> Precompute {
+        let p = r.position(self.t);
+
+        Precompute::new(
+            self.clone(),
+            r.position(self.t),
+            -r.direction,
+            self.object.normal_at(p),
+        )
     }
 }
 

@@ -1,6 +1,6 @@
 use ray_tracer_challenge_rs::canvas::Canvas;
 use ray_tracer_challenge_rs::color::Color;
-use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
+use ray_tracer_challenge_rs::intersection::{Intersection, Intersections, Precompute};
 use ray_tracer_challenge_rs::light::PointLight;
 use ray_tracer_challenge_rs::material::Material;
 use ray_tracer_challenge_rs::objects::Sphere;
@@ -28,6 +28,7 @@ pub struct RayTracerWorld {
     pub lights: HashMap<String, PointLight>,
     pub materials: HashMap<String, Material>,
     pub worlds: HashMap<String, World>,
+    pub precomps: HashMap<String, Precompute>,
 }
 
 // TODO this seems like a job for... a macro!
@@ -112,5 +113,11 @@ impl RayTracerWorld {
         self.worlds
             .get(world_name)
             .expect(format!("missing world {}", world_name).as_str())
+    }
+
+    pub fn get_precomp_or_panic(&self, precomp_name: &String) -> &Precompute {
+        self.precomps
+            .get(precomp_name)
+            .expect(format!("missing precompute {}", precomp_name).as_str())
     }
 }
