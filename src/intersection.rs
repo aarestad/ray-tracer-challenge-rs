@@ -19,6 +19,12 @@ impl PartialEq for Intersection {
     }
 }
 
+impl PartialOrd for Intersection {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.t.partial_cmp(&other.t)
+    }
+}
+
 #[derive(Debug, PartialEq, Default)]
 pub struct Intersections {
     intersections: Vec<Intersection>,

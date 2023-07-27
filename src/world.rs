@@ -1,8 +1,8 @@
-use std::rc::Rc;
+use std::{collections::HashSet, rc::Rc};
 
 use crate::{
     color::Color,
-    intersection::Intersections,
+    intersection::{Intersection, Intersections},
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{Object, Sphere},
@@ -43,6 +43,17 @@ impl World {
     }
 
     pub fn intersects_with(&self, r: &Ray) -> Intersections {
-        Intersections::empty()
+        let mut all_intersections: Vec<Intersection> = vec![];
+
+        for o in &self.objects {
+            o.intersections(r)
+                .ints()
+                .iter()
+                .for_each(|i| all_intersections.push(i.clone()));
+        }
+
+        all_intersections.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+        Intersections::new(all_intersections)
     }
 }
