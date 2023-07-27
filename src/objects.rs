@@ -4,13 +4,15 @@ use crate::intersection::{Intersection, Intersections};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
-use std::any::Any;
 use std::default::Default;
 use std::fmt::Debug;
 use std::rc::Rc;
 
 pub trait Object: Debug {
-    fn as_any(&self) -> &dyn Any;
+    fn as_sphere(&self) -> &Sphere {
+        panic!("not a sphere");
+    }
+
     fn intersections(&self, ray: &Ray) -> Intersections;
     fn material(&self) -> Material;
     fn normal_at(&self, p: Tuple) -> Tuple;
@@ -48,7 +50,7 @@ impl Sphere {
 }
 
 impl Object for Sphere {
-    fn as_any(&self) -> &dyn Any {
+    fn as_sphere(&self) -> &Sphere {
         self
     }
 

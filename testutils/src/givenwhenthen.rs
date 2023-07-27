@@ -371,12 +371,8 @@ fn assert_world_contains_sphere(world: &mut RayTracerWorld, w: String, s: String
     let render_world = world.get_world_or_panic(&w);
     let sphere = world.get_sphere_or_panic(&s);
 
-    assert!(render_world.objects.iter().any(|o| {
-        let s: &Sphere = match o.as_any().downcast_ref::<Sphere>() {
-            Some(s) => s,
-            None => panic!("not a wphere"),
-        };
-
-        s == sphere
-    }));
+    assert!(render_world
+        .objects
+        .iter()
+        .any(|o| { o.as_sphere() == sphere }));
 }
