@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     color::Color,
-    intersection::{Intersection, Intersections},
+    intersection::{Intersection, Intersections, Precompute},
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{Object, Sphere},
@@ -55,5 +55,14 @@ impl World {
         all_intersections.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
         Intersections::new(all_intersections)
+    }
+
+    pub fn color_at(&self, comps: Precompute) -> Color {
+        comps.intersection.object.material().lighting(
+            self.light_source,
+            comps.point,
+            comps.eyev,
+            comps.normalv,
+        )
     }
 }
