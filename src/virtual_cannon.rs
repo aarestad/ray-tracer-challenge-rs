@@ -49,6 +49,7 @@ pub fn ch1_playground() {
     }
 }
 
+#[allow(dead_code)]
 pub fn ch2_playground(filename: &Path) -> Result<()> {
     let mut proj = Projectile::new(
         Tuple::point(0., 1., 0.),

@@ -9,6 +9,7 @@ use std::fs::File;
 use std::io::{Result, Write};
 use std::path::Path;
 
+#[allow(dead_code)]
 pub fn ch4_playground(filename: &Path) -> Result<()> {
     let mut canvas = Canvas::new(500, 500);
     let color = Color::new(1., 1., 1.);

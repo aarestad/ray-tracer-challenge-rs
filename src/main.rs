@@ -1,10 +1,7 @@
-use std::f32::consts::PI;
 use std::io::Result;
 use std::path::Path;
 
 use nalgebra::Matrix4;
-
-use basic_ray_trace::basic_ray_trace;
 
 mod basic_ray_trace;
 mod canvas;
