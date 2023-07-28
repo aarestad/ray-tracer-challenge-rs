@@ -57,7 +57,7 @@ impl Canvas {
                 loop {
                     let (l, rest) = row_line.split_at(split_pos);
                     if l.char_indices().last().unwrap().1 >= '0'
-                        && rest.char_indices().last().unwrap().1 >= '0'
+                        && rest.char_indices().next().unwrap().1 >= '0'
                     {
                         // we split in the middle of a number - back up 1 and try again
                         split_pos -= 1;
