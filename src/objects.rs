@@ -19,6 +19,7 @@ pub trait Object: Debug {
     fn normal_at(&self, p: Tuple) -> Tuple;
 }
 
+// TODO get rid of Copy!
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Sphere {
     center: Tuple,

@@ -39,18 +39,6 @@ fn given_mega_intersections(
     );
 }
 
-#[when(expr = r"{word} ← hit\({word}\)")]
-fn when_hit_queried(world: &mut RayTracerWorld, hit_name: String, ints_name: String) {
-    let i = world.get_ints_or_panic(&ints_name);
-    let maybe_hit = i.hit();
-
-    if let Some(i) = maybe_hit {
-        world
-            .intersections
-            .insert(hit_name, Intersection::new(i.t, i.object.clone()));
-    }
-}
-
 #[then(regex = r"^(\w+)\.t = (\d+\.?\d+)")]
 fn assert_t(world: &mut RayTracerWorld, int_name: String, expected_t: f32) {
     let i = world.get_optional_int(&int_name).unwrap();

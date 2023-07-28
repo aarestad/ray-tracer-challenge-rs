@@ -250,6 +250,16 @@ fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: f32)
     sphere.material_mut().ambient = ambient;
 }
 
+#[given(expr = r"{word} ← default_world_with_objects\({word}, {word}\)")]
+fn given_world_with_objects(world: &mut RayTracerWorld, w: String, s1: String, s2: String) {
+    let o1 = world.get_sphere_or_panic(&s1);
+    let o2 = world.get_sphere_or_panic(&s2);
+    world.worlds.insert(
+        w,
+        World::default_world_with_objects(vec![Rc::new(*o1), Rc::new(*o2)]),
+    );
+}
+
 #[given(expr = r"{word} ← intersect\({word}, {word}\)")]
 #[when(expr = r"{word} ← intersect\({word}, {word}\)")]
 fn when_ray_intersects_sphere(
@@ -334,6 +344,7 @@ fn given_or_when_default_world(world: &mut RayTracerWorld, world_name: String) {
     world.worlds.insert(world_name, World::default_world());
 }
 
+#[given(expr = r"{word} ← intersect_world\({word}, {word}\)")]
 #[when(expr = r"{word} ← intersect_world\({word}, {word}\)")]
 fn when_ray_intersects_world(world: &mut RayTracerWorld, ints: String, w: String, r: String) {
     let rt_world = world.get_world_or_panic(&w);
@@ -343,6 +354,7 @@ fn when_ray_intersects_world(world: &mut RayTracerWorld, ints: String, w: String
         .insert(ints, rt_world.intersects_with(ray));
 }
 
+#[given(expr = r"{word} ← prepare_computations\({word}, {word}\)")]
 #[when(expr = r"{word} ← prepare_computations\({word}, {word}\)")]
 fn when_precomputing(world: &mut RayTracerWorld, pc: String, i: String, r: String) {
     let int = world.get_optional_int(&i).unwrap();
@@ -350,6 +362,7 @@ fn when_precomputing(world: &mut RayTracerWorld, pc: String, i: String, r: Strin
     world.precomps.insert(pc, int.precompute_with(ray));
 }
 
+#[given(expr = r"{word} ← shade_hit\({word}, {word}\)")]
 #[when(expr = r"{word} ← shade_hit\({word}, {word}\)")]
 fn when_shade_hit(world: &mut RayTracerWorld, c: String, w: String, pc: String) {
     let ray_world = world.get_world_or_panic(&w);
@@ -357,11 +370,25 @@ fn when_shade_hit(world: &mut RayTracerWorld, c: String, w: String, pc: String) 
     world.colors.insert(c, ray_world.shade_hit(precompute));
 }
 
+#[given(expr = r"{word} ← color_at\({word}, {word}\)")]
 #[when(expr = r"{word} ← color_at\({word}, {word}\)")]
 fn when_color_at(world: &mut RayTracerWorld, c: String, w: String, r: String) {
     let ray_world = world.get_world_or_panic(&w);
     let ray = world.get_ray_or_panic(&r);
     world.colors.insert(c, ray_world.color_at(ray));
+}
+
+#[given(expr = r"{word} ← hit\({word}\)")]
+#[when(expr = r"{word} ← hit\({word}\)")]
+fn when_hit_queried(world: &mut RayTracerWorld, hit_name: String, ints_name: String) {
+    let i = world.get_ints_or_panic(&ints_name);
+    let maybe_hit = i.hit();
+
+    if let Some(i) = maybe_hit {
+        world
+            .intersections
+            .insert(hit_name, Intersection::new(i.t, i.object.clone()));
+    }
 }
 
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
@@ -511,4 +538,12 @@ fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, pro
         }
         _ => panic!("bad prop name {}", prop_name),
     }
+}
+
+#[then(expr = r"{word} = {word}.material.color")]
+fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
+    let color = world.get_color_or_panic(&c);
+    let sphere = world.get_sphere_or_panic(&s);
+
+    assert_abs_diff_eq!(color, &sphere.material().color);
 }

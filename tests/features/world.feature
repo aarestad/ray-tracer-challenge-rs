@@ -55,11 +55,11 @@ Feature: World
     Then c = color(0.38066, 0.47583, 0.2855)
 
   Scenario: The color with an intersection behind the ray
-    Given w ← default_world()
-    And outer ← the first object in w
+    Given outer ← sphere()
     And outer.material.ambient ← 1
-    And inner ← the second object in w
+    And inner ← sphere()
     And inner.material.ambient ← 1
+    And w ← default_world_with_objects(outer, inner)
     And r ← ray(point(0, 0, 0.75), vector(0, 0, -1))
     When c ← color_at(w, r)
     Then c = inner.material.color

@@ -41,6 +41,11 @@ impl World {
             PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )
     }
+    pub fn default_world_with_objects(objects: Vec<Rc<dyn Object>>) -> World {
+        let mut w = Self::default_world();
+        w.objects = objects;
+        w
+    }
 
     pub fn intersects_with(&self, r: &Ray) -> Intersections {
         let mut all_intersections: Vec<Intersection> = vec![];
