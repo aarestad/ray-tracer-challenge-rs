@@ -26,14 +26,7 @@ fn assert_tuple_property(
         TupleProperty::W => tuple.w(),
     };
 
-    assert!(
-        expected == actual,
-        "{}.{}: expected {} but got {}",
-        tuple_name,
-        prop,
-        expected,
-        actual
-    );
+    assert_eq!(expected, actual);
 }
 
 #[then(regex = r"(\w+) is (not )?a (\w+)")]
@@ -245,14 +238,7 @@ fn assert_color_property(
         ColorProperty::Blue => color.blue(),
     };
 
-    assert!(
-        expected == actual,
-        "{}.{}: expected {} but got {}",
-        tuple_name,
-        prop,
-        expected,
-        actual
-    );
+    assert_eq!(expected, actual);
 }
 
 #[then(expr = r"{word} {addsub} {word} = color\({float}, {float}, {float}\)")]

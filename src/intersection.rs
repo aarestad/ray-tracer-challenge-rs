@@ -46,14 +46,14 @@ impl Intersection {
     }
 
     pub fn precompute_with(&self, r: &Ray) -> Precompute {
-        let p = r.position(self.t);
-        let normalv = self.object.normal_at(p);
+        let point = r.position(self.t);
         let eyev = -r.direction;
+        let normalv = self.object.normal_at(point);
         let inside = normalv.dot(&eyev) < 0.;
 
         Precompute::new(
             self.clone(),
-            r.position(self.t),
+            point,
             -r.direction,
             if inside { -normalv } else { normalv },
             inside,

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    color::Color,
+    color::{Color, BLACK},
     intersection::{Intersection, Intersections, Precompute},
     light::PointLight,
     material::{Material, MaterialBuilder},
@@ -57,12 +57,20 @@ impl World {
         Intersections::new(all_intersections)
     }
 
-    pub fn color_at(&self, comps: Precompute) -> Color {
+    pub fn shade_hit(&self, comps: &Precompute) -> Color {
         comps.intersection.object.material().lighting(
             self.light_source,
             comps.point,
             comps.eyev,
             comps.normalv,
         )
+    }
+
+    pub fn color_at(&self, ray: &Ray) -> Color {
+        if let Some(hit) = self.intersects_with(ray).hit() {
+            self.shade_hit(&hit.precompute_with(ray))
+        } else {
+            BLACK
+        }
     }
 }

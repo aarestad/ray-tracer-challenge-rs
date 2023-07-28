@@ -1,7 +1,7 @@
 use core::convert::Infallible;
 use cucumber::Parameter;
 use std::f32::consts::PI;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
 use ray_tracer_challenge_rs::transforms::RotationAxis;
@@ -48,7 +48,7 @@ impl FromStr for MathExpr {
             s.to_string()
         };
 
-        let parts = rest.split("/").map(|s| s.trim()).collect::<Vec<&str>>();
+        let parts = rest.split('.').map(|s| s.trim()).collect::<Vec<&str>>();
 
         let [dividend_str, divisor_str] = parts[0..2] else {
           return Err("bad format".to_string());
@@ -56,14 +56,14 @@ impl FromStr for MathExpr {
 
         let dividend = match dividend_str {
             "π" => PI,
-            d if dividend_str.starts_with("√") => {
+            d if dividend_str.starts_with('√') => {
                 let operand = d.chars().skip(1).collect::<String>();
-                (f32::from_str(&operand).expect(&format!("bad dividend: {}", dividend_str))).sqrt()
+                f32::from_str(&operand).unwrap().sqrt()
             }
             _ => return Err(format!("bad dividend: {}", dividend_str)),
         };
 
-        let divisor = f32::from_str(&divisor_str).expect(&format!("bad divisor: {}", divisor_str));
+        let divisor = f32::from_str(divisor_str).unwrap();
 
         let result = if negate {
             -dividend / divisor
@@ -116,12 +116,6 @@ impl FromStr for TupleProperty {
     }
 }
 
-impl Display for TupleProperty {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.to_string().as_str())
-    }
-}
-
 #[derive(Debug, Parameter)]
 #[param(regex = r"red|green|blue")]
 pub enum ColorProperty {
@@ -140,12 +134,6 @@ impl FromStr for ColorProperty {
             "blue" => ColorProperty::Blue,
             _ => unreachable!(),
         })
-    }
-}
-
-impl Display for ColorProperty {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.to_string().as_str())
     }
 }
 

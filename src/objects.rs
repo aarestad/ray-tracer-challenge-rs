@@ -14,7 +14,8 @@ pub trait Object: Debug {
     }
 
     fn intersections(&self, ray: &Ray) -> Intersections;
-    fn material(&self) -> Material;
+    fn material(&self) -> &Material;
+    fn material_mut(&mut self) -> &mut Material;
     fn normal_at(&self, p: Tuple) -> Tuple;
 }
 
@@ -79,8 +80,12 @@ impl Object for Sphere {
         ])
     }
 
-    fn material(&self) -> Material {
-        self.material
+    fn material(&self) -> &Material {
+        &self.material
+    }
+
+    fn material_mut(&mut self) -> &mut Material {
+        &mut self.material
     }
 
     fn normal_at(&self, p: Tuple) -> Tuple {

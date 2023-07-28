@@ -46,6 +46,7 @@ fn given_default_material(world: &mut RayTracerWorld, name: String) {
 #[given(
     expr = r"{word} ← ray\(point\({float}, {float}, {float}\), vector\({float}, {float}, {float}\)\)"
 )]
+#[allow(clippy::too_many_arguments)]
 fn given_a_ray(
     world: &mut RayTracerWorld,
     ray_name: String,
@@ -205,6 +206,7 @@ fn given_rotation_scaling(
 #[given(
     expr = r"{word} ← point_light\(point\({float}, {float}, {float}\), color\({float}, {float}, {float}\)\)"
 )]
+#[allow(clippy::too_many_arguments)]
 fn given_point_light(
     world: &mut RayTracerWorld,
     light: String,
@@ -215,9 +217,37 @@ fn given_point_light(
     g: f32,
     b: f32,
 ) {
-    let p = Tuple::point(x, y, z);
-    let c = Color::new(r, g, b);
-    world.lights.insert(light, PointLight::new(p, c));
+    let l = PointLight::new(Tuple::point(x, y, z), Color::new(r, g, b));
+
+    if !light.contains('.') {
+        world.lights.insert(light, l);
+    } else {
+        // if so, we're setting the light on a world
+        let world_name = light.split('.').next().unwrap();
+        let mut ray_world = world.get_mut_world_or_panic(&world_name.to_string());
+        ray_world.light_source = l;
+    }
+}
+
+#[given(expr = r"{word} ← the {word} object in {word}")]
+fn given_nth_shape_in_world(world: &mut RayTracerWorld, name: String, nth: String, wn: String) {
+    let ray_world = world.get_world_or_panic(&wn);
+
+    let n = match nth.as_str() {
+        "first" => 0,
+        "second" => 1,
+        _ => panic!("bad nth: {}", nth),
+    };
+
+    world
+        .spheres
+        .insert(name, *ray_world.objects[n].as_sphere());
+}
+
+#[given(expr = r"{word}.material.ambient ← {float}")]
+fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: f32) {
+    let sphere = world.get_mut_sphere_or_panic(&s);
+    sphere.material_mut().ambient = ambient;
 }
 
 #[given(expr = r"{word} ← intersect\({word}, {word}\)")]
@@ -276,7 +306,7 @@ fn when_light_created(
 #[when(expr = r"{word} ← {word}.material")]
 fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, sphere_name: String) {
     let s = world.get_sphere_or_panic(&sphere_name);
-    world.materials.insert(mat_name, s.material());
+    world.materials.insert(mat_name, *s.material());
 }
 
 #[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}\)")]
@@ -318,6 +348,20 @@ fn when_precomputing(world: &mut RayTracerWorld, pc: String, i: String, r: Strin
     let int = world.get_optional_int(&i).unwrap();
     let ray = world.get_ray_or_panic(&r);
     world.precomps.insert(pc, int.precompute_with(ray));
+}
+
+#[when(expr = r"{word} ← shade_hit\({word}, {word}\)")]
+fn when_shade_hit(world: &mut RayTracerWorld, c: String, w: String, pc: String) {
+    let ray_world = world.get_world_or_panic(&w);
+    let precompute = world.get_precomp_or_panic(&pc);
+    world.colors.insert(c, ray_world.shade_hit(precompute));
+}
+
+#[when(expr = r"{word} ← color_at\({word}, {word}\)")]
+fn when_color_at(world: &mut RayTracerWorld, c: String, w: String, r: String) {
+    let ray_world = world.get_world_or_panic(&w);
+    let ray = world.get_ray_or_panic(&r);
+    world.colors.insert(c, ray_world.color_at(ray));
 }
 
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
@@ -439,8 +483,8 @@ fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, pro
 
     match prop_name.as_str() {
         "t" => {
-            let i_name = prop_expr.split('.').next().expect(prop_expr.as_str());
-            let i = world.get_optional_int(&i_name.to_string()).expect(i_name);
+            let i_name = prop_expr.split('.').next().unwrap();
+            let i = world.get_optional_int(&i_name.to_string()).unwrap();
             assert_eq!(pc.intersection.t, i.t);
         }
         "object" => {
