@@ -420,7 +420,7 @@ fn assert_intersection_count(world: &mut RayTracerWorld, int_name: String, expec
 }
 
 #[then(regex = r"^(\w+)\[(\d)\]\.t = (.+)")]
-fn assert_nth_intersection(
+fn assert_nth_intersection_t(
     world: &mut RayTracerWorld,
     int_name: String,
     nth: usize,
@@ -460,6 +460,10 @@ fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, pro
             } else {
                 assert_eq!(pc.normalv, v);
             }
+        }
+        "inside" => {
+            let expected = bool::from_str(prop_expr.as_str()).unwrap();
+            assert_eq!(pc.inside, expected);
         }
         _ => panic!("bad prop name {}", prop_name),
     }

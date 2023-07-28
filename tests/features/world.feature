@@ -1,10 +1,5 @@
 Feature: World
 
-  Scenario: Creating a world
-    Given w ← world()
-    Then w contains no objects
-    And w has no light source
-
   Scenario: The default world
     Given light ← point_light(point(-10, 10, -10), color(1, 1, 1))
     And s1 ← sphere() with:

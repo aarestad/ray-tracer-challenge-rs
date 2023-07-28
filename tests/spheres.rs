@@ -4,13 +4,6 @@ use nalgebra::Matrix4;
 
 use testutils::world::RayTracerWorld;
 
-#[then(expr = r"{word}.count = {int}")]
-fn assert_intersection_count(world: &mut RayTracerWorld, int_name: String, expected: usize) {
-    let intersects = world.get_ints_or_panic(&int_name);
-
-    assert!(intersects.ints().len() == expected);
-}
-
 #[then(expr = r"{word}[{int}] = {float}")]
 fn assert_nth_intersection(
     world: &mut RayTracerWorld,
@@ -36,18 +29,6 @@ fn assert_transform(world: &mut RayTracerWorld, sphere_name: String, trans_name:
     };
 
     assert_eq!(s.transform(), &t)
-}
-
-#[then(expr = r"{word}[{int}].t = {float}")]
-fn assert_nth_intersection_t(
-    world: &mut RayTracerWorld,
-    int_name: String,
-    nth: usize,
-    expected: f32,
-) {
-    let intersects = world.get_ints_or_panic(&int_name);
-
-    assert_eq!(intersects.ints()[nth].t, expected);
 }
 
 fn main() {

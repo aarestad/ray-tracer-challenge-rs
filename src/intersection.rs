@@ -7,15 +7,17 @@ pub struct Precompute {
     pub point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
+    pub inside: bool,
 }
 
 impl Precompute {
-    pub fn new(i: Intersection, p: Tuple, e: Tuple, n: Tuple) -> Self {
+    pub fn new(i: Intersection, p: Tuple, e: Tuple, n: Tuple, inside: bool) -> Self {
         Self {
             intersection: i,
             point: p,
             eyev: e,
             normalv: n,
+            inside,
         }
     }
 }
@@ -45,12 +47,16 @@ impl Intersection {
 
     pub fn precompute_with(&self, r: &Ray) -> Precompute {
         let p = r.position(self.t);
+        let normalv = self.object.normal_at(p);
+        let eyev = -r.direction;
+        let inside = normalv.dot(&eyev) < 0.;
 
         Precompute::new(
             self.clone(),
             r.position(self.t),
             -r.direction,
-            self.object.normal_at(p),
+            if inside { -normalv } else { normalv },
+            inside,
         )
     }
 }
