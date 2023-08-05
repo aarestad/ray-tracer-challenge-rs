@@ -17,7 +17,6 @@ impl Ppm {
         self.lines.push(line);
     }
 
-    #[allow(dead_code)]
     pub fn lines_range(&self, start: usize, end: usize) -> String {
         self.lines[start..end].join("")
     }

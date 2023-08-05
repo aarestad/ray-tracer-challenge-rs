@@ -1,5 +1,3 @@
-#![allow(dead_code)] // TODO
-
 use std::{
     fmt::Display,
     num::ParseFloatError,

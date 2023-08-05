@@ -1,5 +1,3 @@
-#![allow(dead_code)] // TODO
-
 use nalgebra::Matrix4;
 
 #[derive(Debug, Copy, Clone)]

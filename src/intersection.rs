@@ -75,7 +75,6 @@ impl Intersections {
         Self::default()
     }
 
-    #[allow(dead_code)]
     pub fn ints(&self) -> &Vec<Intersection> {
         &self.intersections
     }

@@ -14,7 +14,6 @@ impl Ray {
         Ray { origin, direction }
     }
 
-    #[allow(dead_code)]
     pub fn position(&self, t: f32) -> Tuple {
         self.origin + self.direction * t
     }

@@ -565,7 +565,7 @@ fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
     assert_abs_diff_eq!(color, &sphere.material().color);
 }
 
-#[then(expr = r"{word} = identity_matrix")]
+#[then(regex = r"^(\w+) = identity_matrix$")]
 fn assert_identity_transform(world: &mut RayTracerWorld, t: String) {
     let transform = world.get_transform_or_panic(&t);
     assert_eq!(*transform, Matrix4::identity());

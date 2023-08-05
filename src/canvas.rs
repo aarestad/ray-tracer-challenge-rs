@@ -32,7 +32,6 @@ impl Canvas {
         self.pixels.len()
     }
 
-    #[allow(dead_code)]
     pub fn pixel_at(&self, x: usize, y: usize) -> Color {
         self.pixels[y][x]
     }
