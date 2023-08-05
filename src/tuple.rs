@@ -214,4 +214,8 @@ impl Tuple {
     pub fn reflect(&self, normal: &Tuple) -> Tuple {
         *self - *normal * 2. * self.dot(normal)
     }
+
+    pub fn view_transform(&self, to: &Tuple, up: &Tuple) -> Matrix4<f32> {
+        Matrix4::identity()
+    }
 }

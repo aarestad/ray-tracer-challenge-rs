@@ -391,6 +391,23 @@ fn when_hit_queried(world: &mut RayTracerWorld, hit_name: String, ints_name: Str
     }
 }
 
+#[when(expr = r"{word} ← view_transform\({word}, {word}, {word}\)")]
+fn when_view_transform(
+    world: &mut RayTracerWorld,
+    transform_name: String,
+    from_p: String,
+    to_p: String,
+    up_v: String,
+) {
+    let from = world.get_tuple_or_panic(&from_p);
+    let to = world.get_tuple_or_panic(&to_p);
+    let up = world.get_tuple_or_panic(&up_v);
+
+    world
+        .transforms
+        .insert(transform_name, from.view_transform(to, up));
+}
+
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
     let actual = world.get_tuple_or_panic(&vector_name);
@@ -546,4 +563,10 @@ fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
     let sphere = world.get_sphere_or_panic(&s);
 
     assert_abs_diff_eq!(color, &sphere.material().color);
+}
+
+#[then(expr = r"{word} = identity_matrix")]
+fn assert_identity_transform(world: &mut RayTracerWorld, t: String) {
+    let transform = world.get_transform_or_panic(&t);
+    assert_eq!(*transform, Matrix4::identity());
 }
