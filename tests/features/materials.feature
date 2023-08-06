@@ -60,8 +60,7 @@ Feature: Materials
     Given eyev ← vector(0, 0, -1)
     And normalv ← vector(0, 0, -1)
     And light ← point_light(point(0, 0, -10), color(1, 1, 1))
-    And in_shadow ← true
-    When result ← lighting(m, light, position, eyev, normalv, in_shadow)
+    When result ← lighting(m, light, position, eyev, normalv, true)
     Then result = color(0.1, 0.1, 0.1)
 
   Scenario: Lighting with a pattern applied

@@ -52,7 +52,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Matrix4<RayTracerFloat>) -> R
                 let p = ray.position(hit.t);
                 let n = hit.object.normal_at(p);
                 let e = -ray.direction;
-                let c = hit.object.material().lighting(light, p, e, n);
+                let c = hit.object.material().lighting(light, p, e, n, false);
 
                 canvas.write(x, y, c);
             }

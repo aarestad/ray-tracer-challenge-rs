@@ -34,7 +34,13 @@ fn given_a_canvas(world: &mut RayTracerWorld, name: String, width: usize, height
 }
 
 #[given(expr = r"{word} ← color\({float}, {float}, {float}\)")]
-fn given_a_color(world: &mut RayTracerWorld, name: String, r: RayTracerFloat, g: RayTracerFloat, b: RayTracerFloat) {
+fn given_a_color(
+    world: &mut RayTracerWorld,
+    name: String,
+    r: RayTracerFloat,
+    g: RayTracerFloat,
+    b: RayTracerFloat,
+) {
     world.colors.insert(name, Color::new(r, g, b));
 }
 
@@ -179,12 +185,24 @@ fn given_a_sphere_with_default_transform_and_material(
 }
 
 #[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
-fn given_a_translation(world: &mut RayTracerWorld, trans_name: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
+fn given_a_translation(
+    world: &mut RayTracerWorld,
+    trans_name: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
     world.transforms.insert(trans_name, translation(x, y, z));
 }
 
 #[given(expr = r"{word} ← scaling\({float}, {float}, {float}\)")]
-fn given_a_scaling(world: &mut RayTracerWorld, trans_name: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
+fn given_a_scaling(
+    world: &mut RayTracerWorld,
+    trans_name: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
     world.transforms.insert(trans_name, scaling(x, y, z));
 }
 
@@ -371,7 +389,7 @@ fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, spher
 }
 
 #[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}\)")]
-fn when_lighting_material(
+fn when_lighting_material_not_in_shadow(
     world: &mut RayTracerWorld,
     result: String,
     mat: String,
@@ -386,7 +404,29 @@ fn when_lighting_material(
     let e = *world.get_vector_or_panic(&eyev);
     let n = *world.get_vector_or_panic(&normalv);
 
-    world.colors.insert(result, m.lighting(l, p, e, n));
+    world.colors.insert(result, m.lighting(l, p, e, n, false));
+}
+
+#[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}, {word}\)")]
+fn when_lighting_material_possibly_in_shadow(
+    world: &mut RayTracerWorld,
+    result: String,
+    mat: String,
+    light: String,
+    position: String,
+    eyev: String,
+    normalv: String,
+    in_shadow: String,
+) {
+    let m = world.get_material_or_panic(&mat);
+    let l = *world.get_light_or_panic(&light);
+    let p = *world.get_point_or_panic(&position);
+    let e = *world.get_vector_or_panic(&eyev);
+    let n = *world.get_vector_or_panic(&normalv);
+
+    world
+        .colors
+        .insert(result, m.lighting(l, p, e, n, in_shadow == "true"));
 }
 
 #[given(expr = r"{word} ← default_world\(\)")]

@@ -104,6 +104,7 @@ impl Material {
         point: Point,
         eyev: Vector,
         normalv: Vector,
+        in_shadow: bool,
     ) -> Color {
         // combine the surface color with the light's color/intensity
         let effective_color = self.color * light.intensity;
@@ -119,7 +120,7 @@ impl Material {
         // light is on the other side of the surface.
         let light_dot_normal = lightv.dot(&normalv);
 
-        let (diffuse, specular) = if light_dot_normal < 0. {
+        let (diffuse, specular) = if light_dot_normal < 0. || in_shadow {
             (BLACK, BLACK)
         } else {
             // compute the diffuse contribution
