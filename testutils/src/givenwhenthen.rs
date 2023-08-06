@@ -1,6 +1,8 @@
 use crate::{
     parameters::{Axis, SingleValue},
+    step::get_4x4_matrix_from_step,
     world::RayTracerWorld,
+    EPSILON,
 };
 use cucumber::{gherkin::Step, given, then, when};
 use nalgebra::Matrix4;
@@ -566,7 +568,26 @@ fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
 }
 
 #[then(regex = r"^(\w+) = identity_matrix$")]
-fn assert_identity_transform(world: &mut RayTracerWorld, t: String) {
+fn assert_transform_identity(world: &mut RayTracerWorld, t: String) {
     let transform = world.get_transform_or_panic(&t);
     assert_eq!(*transform, Matrix4::identity());
+}
+
+#[then(expr = r"{word} = scaling\({float}, {float}, {float}\)")]
+fn assert_transform_scaling(world: &mut RayTracerWorld, t: String, x: f32, y: f32, z: f32) {
+    let transform = world.get_transform_or_panic(&t);
+    assert_eq!(*transform, scaling(x, y, z));
+}
+
+#[then(expr = r"{word} = translation\({float}, {float}, {float}\)")]
+fn assert_transform_translation(world: &mut RayTracerWorld, t: String, x: f32, y: f32, z: f32) {
+    let transform = world.get_transform_or_panic(&t);
+    assert_eq!(*transform, translation(x, y, z));
+}
+
+#[then(expr = r"{word} is the following 4x4 matrix:")]
+fn assert_transform_arbitrary(world: &mut RayTracerWorld, step: &Step, t: String) {
+    let transform = world.get_transform_or_panic(&t);
+    let expected = get_4x4_matrix_from_step(step);
+    assert_abs_diff_eq!(*transform, expected, epsilon = EPSILON);
 }

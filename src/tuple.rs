@@ -5,6 +5,8 @@ use std::{
     str::FromStr,
 };
 
+use crate::transforms::translation;
+
 use approx::{abs_diff_eq, AbsDiffEq};
 use nalgebra::{Matrix4, Vector3, Vector4};
 use regex::Regex;
@@ -214,6 +216,20 @@ impl Tuple {
     }
 
     pub fn view_transform(&self, to: &Tuple, up: &Tuple) -> Matrix4<f32> {
-        Matrix4::identity()
+        let forward = (*to - *self).normalize();
+        let upn = up.normalize();
+        let left = forward.cross(&upn);
+        let true_up = left.cross(&forward);
+
+        nofmt::pls! {
+            let orientation = Matrix4::new(
+                left.x(),     left.y(),     left.z(),    0.,
+                true_up.x(),  true_up.y(),  true_up.z(), 0.,
+               -forward.x(), -forward.y(), -forward.z(), 0.,
+                0.,           0.,           0.,     1.
+            );
+        }
+
+        orientation * translation(-self.x(), -self.y(), -self.z())
     }
 }
