@@ -38,10 +38,6 @@ impl Sphere {
             },
         }
     }
-
-    pub fn transform(&self) -> &Transform {
-        &self.props.transform
-    }
 }
 
 impl Object for Sphere {
@@ -75,12 +71,12 @@ impl Object for Sphere {
         ])
     }
 
-    fn material(&self) -> &Material {
-        &self.props.material
+    fn transform(&self) -> &Transform {
+        &self.props.transform
     }
 
-    fn material_mut(&mut self) -> &mut Material {
-        &mut self.props.material
+    fn material(&self) -> &Material {
+        &self.props.material
     }
 
     fn normal_at(&self, p: Point) -> Vector {

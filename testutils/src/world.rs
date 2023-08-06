@@ -4,13 +4,14 @@ use ray_tracer_challenge_rs::color::Color;
 use ray_tracer_challenge_rs::intersection::{Intersection, Intersections, Precompute};
 use ray_tracer_challenge_rs::light::PointLight;
 use ray_tracer_challenge_rs::material::Material;
-use ray_tracer_challenge_rs::objects::Sphere;
+use ray_tracer_challenge_rs::objects::Object;
 use ray_tracer_challenge_rs::ray::Ray;
+use ray_tracer_challenge_rs::transforms::Transform;
 use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};
 use ray_tracer_challenge_rs::world::World;
-use ray_tracer_challenge_rs::transforms::Transform;
 
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use nalgebra::DMatrix;
 
@@ -21,7 +22,7 @@ pub struct RayTracerWorld {
     pub canvases: HashMap<String, Canvas>,
     pub colors: HashMap<String, Color>,
     pub ppms: HashMap<String, Ppm>,
-    pub spheres: HashMap<String, Sphere>,
+    pub objects: HashMap<String, Rc<dyn Object>>,
     pub intersections: HashMap<String, Intersection>,
     // lol
     pub intersectionses: HashMap<String, Intersections>,
@@ -62,16 +63,10 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing PPM named {}", ppm_name))
     }
 
-    pub fn get_sphere_or_panic(&self, sphere_name: &String) -> &Sphere {
-        self.spheres
-            .get(sphere_name)
-            .unwrap_or_else(|| panic!("missing sphere named {}", sphere_name))
-    }
-
-    pub fn get_mut_sphere_or_panic(&mut self, sphere_name: &String) -> &mut Sphere {
-        self.spheres
-            .get_mut(sphere_name)
-            .unwrap_or_else(|| panic!("missing sphere named {}", sphere_name))
+    pub fn get_object_or_panic(&self, object_name: &String) -> &Rc<dyn Object> {
+        self.objects
+            .get(object_name)
+            .unwrap_or_else(|| panic!("missing object named {}", object_name))
     }
 
     pub fn get_optional_int(&self, int_name: &String) -> Option<&Intersection> {

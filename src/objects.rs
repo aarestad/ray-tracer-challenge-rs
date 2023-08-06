@@ -1,7 +1,7 @@
 use crate::intersection::Intersections;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::transforms::Transform;
+use crate::transforms::{identity, Transform};
 use crate::tuple::{Point, Vector};
 use crate::util::RayTracerFloat;
 use std::fmt::Debug;
@@ -22,8 +22,8 @@ pub trait Object: Debug {
     }
 
     fn intersections(&self, ray: &Ray) -> Intersections;
+    fn transform(&self) -> &Transform;
     fn material(&self) -> &Material;
-    fn material_mut(&mut self) -> &mut Material;
     fn normal_at(&self, p: Point) -> Vector;
 }
 
@@ -31,4 +31,13 @@ pub trait Object: Debug {
 pub struct ObjectProps {
     transform: Transform,
     material: Material,
+}
+
+impl Default for ObjectProps {
+    fn default() -> Self {
+        Self {
+            transform: identity(),
+            material: Material::default(),
+        }
+    }
 }

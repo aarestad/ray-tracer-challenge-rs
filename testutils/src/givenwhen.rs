@@ -11,7 +11,7 @@ use ray_tracer_challenge_rs::{
     intersection::Intersection,
     light::PointLight,
     material::{Material, MaterialBuilder},
-    objects::{Object, Sphere},
+    objects::{Object, Sphere, TestShape},
     ray::Ray,
     transforms::{identity, rotation, scaling, translation},
     tuple::Tuple,
@@ -76,15 +76,17 @@ fn when_intersection_created(
     t: RayTracerFloat,
     object_name: String,
 ) {
-    let o = world.get_sphere_or_panic(&object_name);
+    let o = world.get_object_or_panic(&object_name);
     world
         .intersections
-        .insert(int_name, Intersection::new(t, Rc::new(*o)));
+        .insert(int_name, Intersection::new(t, Rc::clone(o)));
 }
 
 #[given(expr = r"{word} ← sphere\(\)")]
 fn given_a_default_sphere(world: &mut RayTracerWorld, sphere_name: String) {
-    world.spheres.insert(sphere_name, Sphere::default());
+    world
+        .objects
+        .insert(sphere_name, Rc::new(Sphere::default()));
 }
 
 fn parse_three_args(s: &str) -> (RayTracerFloat, RayTracerFloat, RayTracerFloat) {
@@ -154,9 +156,9 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
         }
     }
 
-    world.spheres.insert(
+    world.objects.insert(
         sphere_name,
-        Sphere::new(transform, material_builder.build()),
+        Rc::new(Sphere::new(transform, material_builder.build())),
     );
 }
 
@@ -167,9 +169,10 @@ fn given_a_sphere_with_transform(
     transform_name: String,
 ) {
     let trans = world.get_transform_or_panic(&transform_name);
-    world
-        .spheres
-        .insert(sphere_name, Sphere::new(*trans, Default::default()));
+    world.objects.insert(
+        sphere_name,
+        Rc::new(Sphere::new(*trans, Default::default())),
+    );
 }
 
 #[given(expr = r"{word} ← sphere\(default, {word}\)")]
@@ -177,9 +180,10 @@ fn given_a_sphere_with_default_transform_and_material(
     world: &mut RayTracerWorld,
     sphere_name: String,
 ) {
-    world
-        .spheres
-        .insert(sphere_name, Sphere::new(identity(), Default::default()));
+    world.objects.insert(
+        sphere_name,
+        Rc::new(Sphere::new(identity(), Default::default())),
+    );
 }
 
 #[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
@@ -261,7 +265,7 @@ fn given_point_light(
 }
 
 #[given(expr = r"{word} ← the {word} object in {word}")]
-fn given_nth_shape_in_world(world: &mut RayTracerWorld, name: String, nth: String, wn: String) {
+fn given_nth_sphere_in_world(world: &mut RayTracerWorld, name: String, nth: String, wn: String) {
     let ray_world = world.get_world_or_panic(&wn);
 
     let n = match nth.as_str() {
@@ -271,23 +275,27 @@ fn given_nth_shape_in_world(world: &mut RayTracerWorld, name: String, nth: Strin
     };
 
     world
-        .spheres
-        .insert(name, *ray_world.objects[n].as_sphere());
+        .objects
+        .insert(name, Rc::new(*ray_world.objects[n].as_sphere()));
 }
 
 #[given(expr = r"{word}.material.ambient ← {float}")]
 fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayTracerFloat) {
-    let sphere = world.get_mut_sphere_or_panic(&s);
-    sphere.material_mut().ambient = ambient;
+    let sphere = world.get_object_or_panic(&s);
+    let mut mat = sphere.material().clone();
+    mat.ambient = ambient;
+
+    let new_sphere = Sphere::new(*sphere.as_ref().transform(), mat);
+    world.objects.insert(s, Rc::new(new_sphere));
 }
 
 #[given(expr = r"{word} ← default_world_with_objects\({word}, {word}\)")]
 fn given_world_with_objects(world: &mut RayTracerWorld, w: String, s1: String, s2: String) {
-    let o1 = world.get_sphere_or_panic(&s1);
-    let o2 = world.get_sphere_or_panic(&s2);
+    let o1 = world.get_object_or_panic(&s1);
+    let o2 = world.get_object_or_panic(&s2);
     world.worlds.insert(
         w,
-        World::default_world_with_objects(vec![Rc::new(*o1), Rc::new(*o2)]),
+        World::default_world_with_objects(vec![Rc::clone(o1), Rc::clone(o2)]),
     );
 }
 
@@ -304,7 +312,6 @@ fn given_a_camera_identity(
         .insert(c, Camera::new(hsize, vsize, fov, identity()));
 }
 
-// c ← camera(201, 101, 1.570796, t)
 #[given(expr = r"{word} ← camera\({int}, {int}, {float}, {word}\)")]
 fn given_a_camera_transform(
     world: &mut RayTracerWorld,
@@ -329,7 +336,7 @@ fn when_ray_intersects_sphere(
     sphere_name: String,
     ray_name: String,
 ) {
-    let sphere = world.get_sphere_or_panic(&sphere_name);
+    let sphere = world.get_object_or_panic(&sphere_name);
     let ray = world.get_ray_or_panic(&ray_name);
     world
         .intersectionses
@@ -351,7 +358,7 @@ fn when_sphere_normal_at(
     y: RayTracerFloat,
     z: RayTracerFloat,
 ) {
-    let s = world.get_sphere_or_panic(&sphere_name);
+    let s = world.get_object_or_panic(&sphere_name);
     let p = Tuple::point(x, y, z);
     world.tuples.insert(normal_name, s.normal_at(p));
 }
@@ -382,7 +389,7 @@ fn when_light_created(
 
 #[when(expr = r"{word} ← {word}.material")]
 fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, sphere_name: String) {
-    let s = world.get_sphere_or_panic(&sphere_name);
+    let s = world.get_object_or_panic(&sphere_name);
     world.materials.insert(mat_name, *s.material());
 }
 
@@ -440,7 +447,9 @@ fn given_arbitrary_world(world: &mut RayTracerWorld, w: String, objects: String,
     let mut objs: Vec<Rc<dyn Object>> = vec![];
 
     for obj in obj_names {
-        objs.push(Rc::new(*world.get_sphere_or_panic(&obj.trim().to_string())));
+        objs.push(Rc::clone(
+            world.get_object_or_panic(&obj.trim().to_string()),
+        ));
     }
 
     let light = world.get_light_or_panic(&l);
@@ -518,4 +527,9 @@ fn when_rendering(world: &mut RayTracerWorld, i: String, c: String, w: String) {
     let camera = world.get_camera_or_panic(&c);
     let render_world = world.get_world_or_panic(&w);
     world.canvases.insert(i, camera.render(&render_world));
+}
+
+#[given(expr = r"{word} ← test_shape\(\)")]
+fn given_default_test_shape(world: &mut RayTracerWorld, s: String) {
+    world.objects.insert(s, Rc::new(TestShape::default()));
 }

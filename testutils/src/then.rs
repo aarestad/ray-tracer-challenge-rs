@@ -3,7 +3,7 @@ use cucumber::{gherkin::Step, then};
 use ray_tracer_challenge_rs::{
     color::Color,
     material::Material,
-    objects::Object,
+    objects::TestShape,
     transforms::{identity, scaling, translation},
     tuple::{Point, Vector},
 };
@@ -48,7 +48,7 @@ fn assert_vector_normalized(world: &mut RayTracerWorld, lhs_name: String, rhs_na
     assert_abs_diff_eq!(lhs, &rhs.normalize());
 }
 
-#[then(expr = r"{word} = material\(\)")]
+#[then(regex = r"^(\w+) = material\(\)")]
 fn assert_default_material(world: &mut RayTracerWorld, mat_name: String) {
     let m = world.get_material_or_panic(&mat_name);
     assert_abs_diff_eq!(*m, Material::default());
@@ -114,7 +114,7 @@ fn assert_world_light(world: &mut RayTracerWorld) {
 #[then(expr = r"{word} contains {word}")]
 fn assert_world_contains_sphere(world: &mut RayTracerWorld, w: String, s: String) {
     let render_world = world.get_world_or_panic(&w);
-    let sphere = world.get_sphere_or_panic(&s);
+    let sphere = world.get_object_or_panic(&s).as_sphere();
 
     assert!(render_world
         .objects
@@ -182,7 +182,7 @@ fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, pro
 #[then(expr = r"{word} = {word}.material.color")]
 fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
     let color = world.get_color_or_panic(&c);
-    let sphere = world.get_sphere_or_panic(&s);
+    let sphere = world.get_object_or_panic(&s);
 
     assert_abs_diff_eq!(color, &sphere.material().color);
 }
@@ -242,7 +242,7 @@ fn assert_camera_fov(world: &mut RayTracerWorld, fov: RayTracerFloat) {
     assert_eq!(c.field_of_view, fov);
 }
 
-#[then(regex = r"^c.transform = identity_matrix")]
+#[then(regex = r"^c\.transform = identity_matrix$")]
 fn assert_camera_transform(world: &mut RayTracerWorld) {
     let c = world.get_camera_or_panic(&"c".to_string());
     assert_eq!(c.transform, identity());
@@ -316,4 +316,23 @@ fn assert_over_point_small(world: &mut RayTracerWorld, c: String) {
 fn assert_point_z_gt_over_point(world: &mut RayTracerWorld, c: String) {
     let comps = world.get_precomp_or_panic(&c);
     assert!(comps.point.z() > comps.over_point.z());
+}
+
+#[then(regex = r"^s\.transform = (\w+)")]
+fn assert_object_transform(world: &mut RayTracerWorld, trans_name: String) {
+    let o = world.get_object_or_panic(&"s".to_string());
+
+    let t = if trans_name == "identity_matrix" {
+        identity()
+    } else {
+        *world.get_transform_or_panic(&trans_name)
+    };
+
+    assert_eq!(o.transform(), &t)
+}
+
+#[then(regex = r"^s\.material = material\(\)")]
+fn assert_object_default_material(world: &mut RayTracerWorld) {
+    let object = world.get_object_or_panic(&"s".to_string());
+    assert_eq!(*object.material(), Material::default());
 }
