@@ -3,7 +3,7 @@ use approx::{abs_diff_eq, AbsDiffEq};
 use crate::{
     color::{Color, BLACK},
     light::PointLight,
-    tuple::Tuple,
+    tuple::{Point, Vector},
 };
 
 use crate::util::EPSILON;
@@ -97,7 +97,13 @@ impl AbsDiffEq for Material {
 }
 
 impl Material {
-    pub fn lighting(&self, light: PointLight, point: Tuple, eyev: Tuple, normalv: Tuple) -> Color {
+    pub fn lighting(
+        &self,
+        light: PointLight,
+        point: Point,
+        eyev: Vector,
+        normalv: Vector,
+    ) -> Color {
         // combine the surface color with the light's color/intensity
         let effective_color = self.color * light.intensity;
 

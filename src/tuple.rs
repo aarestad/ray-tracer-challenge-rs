@@ -16,6 +16,9 @@ use crate::util::EPSILON;
 #[derive(Debug, Default, PartialEq, Copy, Clone)]
 pub struct Tuple(Vector4<f32>);
 
+pub type Point = Tuple;
+pub type Vector = Tuple;
+
 impl Display for Tuple {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let self_type = match self {
@@ -33,12 +36,6 @@ impl Display for Tuple {
             ))
         }
     }
-}
-
-#[derive(PartialEq)]
-enum TupleType {
-    Point,
-    Vector,
 }
 
 impl Add for Tuple {
@@ -135,84 +132,9 @@ impl AbsDiffEq for Tuple {
     }
 }
 
-impl Tuple {
-    pub const fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
-        Tuple(Vector4::new(x, y, z, w))
-    }
-
-    pub fn point(x: f32, y: f32, z: f32) -> Tuple {
+impl Point {
+    pub const fn point(x: f32, y: f32, z: f32) -> Tuple {
         Tuple::new(x, y, z, 1.0)
-    }
-
-    pub fn vector(x: f32, y: f32, z: f32) -> Tuple {
-        Tuple::new(x, y, z, 0.0)
-    }
-
-    pub fn x(&self) -> f32 {
-        self.0.x
-    }
-
-    pub fn y(&self) -> f32 {
-        self.0.y
-    }
-
-    pub fn z(&self) -> f32 {
-        self.0.z
-    }
-
-    pub fn w(&self) -> f32 {
-        self.0.w
-    }
-
-    fn tuple_type(&self) -> TupleType {
-        match self.w() {
-            w if w == 0.0 => TupleType::Vector,
-            w if w == 1.0 => TupleType::Point,
-            _ => panic!("bad value for w: {}", self.w()),
-        }
-    }
-
-    pub fn is_point(&self) -> bool {
-        self.tuple_type() == TupleType::Point
-    }
-
-    pub fn is_vector(&self) -> bool {
-        self.tuple_type() == TupleType::Vector
-    }
-
-    pub fn magnitude(&self) -> f32 {
-        self.0.magnitude()
-    }
-
-    pub fn normalize(self) -> Tuple {
-        Tuple(self.0.normalize())
-    }
-
-    pub fn dot(&self, rhs: &Tuple) -> f32 {
-        self.0.dot(&rhs.0)
-    }
-
-    pub fn cross(&self, rhs_t: &Tuple) -> Tuple {
-        assert!(self.is_vector(), "must use vectors in cross");
-        assert!(rhs_t.is_vector(), "must use vectors in cross");
-
-        // cross product only works with 3D vectors
-        let lhs = Vector3::new(self.0.x, self.0.y, self.0.z);
-        let rhs = Vector3::new(rhs_t.0.x, rhs_t.0.y, rhs_t.0.z);
-        let prod = lhs.cross(&rhs);
-
-        Tuple::vector(prod[0], prod[1], prod[2])
-    }
-
-    pub fn transform(&self, transform_matrix: &Matrix4<f32>) -> Tuple {
-        let originl_w = self.0.w;
-        let mut t = Tuple(transform_matrix * self.0);
-        t.0.w = originl_w; // preserve the point/vectorness
-        t
-    }
-
-    pub fn reflect(&self, normal: &Tuple) -> Tuple {
-        *self - *normal * 2. * self.dot(normal)
     }
 
     pub fn view_transform(&self, to: &Tuple, up: &Tuple) -> Matrix4<f32> {
@@ -231,5 +153,73 @@ impl Tuple {
         }
 
         orientation * translation(-self.x(), -self.y(), -self.z())
+    }
+}
+
+impl Vector {
+    pub const fn vector(x: f32, y: f32, z: f32) -> Tuple {
+        Tuple::new(x, y, z, 0.0)
+    }
+
+    pub fn cross(&self, rhs_t: &Tuple) -> Tuple {
+        // cross product only works with 3D vectors
+        let lhs = Vector3::new(self.0.x, self.0.y, self.0.z);
+        let rhs = Vector3::new(rhs_t.0.x, rhs_t.0.y, rhs_t.0.z);
+        let prod = lhs.cross(&rhs);
+
+        Tuple::vector(prod[0], prod[1], prod[2])
+    }
+
+    pub fn normalize(self) -> Tuple {
+        Tuple(self.0.normalize())
+    }
+}
+
+impl Tuple {
+    const fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+        Tuple(Vector4::new(x, y, z, w))
+    }
+
+    pub fn x(&self) -> f32 {
+        self.0.x
+    }
+
+    pub fn y(&self) -> f32 {
+        self.0.y
+    }
+
+    pub fn z(&self) -> f32 {
+        self.0.z
+    }
+
+    pub fn w(&self) -> f32 {
+        self.0.w
+    }
+
+    pub fn is_point(&self) -> bool {
+        self.0.w == 1.0
+    }
+
+    pub fn is_vector(&self) -> bool {
+        self.0.w == 0.0
+    }
+
+    pub fn magnitude(&self) -> f32 {
+        self.0.magnitude()
+    }
+
+    pub fn dot(&self, rhs: &Tuple) -> f32 {
+        self.0.dot(&rhs.0)
+    }
+
+    pub fn transform(&self, transform_matrix: &Matrix4<f32>) -> Tuple {
+        let original_w = self.0.w;
+        let mut t = Tuple(transform_matrix * self.0);
+        t.0.w = original_w; // preserve the point/vectorness
+        t
+    }
+
+    pub fn reflect(&self, normal: &Tuple) -> Tuple {
+        *self - *normal * 2. * self.dot(normal)
     }
 }

@@ -1,17 +1,21 @@
-use crate::{objects::Object, ray::Ray, tuple::Tuple};
+use crate::{
+    objects::Object,
+    ray::Ray,
+    tuple::{Point, Vector},
+};
 use std::{fmt::Debug, rc::Rc};
 
 #[derive(Debug, Clone)]
 pub struct Precompute {
     pub intersection: Intersection,
-    pub point: Tuple,
-    pub eyev: Tuple,
-    pub normalv: Tuple,
+    pub point: Point,
+    pub eyev: Vector,
+    pub normalv: Vector,
     pub inside: bool,
 }
 
 impl Precompute {
-    pub fn new(i: Intersection, p: Tuple, e: Tuple, n: Tuple, inside: bool) -> Self {
+    pub fn new(i: Intersection, p: Point, e: Vector, n: Vector, inside: bool) -> Self {
         Self {
             intersection: i,
             point: p,

@@ -2,7 +2,7 @@ use crate::{
     canvas::Canvas,
     color::Color,
     transforms::{rotation, translation, RotationAxis},
-    tuple::Tuple,
+    tuple::Point,
 };
 use std::f32::consts::TAU;
 use std::fs::File;
@@ -16,7 +16,7 @@ pub fn ch4_playground(filename: &Path) -> Result<()> {
     let canvas_translation = translation(250., 250., 0.);
     let rotation = rotation(RotationAxis::Z, TAU / 12.);
 
-    let mut current_loc = Tuple::point(200., 0., 0.);
+    let mut current_loc = Point::point(200., 0., 0.);
 
     for _ in 0..12 {
         let canvas_loc = current_loc.transform(&canvas_translation);

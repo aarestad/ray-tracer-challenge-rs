@@ -4,26 +4,26 @@ use std::path::Path;
 
 use crate::canvas::Canvas;
 use crate::color::Color;
-use crate::tuple::Tuple;
+use crate::tuple::{Point, Vector};
 
 pub struct Projectile {
-    position: Tuple,
-    velocity: Tuple,
+    position: Point,
+    velocity: Vector,
 }
 
 pub struct Environment {
-    gravity: Tuple,
-    wind: Tuple,
+    gravity: Vector,
+    wind: Vector,
 }
 
 impl Projectile {
-    pub fn new(position: Tuple, velocity: Tuple) -> Projectile {
+    pub fn new(position: Point, velocity: Vector) -> Projectile {
         Projectile { position, velocity }
     }
 }
 
 impl Environment {
-    pub fn new(gravity: Tuple, wind: Tuple) -> Environment {
+    pub fn new(gravity: Vector, wind: Vector) -> Environment {
         Environment { gravity, wind }
     }
 
@@ -38,10 +38,10 @@ impl Environment {
 #[allow(dead_code)]
 pub fn ch1_playground() {
     let mut proj = Projectile::new(
-        Tuple::point(0., 1., 0.),
-        Tuple::vector(1., 1., 0.).normalize(),
+        Point::point(0., 1., 0.),
+        Vector::vector(1., 1., 0.).normalize(),
     );
-    let env = Environment::new(Tuple::vector(0., -0.1, 0.), Tuple::vector(-0.01, 0., 0.));
+    let env = Environment::new(Vector::vector(0., -0.1, 0.), Vector::vector(-0.01, 0., 0.));
 
     while proj.position.y() > 0. {
         proj = env.tick(proj);
@@ -52,11 +52,11 @@ pub fn ch1_playground() {
 #[allow(dead_code)]
 pub fn ch2_playground(filename: &Path) -> Result<()> {
     let mut proj = Projectile::new(
-        Tuple::point(0., 1., 0.),
-        Tuple::vector(1., 1.8, 0.).normalize() * 11.25,
+        Point::point(0., 1., 0.),
+        Vector::vector(1., 1.8, 0.).normalize() * 11.25,
     );
 
-    let env = Environment::new(Tuple::vector(0., -0.1, 0.), Tuple::vector(-0.01, 0., 0.));
+    let env = Environment::new(Vector::vector(0., -0.1, 0.), Vector::vector(-0.01, 0., 0.));
 
     let mut canvas = Canvas::new(900, 550);
     let color = Color::new(0.5, 0.7, 0.5);

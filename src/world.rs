@@ -8,7 +8,7 @@ use crate::{
     objects::{Object, Sphere},
     ray::Ray,
     transforms::{identity, scaling},
-    tuple::Tuple,
+    tuple::Point,
 };
 
 #[derive(Debug, Default)]
@@ -38,7 +38,7 @@ impl World {
                 )),
                 Rc::new(Sphere::new(scaling(0.5, 0.5, 0.5), Material::default())),
             ],
-            PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.)),
+            PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )
     }
 

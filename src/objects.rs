@@ -3,7 +3,7 @@ use nalgebra::Matrix4;
 use crate::intersection::{Intersection, Intersections};
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::tuple::Tuple;
+use crate::tuple::{Point, Vector};
 use std::default::Default;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -16,13 +16,13 @@ pub trait Object: Debug {
     fn intersections(&self, ray: &Ray) -> Intersections;
     fn material(&self) -> &Material;
     fn material_mut(&mut self) -> &mut Material;
-    fn normal_at(&self, p: Tuple) -> Tuple;
+    fn normal_at(&self, p: Point) -> Vector;
 }
 
 // TODO get rid of Copy!
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Sphere {
-    center: Tuple,
+    center: Point,
     transform: Matrix4<f32>,
     material: Material,
 }
@@ -30,7 +30,7 @@ pub struct Sphere {
 impl Default for Sphere {
     fn default() -> Self {
         Self {
-            center: Tuple::point(0., 0., 0.),
+            center: Point::point(0., 0., 0.),
             transform: Matrix4::identity(),
             material: Default::default(),
         }
@@ -40,7 +40,7 @@ impl Default for Sphere {
 impl Sphere {
     pub fn new(transform: Matrix4<f32>, material: Material) -> Self {
         Self {
-            center: Tuple::point(0., 0., 0.),
+            center: Point::point(0., 0., 0.),
             transform,
             material,
         }
@@ -89,7 +89,7 @@ impl Object for Sphere {
         &mut self.material
     }
 
-    fn normal_at(&self, p: Tuple) -> Tuple {
+    fn normal_at(&self, p: Point) -> Vector {
         let t = self.transform.try_inverse().expect("not invertible");
         let object_point = p.transform(&t);
         let object_normal = object_point - self.center;

@@ -6,20 +6,20 @@ use crate::light::PointLight;
 use crate::material::MaterialBuilder;
 use crate::objects::{Object, Sphere};
 use crate::ray::Ray;
-use crate::tuple::Tuple;
+use crate::tuple::Point;
 use std::fs::File;
 use std::io::{Result, Write};
 use std::path::Path;
 
 pub fn basic_ray_trace(filename: &Path, transform: Matrix4<f32>) -> Result<()> {
-    let ray_origin = Tuple::point(0., 0., -5.);
+    let ray_origin = Point::point(0., 0., -5.);
     let wall_z = 10f32;
     let wall_size = 7f32;
     let canvas_pixels = 100usize;
     let pixel_size = wall_size / (canvas_pixels as f32);
     let half = wall_size / 2.;
 
-    let light = PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.));
+    let light = PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.));
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
 
@@ -37,7 +37,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Matrix4<f32>) -> Result<()> {
 
         for x in 0..canvas_pixels {
             let world_x = -half + pixel_size * (x as f32);
-            let position = Tuple::point(world_x, world_y, wall_z);
+            let position = Point::point(world_x, world_y, wall_z);
             let ray = Ray::new(ray_origin, (position - ray_origin).normalize());
             let ints = sphere.intersections(&ray);
 

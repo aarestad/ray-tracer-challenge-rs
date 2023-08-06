@@ -8,13 +8,13 @@ use std::{
 use approx::{abs_diff_eq, AbsDiffEq};
 use regex::Regex;
 
-use crate::tuple::Tuple;
+use crate::tuple::Point;
 use crate::util::EPSILON;
 
 pub const BLACK: Color = Color::new(0., 0., 0.);
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Color(Tuple);
+pub struct Color(Point);
 
 impl Default for Color {
     fn default() -> Self {
@@ -47,7 +47,7 @@ impl AbsDiffEq for Color {
 
 impl Color {
     pub const fn new(r: f32, g: f32, b: f32) -> Color {
-        Color(Tuple::new(r, g, b, 1.0))
+        Color(Point::point(r, g, b))
     }
 
     pub fn red(&self) -> f32 {

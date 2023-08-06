@@ -1,20 +1,20 @@
-use crate::tuple::Tuple;
+use crate::tuple::{Point, Vector};
 use nalgebra::Matrix4;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ray {
-    pub origin: Tuple,
-    pub direction: Tuple,
+    pub origin: Point,
+    pub direction: Vector,
 }
 
 impl Ray {
-    pub fn new(origin: Tuple, direction: Tuple) -> Ray {
+    pub fn new(origin: Point, direction: Vector) -> Ray {
         assert!(origin.is_point());
         assert!(direction.is_vector());
         Ray { origin, direction }
     }
 
-    pub fn position(&self, t: f32) -> Tuple {
+    pub fn position(&self, t: f32) -> Point {
         self.origin + self.direction * t
     }
 
