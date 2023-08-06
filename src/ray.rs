@@ -2,7 +2,7 @@ use crate::transforms::Transform;
 use crate::tuple::{Point, Vector};
 use crate::util::RayTracerFloat;
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, PartialEq)]
 pub struct Ray {
     pub origin: Point,
     pub direction: Vector,

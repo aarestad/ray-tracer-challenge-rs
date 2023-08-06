@@ -138,6 +138,10 @@ impl Point {
         Tuple::new(x, y, z, 1.0)
     }
 
+    pub const fn origin() -> Tuple {
+        Point::point(0., 0., 0.)
+    }
+
     pub fn view_transform(&self, to: &Tuple, up: &Tuple) -> Transform {
         let forward = (*to - *self).normalize();
         let upn = up.normalize();
@@ -204,6 +208,10 @@ impl Tuple {
 
     pub fn is_vector(&self) -> bool {
         self.0.w == 0.0
+    }
+
+    pub fn to_vector(self) -> Vector {
+        Vector::vector(self.x(), self.y(), self.z())
     }
 
     pub fn magnitude(&self) -> RayTracerFloat {

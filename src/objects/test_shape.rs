@@ -1,6 +1,12 @@
-use crate::{material::Material, transforms::Transform};
+use crate::{
+    intersection::Intersections,
+    material::Material,
+    ray::Ray,
+    transforms::Transform,
+    tuple::{Point, Vector},
+};
 
-use super::{Object, ObjectProps};
+use super::{Object, ObjectProps, PrivateObject};
 
 // TODO get rid of Copy!
 #[derive(Debug, Copy, Clone, PartialEq, Default)]
@@ -15,24 +21,25 @@ impl TestShape {
     }
 }
 
+impl PrivateObject for TestShape {
+    fn local_intersect(&self, _local_ray: &Ray) -> Intersections {
+        Intersections::empty()
+    }
+
+    fn local_normal_at(&self, local_point: &Point) -> Vector {
+        local_point.to_vector()
+    }
+}
+
 impl Object for TestShape {
     fn as_test_shape(&self) -> &TestShape {
         self
     }
-
-    fn intersections(&self, ray: &crate::ray::Ray) -> crate::intersection::Intersections {
-        todo!()
-    }
-
     fn transform(&self) -> &Transform {
         &self.0.transform
     }
 
-    fn material(&self) -> &crate::material::Material {
+    fn material(&self) -> &Material {
         &self.0.material
-    }
-
-    fn normal_at(&self, p: crate::tuple::Point) -> crate::tuple::Vector {
-        todo!()
     }
 }

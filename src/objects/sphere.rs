@@ -7,36 +7,37 @@ use std::default::Default;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use super::{Object, ObjectProps};
+use super::{Object, ObjectProps, PrivateObject};
 
 // TODO get rid of Copy!
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Sphere {
-    center: Point,
-    props: ObjectProps,
-}
+pub struct Sphere(ObjectProps);
 
 impl Default for Sphere {
     fn default() -> Self {
-        Self {
-            center: Point::point(0., 0., 0.),
-            props: ObjectProps {
-                transform: identity(),
-                material: Default::default(),
-            },
-        }
+        Self(ObjectProps {
+            transform: identity(),
+            material: Default::default(),
+        })
     }
 }
 
 impl Sphere {
     pub fn new(transform: Transform, material: Material) -> Self {
-        Self {
-            center: Point::point(0., 0., 0.),
-            props: ObjectProps {
-                transform,
-                material,
-            },
-        }
+        Self(ObjectProps {
+            transform,
+            material,
+        })
+    }
+}
+
+impl PrivateObject for Sphere {
+    fn local_intersect(&self, _local_ray: &Ray) -> Intersections {
+        unimplemented!()
+    }
+
+    fn local_normal_at(&self, _local_point: &Point) -> Vector {
+        unimplemented!()
     }
 }
 
@@ -48,13 +49,13 @@ impl Object for Sphere {
     fn intersections(&self, ray: &Ray) -> Intersections {
         let transformed_ray = ray.transform(
             &self
-                .props
+                .0
                 .transform
                 .try_inverse()
                 .expect("cannot invert transform"),
         );
 
-        let sphere_to_ray = transformed_ray.origin - self.center;
+        let sphere_to_ray = transformed_ray.origin - Point::origin();
         let a = transformed_ray.direction.dot(&transformed_ray.direction);
         let b = 2. * transformed_ray.direction.dot(&sphere_to_ray);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.;
@@ -72,22 +73,22 @@ impl Object for Sphere {
     }
 
     fn transform(&self) -> &Transform {
-        &self.props.transform
+        &self.0.transform
     }
 
     fn material(&self) -> &Material {
-        &self.props.material
+        &self.0.material
     }
 
     fn normal_at(&self, p: Point) -> Vector {
         let t = self
-            .props
+            .0
             .transform
             .try_inverse()
             .expect("transform not invertible");
 
         let object_point = p.transform(&t);
-        let object_normal = object_point - self.center;
+        let object_normal = object_point - Point::origin();
         let world_normal = object_normal.transform(&t.transpose());
         world_normal.normalize()
     }
