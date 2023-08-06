@@ -1,7 +1,6 @@
 use cucumber::{then, World};
 use futures_lite::future;
 
-use ray_tracer_challenge_rs::transforms;
 use testutils::world::RayTracerWorld;
 use testutils::RayTracerFloat;
 

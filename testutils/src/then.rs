@@ -3,7 +3,6 @@ use cucumber::{gherkin::Step, then};
 use ray_tracer_challenge_rs::{
     color::Color,
     material::Material,
-    objects::TestShape,
     transforms::{identity, scaling, translation},
     tuple::{Point, Vector},
 };
@@ -205,7 +204,7 @@ fn assert_transform_scaling(
     assert_eq!(*transform, scaling(x, y, z));
 }
 
-#[then(expr = r"{word} = translation\({float}, {float}, {float}\)")]
+#[then(regex = r"^(\w+) = translation\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)")]
 fn assert_transform_translation(
     world: &mut RayTracerWorld,
     t: String,
@@ -318,8 +317,8 @@ fn assert_point_z_gt_over_point(world: &mut RayTracerWorld, c: String) {
     assert!(comps.point.z() > comps.over_point.z());
 }
 
-#[then(regex = r"^s\.transform = (\w+)")]
-fn assert_object_transform(world: &mut RayTracerWorld, trans_name: String) {
+#[then(regex = r"^s\.transform = (\w+)$")]
+fn assert_object_transform_name(world: &mut RayTracerWorld, trans_name: String) {
     let o = world.get_object_or_panic(&"s".to_string());
 
     let t = if trans_name == "identity_matrix" {
@@ -331,8 +330,52 @@ fn assert_object_transform(world: &mut RayTracerWorld, trans_name: String) {
     assert_eq!(o.transform(), &t)
 }
 
+#[then(
+    regex = r"^s\.transform = translation\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)"
+)]
+fn assert_object_transform_translation(
+    world: &mut RayTracerWorld,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
+    let o = world.get_object_or_panic(&"s".to_string());
+
+    let t = translation(x, y, z);
+
+    assert_eq!(o.transform(), &t)
+}
+
 #[then(regex = r"^s\.material = material\(\)")]
 fn assert_object_default_material(world: &mut RayTracerWorld) {
     let object = world.get_object_or_panic(&"s".to_string());
     assert_eq!(*object.material(), Material::default());
+}
+
+#[then(regex = r"^s\.material = (\w+)$")]
+fn assert_object_named_material(world: &mut RayTracerWorld, m: String) {
+    let object = world.get_object_or_panic(&"s".to_string());
+    let material = world.get_material_or_panic(&m);
+    assert_eq!(object.material(), material);
+}
+
+#[then(expr = r"{word} is empty")]
+fn assert_empty_intersections(world: &mut RayTracerWorld, xs: String) {
+    let ints = world.get_ints_or_panic(&xs);
+    assert!(ints.ints().is_empty());
+}
+
+#[then(regex = r"^(\w+)\[(\d)\]\.object = (.+)")]
+fn assert_nth_intersection_object(
+    world: &mut RayTracerWorld,
+    int_name: String,
+    nth: usize,
+    o: String,
+) {
+    let ints = world.get_ints_or_panic(&int_name);
+
+    let actual = ints.ints()[nth].object.as_plane();
+    let expected = world.get_object_or_panic(&o).as_plane();
+
+    assert_eq!(actual, expected);
 }

@@ -4,7 +4,7 @@ use crate::{
     intersection::{Intersection, Intersections},
     material::Material,
     ray::Ray,
-    transforms::Transform,
+    transforms::{identity, Transform},
     tuple::{Point, Vector},
     util::EPSILON,
 };
@@ -12,12 +12,30 @@ use crate::{
 use super::{Object, ObjectProps, PrivateObject};
 
 // TODO get rid of copyyyy
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Plane(ObjectProps);
+
+impl Default for Plane {
+    fn default() -> Self {
+        Self(ObjectProps {
+            transform: identity(),
+            material: Default::default(),
+        })
+    }
+}
+
+impl Plane {
+    pub fn new(transform: Transform, material: Material) -> Self {
+        Self(ObjectProps {
+            transform,
+            material,
+        })
+    }
+}
 
 impl PrivateObject for Plane {
     fn local_intersect(&self, local_ray: &Ray) -> Intersections {
-        if local_ray.direction.y() < EPSILON {
+        if local_ray.direction.y().abs() < EPSILON {
             return Intersections::empty();
         }
 
@@ -32,6 +50,10 @@ impl PrivateObject for Plane {
 }
 
 impl Object for Plane {
+    fn as_plane(&self) -> &Plane {
+        self
+    }
+
     fn transform(&self) -> &Transform {
         &self.0.transform
     }

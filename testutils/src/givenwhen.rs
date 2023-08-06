@@ -11,10 +11,10 @@ use ray_tracer_challenge_rs::{
     intersection::Intersection,
     light::PointLight,
     material::{Material, MaterialBuilder},
-    objects::{Object, Sphere, TestShape},
+    objects::{Object, Plane, Sphere, TestShape},
     ray::Ray,
-    transforms::{identity, rotation, scaling, translation},
-    tuple::Tuple,
+    transforms::{identity, rotation, scaling, translation, RotationAxis},
+    tuple::{Point, Tuple},
     world::World,
 };
 
@@ -279,7 +279,7 @@ fn given_nth_sphere_in_world(world: &mut RayTracerWorld, name: String, nth: Stri
         .insert(name, Rc::new(*ray_world.objects[n].as_sphere()));
 }
 
-#[given(expr = r"{word}.material.ambient ← {float}")]
+#[given(regex = r"^(\w+)\.material\.ambient ← (.+)")]
 fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayTracerFloat) {
     let sphere = world.get_object_or_panic(&s);
     let mut mat = sphere.material().clone();
@@ -287,6 +287,15 @@ fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayT
 
     let new_sphere = Sphere::new(*sphere.as_ref().transform(), mat);
     world.objects.insert(s, Rc::new(new_sphere));
+}
+
+#[given(regex = r"^(\w+)\.ambient ← (.+)")]
+fn given_material_ambient_val(world: &mut RayTracerWorld, m: String, ambient: RayTracerFloat) {
+    let material = world.get_material_or_panic(&m);
+    let mut new_mat = material.clone();
+    new_mat.ambient = ambient;
+
+    world.materials.insert(m, new_mat);
 }
 
 #[given(expr = r"{word} ← default_world_with_objects\({word}, {word}\)")]
@@ -350,17 +359,17 @@ fn when_ray_for_pixel(world: &mut RayTracerWorld, r: String, c: String, x: usize
 }
 
 #[when(expr = r"{word} ← normal_at\({word}, point\({float}, {float}, {float}\)\)")]
-fn when_sphere_normal_at(
+fn when_object_normal_at(
     world: &mut RayTracerWorld,
     normal_name: String,
-    sphere_name: String,
+    o: String,
     x: RayTracerFloat,
     y: RayTracerFloat,
     z: RayTracerFloat,
 ) {
-    let s = world.get_object_or_panic(&sphere_name);
+    let obj = world.get_object_or_panic(&o);
     let p = Tuple::point(x, y, z);
-    world.tuples.insert(normal_name, s.normal_at(p));
+    world.tuples.insert(normal_name, obj.normal_at(p));
 }
 
 #[when(expr = r"{word} ← reflect\({word}, {word}\)")]
@@ -532,4 +541,58 @@ fn when_rendering(world: &mut RayTracerWorld, i: String, c: String, w: String) {
 #[given(expr = r"{word} ← test_shape\(\)")]
 fn given_default_test_shape(world: &mut RayTracerWorld, s: String) {
     world.objects.insert(s, Rc::new(TestShape::default()));
+}
+
+#[given(expr = r"{word} ← test_shape\(translation\({float}, {float}, {float}\), material\(\)\)")]
+#[when(expr = r"{word} ← test_shape\(translation\({float}, {float}, {float}), material\(\)\)")]
+fn given_a_test_shape_translation(
+    world: &mut RayTracerWorld,
+    s: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
+    world.objects.insert(
+        s,
+        Rc::new(TestShape::new(translation(x, y, z), Material::default())),
+    );
+}
+
+#[given(expr = r"{word} ← test_shape\(scaling\({float}, {float}, {float}\), material\(\)\)")]
+fn given_a_test_shape_scaling(
+    world: &mut RayTracerWorld,
+    s: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
+    world.objects.insert(
+        s,
+        Rc::new(TestShape::new(scaling(x, y, z), Material::default())),
+    );
+}
+
+#[given(expr = r"s ← test_shape\(scaling\(1, 0.5, 1) * rotation_z\(0.628318), material\())")]
+fn given_arbitrary_test_shape(world: &mut RayTracerWorld) {
+    world.objects.insert(
+        "s".to_string(),
+        Rc::new(TestShape::new(
+            scaling(1., 0.5, 1.) * rotation(RotationAxis::Z, 0.628318),
+            Material::default(),
+        )),
+    );
+}
+
+#[when(expr = r"{word} ← test_shape\(identity\(\), {word}\)")]
+fn given_a_test_shape_named_mat(world: &mut RayTracerWorld, s: String, m: String) {
+    let material = world.get_material_or_panic(&m);
+
+    world
+        .objects
+        .insert(s, Rc::new(TestShape::new(identity(), *material)));
+}
+
+#[given(expr = r"{word} ← plane\(\)")]
+fn given_default_plane(world: &mut RayTracerWorld, p: String) {
+    world.objects.insert(p, Rc::new(Plane::default()));
 }
