@@ -441,6 +441,7 @@ fn when_hit_queried(world: &mut RayTracerWorld, hit_name: String, ints_name: Str
     }
 }
 
+#[given(expr = r"{word} ← view_transform\({word}, {word}, {word}\)")]
 #[when(expr = r"{word} ← view_transform\({word}, {word}, {word}\)")]
 fn when_view_transform(
     world: &mut RayTracerWorld,
@@ -456,4 +457,11 @@ fn when_view_transform(
     world
         .transforms
         .insert(transform_name, from.view_transform(to, up));
+}
+
+#[when(expr = r"{word} ← render\({word}, {word}\)")]
+fn when_rendering(world: &mut RayTracerWorld, i: String, c: String, w: String) {
+    let camera = world.get_camera_or_panic(&c);
+    let render_world = world.get_world_or_panic(&w);
+    world.canvases.insert(i, camera.render(&render_world));
 }

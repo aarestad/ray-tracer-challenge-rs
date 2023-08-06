@@ -238,3 +238,17 @@ fn assert_ray_direction(world: &mut RayTracerWorld, r: String, x: f32, y: f32, z
     let ray = world.get_ray_or_panic(&r);
     assert_abs_diff_eq!(ray.direction, Vector::vector(x, y, z));
 }
+
+#[then(regex = r"^pixel_at\((\w+), (\d+), (\d+)\) = color\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)")]
+fn assert_pixel_at(
+    world: &mut RayTracerWorld,
+    canvas_name: String,
+    x: usize,
+    y: usize,
+    r: f32,
+    g: f32,
+    b: f32,
+) {
+    let canvas = world.get_canvas_or_panic(&canvas_name);
+    assert_abs_diff_eq!(Color::new(r,g,b), canvas.pixel_at(x, y));
+}

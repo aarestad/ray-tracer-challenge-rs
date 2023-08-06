@@ -1,4 +1,4 @@
-use crate::{ray::Ray, transforms::identity, tuple::Point};
+use crate::{canvas::Canvas, ray::Ray, transforms::identity, tuple::Point, world::World};
 use nalgebra::Matrix4;
 
 #[derive(Debug, PartialEq)]
@@ -58,5 +58,19 @@ impl Camera {
         let origin = Point::point(0., 0., 0.).transform(xform_inv);
         let direction = (pixel - origin).normalize();
         Ray::new(origin, direction)
+    }
+
+    pub fn render(&self, world: &World) -> Canvas {
+        let mut image = Canvas::new(self.hsize, self.vsize);
+
+        for y in 0..self.vsize {
+            for x in 0..self.hsize {
+                let ray = self.ray_for_pixel(x, y);
+                let color = world.color_at(&ray);
+                image.write(x, y, color);
+            }
+        }
+
+        image
     }
 }
