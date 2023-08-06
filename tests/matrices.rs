@@ -1,8 +1,7 @@
 use cucumber::{gherkin::Step, given, then, World};
 use futures_lite::future;
 use nalgebra::{DMatrix, Matrix4};
-use ray_tracer_challenge_rs::tuple::Tuple;
-use ray_tracer_challenge_rs::util::EPSILON;
+use ray_tracer_challenge_rs::{tuple::Point, util::EPSILON};
 use testutils::step::get_matrix_from_step;
 use testutils::world::RayTracerWorld;
 
@@ -115,11 +114,12 @@ fn assert_matrix_tuple_mult(
     w: f32,
 ) {
     let lhs = world.get_matrix_or_panic(&lhs_name);
-    let rhs = world.get_tuple_or_panic(&rhs_name);
-    let expected = Tuple::new(x, y, z, w);
+    let rhs = world.get_point_or_panic(&rhs_name);
+    let expected = Point::point(x, y, z);
     let actual = rhs.transform(&Matrix4::from_vec(lhs.data.as_vec().clone()));
 
     assert_eq!(expected, actual);
+    assert_eq!(w, actual.w());
 }
 
 #[then(expr = r"{word} * identity_matrix = {word}")]
@@ -143,10 +143,10 @@ fn assert_tuple_identity_mult_lhs(
     expected_name: String,
 ) {
     assert_eq!(rhs_name, expected_name, "expecting the same name");
-    let t = world.get_tuple_or_panic(&rhs_name);
+    let t = world.get_point_or_panic(&rhs_name);
     let identity = Matrix4::<f32>::identity();
 
-    assert_eq!(*t, t.transform(&identity),);
+    assert_eq!(*t, t.transform(&identity));
 }
 
 #[then(expr = r"transpose\({word}\) is the following {int}x{int} matrix:")]
@@ -205,7 +205,7 @@ fn assert_inverse(
     );
 }
 
-#[then(regex = r"^(\w+) is the following (\d)x(\d) matrix:")]
+#[then(regex = r"^matrix (\w+) is the following (\d)x(\d) matrix:")]
 fn assert_given_matrix_equality(
     world: &mut RayTracerWorld,
     step: &Step,

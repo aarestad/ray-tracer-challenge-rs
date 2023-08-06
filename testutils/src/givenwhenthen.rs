@@ -298,8 +298,8 @@ fn when_reflection(
     vec_name: String,
     norm_name: String,
 ) {
-    let v = world.get_tuple_or_panic(&vec_name);
-    let n = world.get_tuple_or_panic(&norm_name);
+    let v = world.get_vector_or_panic(&vec_name);
+    let n = world.get_vector_or_panic(&norm_name);
     world.tuples.insert(reflection_name, v.reflect(n));
 }
 
@@ -310,7 +310,7 @@ fn when_light_created(
     pos_name: String,
     intensity_name: String,
 ) {
-    let p = world.get_tuple_or_panic(&pos_name);
+    let p = world.get_point_or_panic(&pos_name);
     let i = world.get_color_or_panic(&intensity_name);
     world.lights.insert(light_name, PointLight::new(*p, *i));
 }
@@ -333,9 +333,9 @@ fn when_lighting_material(
 ) {
     let m = world.get_material_or_panic(&mat);
     let l = *world.get_light_or_panic(&light);
-    let p = *world.get_tuple_or_panic(&position);
-    let e = *world.get_tuple_or_panic(&eyev);
-    let n = *world.get_tuple_or_panic(&normalv);
+    let p = *world.get_point_or_panic(&position);
+    let e = *world.get_vector_or_panic(&eyev);
+    let n = *world.get_vector_or_panic(&normalv);
 
     world.colors.insert(result, m.lighting(l, p, e, n));
 }
@@ -401,9 +401,9 @@ fn when_view_transform(
     to_p: String,
     up_v: String,
 ) {
-    let from = world.get_tuple_or_panic(&from_p);
-    let to = world.get_tuple_or_panic(&to_p);
-    let up = world.get_tuple_or_panic(&up_v);
+    let from = world.get_point_or_panic(&from_p);
+    let to = world.get_point_or_panic(&to_p);
+    let up = world.get_vector_or_panic(&up_v);
 
     world
         .transforms
@@ -412,7 +412,7 @@ fn when_view_transform(
 
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
-    let actual = world.get_tuple_or_panic(&vector_name);
+    let actual = world.get_vector_or_panic(&vector_name);
     let expected = Tuple::vector(x, y, z);
 
     assert_abs_diff_eq!(actual, &expected);
@@ -421,7 +421,7 @@ fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32
 #[then(expr = r"{word}.position = {word}")]
 fn assert_light_position(world: &mut RayTracerWorld, light_name: String, pos_name: String) {
     let l = world.get_light_or_panic(&light_name);
-    let p = world.get_tuple_or_panic(&pos_name);
+    let p = world.get_point_or_panic(&pos_name);
     assert_eq!(&l.position, p);
 }
 
@@ -434,8 +434,8 @@ fn assert_light_intensity(world: &mut RayTracerWorld, light_name: String, color_
 
 #[then(expr = r"{word} = normalize\({word}\)")]
 fn assert_vector_normalized(world: &mut RayTracerWorld, lhs_name: String, rhs_name: String) {
-    let lhs = world.get_tuple_or_panic(&lhs_name);
-    let rhs = world.get_tuple_or_panic(&rhs_name);
+    let lhs = world.get_vector_or_panic(&lhs_name);
+    let rhs = world.get_vector_or_panic(&rhs_name);
 
     assert_abs_diff_eq!(lhs, &rhs.normalize());
 }
@@ -585,7 +585,7 @@ fn assert_transform_translation(world: &mut RayTracerWorld, t: String, x: f32, y
     assert_eq!(*transform, translation(x, y, z));
 }
 
-#[then(expr = r"{word} is the following 4x4 matrix:")]
+#[then(regex = r"^(\w+) is the following 4x4 matrix:")]
 fn assert_transform_arbitrary(world: &mut RayTracerWorld, step: &Step, t: String) {
     let transform = world.get_transform_or_panic(&t);
     let expected = get_4x4_matrix_from_step(step);

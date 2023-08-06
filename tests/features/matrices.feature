@@ -157,7 +157,7 @@ Feature: Matrices
     Then determinant(A) = 532
     And B[3,2] = -160/532
     And B[2,3] = 105/532
-    And B is the following 4x4 matrix:
+    And matrix B is the following 4x4 matrix:
       | 0.21805  | 0.45113  | 0.24060  | -0.04511 |
       | -0.80827 | -1.45677 | -0.44361 | 0.52068  |
       | -0.07895 | -0.22368 | -0.05263 | 0.19737  |

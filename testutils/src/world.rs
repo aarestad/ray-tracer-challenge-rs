@@ -10,7 +10,7 @@ use ray_tracer_challenge_rs::world::World;
 use std::collections::HashMap;
 
 use nalgebra::{DMatrix, Matrix4};
-use ray_tracer_challenge_rs::tuple::Tuple;
+use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};
 
 #[derive(Debug, Default, cucumber::World)]
 pub struct RayTracerWorld {
@@ -85,10 +85,22 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing array {}", matrix_name))
     }
 
-    pub fn get_tuple_or_panic(&self, tuple_name: &String) -> &Tuple {
+    pub fn get_tuple_or_panic(&self, v: &String) -> &Tuple {
         self.tuples
-            .get(tuple_name)
-            .unwrap_or_else(|| panic!("missing tuple {}", tuple_name))
+            .get(v)
+            .unwrap_or_else(|| panic!("missing vector {}", v))
+    }
+
+    pub fn get_point_or_panic(&self, p: &String) -> &Point {
+        self.tuples
+            .get(p)
+            .unwrap_or_else(|| panic!("missing point {}", p))
+    }
+
+    pub fn get_vector_or_panic(&self, v: &String) -> &Vector {
+        self.tuples
+            .get(v)
+            .unwrap_or_else(|| panic!("missing vector {}", v))
     }
 
     pub fn get_ray_or_panic(&self, ray_name: &String) -> &Ray {

@@ -48,7 +48,7 @@ fn when_transform_applied(
     point_name: String,
 ) {
     let m = world.get_transform_or_panic(&matrix_name);
-    let p = world.get_tuple_or_panic(&point_name);
+    let p = world.get_point_or_panic(&point_name);
     world.tuples.insert(result_point_name, p.transform(m));
 }
 
@@ -77,7 +77,7 @@ fn assert_point_transform_specified(
     z: f32,
 ) {
     let lhs = world.get_transform_or_panic(&matrix_name);
-    let rhs = world.get_tuple_or_panic(&point_name);
+    let rhs = world.get_point_or_panic(&point_name);
     let expected = Tuple::point(x, y, z);
 
     let actual = rhs.transform(lhs);
@@ -88,7 +88,7 @@ fn assert_point_transform_specified(
 #[then(expr = r"{word} = point\({float}, {float}, {float}\)")]
 fn assert_point_value(world: &mut RayTracerWorld, point_name: String, x: f32, y: f32, z: f32) {
     let expected = Tuple::point(x, y, z);
-    let actual = world.get_tuple_or_panic(&point_name);
+    let actual = world.get_point_or_panic(&point_name);
 
     assert_abs_diff_eq!(expected, &actual,);
 }
@@ -101,8 +101,8 @@ fn assert_point_transform_name(
     expected_name: String,
 ) {
     let lhs = world.get_transform_or_panic(&matrix_name);
-    let rhs = world.get_tuple_or_panic(&tuple_name);
-    let expected = world.get_tuple_or_panic(&expected_name);
+    let rhs = world.get_point_or_panic(&tuple_name);
+    let expected = world.get_point_or_panic(&expected_name);
 
     let actual = rhs.transform(lhs);
 
@@ -120,7 +120,7 @@ fn assert_vector_transform_specified(
     z: f32,
 ) {
     let lhs = world.get_transform_or_panic(&matrix_name);
-    let rhs = world.get_tuple_or_panic(&vector_name);
+    let rhs = world.get_point_or_panic(&vector_name);
     let expected = Tuple::vector(x, y, z);
 
     let actual = rhs.transform(lhs);

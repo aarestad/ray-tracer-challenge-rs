@@ -1,4 +1,4 @@
-use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
+use ray_tracer_challenge_rs::intersection::Intersections;
 
 use cucumber::{given, then, when, World};
 use futures_lite::future;
