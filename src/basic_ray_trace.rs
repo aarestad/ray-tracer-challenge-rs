@@ -11,7 +11,7 @@ use crate::light::PointLight;
 use crate::material::MaterialBuilder;
 use crate::objects::{Object, Plane, Sphere};
 use crate::ray::Ray;
-use crate::transforms::{identity, rotation, scaling, translation, RotationAxis, Transform};
+use crate::transforms::{identity, scaling, translation, Transform};
 use crate::tuple::{Point, Vector};
 use crate::util::RayTracerFloat;
 use crate::world::World;

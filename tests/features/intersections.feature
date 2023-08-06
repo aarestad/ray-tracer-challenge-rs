@@ -19,10 +19,10 @@ Feature: Intersections
 
   Scenario: Precomputing the reflection vector
     Given shape ← plane()
-    And r ← ray(point(0, 1, -1), vector(0, -√2/2, √2/2))
-    And i ← intersection(√2, shape)
+    And r ← ray(point(0, 1, -1), vector(0, -0.707106781, 0.707106781))
+    And i ← intersection(1.414213, shape)
     When comps ← prepare_computations(i, r)
-    Then comps.reflectv = vector(0, √2/2, √2/2)
+    Then comps.reflectv = vector(0, 0.707106781, 0.707106781)
 
   Scenario: The hit, when an intersection occurs on the outside
     Given r ← ray(point(0, 0, -5), vector(0, 0, 1))
@@ -131,8 +131,8 @@ Feature: Intersections
 
   Scenario: The Schlick approximation under total internal reflection
     Given shape ← glass_sphere()
-    And r ← ray(point(0, 0, √2/2), vector(0, 1, 0))
-    And xs ← intersections(-√2/2:shape, √2/2:shape)
+    And r ← ray(point(0, 0, 0.707106781), vector(0, 1, 0))
+    And xs ← intersections(-0.707106781:shape, 0.707106781:shape)
     When comps ← prepare_computations(xs[1], r, xs)
     And reflectance ← schlick(comps)
     Then reflectance = 1.0

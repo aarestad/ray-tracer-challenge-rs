@@ -14,7 +14,7 @@ use ray_tracer_challenge_rs::{
     objects::{Object, Plane, Sphere, TestShape},
     ray::Ray,
     transforms::{identity, rotation, scaling, translation, RotationAxis},
-    tuple::{Point, Tuple},
+    tuple::Tuple,
     world::World,
 };
 
@@ -282,7 +282,7 @@ fn given_nth_sphere_in_world(world: &mut RayTracerWorld, name: String, nth: Stri
 #[given(regex = r"^(\w+)\.material\.ambient ← (.+)")]
 fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayTracerFloat) {
     let sphere = world.get_object_or_panic(&s);
-    let mut mat = sphere.material().clone();
+    let mut mat = *sphere.material();
     mat.ambient = ambient;
 
     let new_sphere = Sphere::new(*sphere.as_ref().transform(), mat);
@@ -292,7 +292,7 @@ fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayT
 #[given(regex = r"^(\w+)\.ambient ← (.+)")]
 fn given_material_ambient_val(world: &mut RayTracerWorld, m: String, ambient: RayTracerFloat) {
     let material = world.get_material_or_panic(&m);
-    let mut new_mat = material.clone();
+    let mut new_mat = *material;
     new_mat.ambient = ambient;
 
     world.materials.insert(m, new_mat);
@@ -421,6 +421,7 @@ fn when_lighting_material_not_in_shadow(
     world.colors.insert(result, m.lighting(l, p, e, n, false));
 }
 
+#[allow(clippy::too_many_arguments)]
 #[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}, {word}\)")]
 fn when_lighting_material_possibly_in_shadow(
     world: &mut RayTracerWorld,
@@ -451,7 +452,7 @@ fn given_or_when_default_world(world: &mut RayTracerWorld, world_name: String) {
 
 #[given(expr = r"{word} ← world\([{}], {word}\)")]
 fn given_arbitrary_world(world: &mut RayTracerWorld, w: String, objects: String, l: String) {
-    let obj_names: Vec<_> = objects.split(",").collect();
+    let obj_names: Vec<_> = objects.split(',').collect();
 
     let mut objs: Vec<Rc<dyn Object>> = vec![];
 
@@ -535,7 +536,7 @@ fn when_view_transform(
 fn when_rendering(world: &mut RayTracerWorld, i: String, c: String, w: String) {
     let camera = world.get_camera_or_panic(&c);
     let render_world = world.get_world_or_panic(&w);
-    world.canvases.insert(i, camera.render(&render_world));
+    world.canvases.insert(i, camera.render(render_world));
 }
 
 #[given(expr = r"{word} ← test_shape\(\)")]
