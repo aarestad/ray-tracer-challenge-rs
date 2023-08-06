@@ -6,4 +6,5 @@ fn main() {
     future::block_on(RayTracerWorld::run("tests/features/lights.feature"));
     future::block_on(RayTracerWorld::run("tests/features/materials.feature"));
     future::block_on(RayTracerWorld::run("tests/features/world.feature"));
+    future::block_on(RayTracerWorld::run("tests/features/camera.feature"));
 }

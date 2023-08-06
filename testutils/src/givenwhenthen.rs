@@ -7,6 +7,7 @@ use crate::{
 use cucumber::{gherkin::Step, given, then, when};
 use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::{
+    camera::Camera,
     canvas::Canvas,
     color::Color,
     intersection::Intersection,
@@ -260,6 +261,11 @@ fn given_world_with_objects(world: &mut RayTracerWorld, w: String, s1: String, s
         w,
         World::default_world_with_objects(vec![Rc::new(*o1), Rc::new(*o2)]),
     );
+}
+
+#[given(expr = r"{word} ← camera\({int}, {int}, {float}\)")]
+fn given_a_camera(world: &mut RayTracerWorld, c: String, hsize: usize, vsize: usize, fov: f32) {
+    world.cameras.insert(c, Camera::new(hsize, vsize, fov));
 }
 
 #[given(expr = r"{word} ← intersect\({word}, {word}\)")]
@@ -590,4 +596,34 @@ fn assert_transform_arbitrary(world: &mut RayTracerWorld, step: &Step, t: String
     let transform = world.get_transform_or_panic(&t);
     let expected = get_4x4_matrix_from_step(step);
     assert_abs_diff_eq!(*transform, expected, epsilon = EPSILON);
+}
+
+#[then(regex = r"^c.hsize = (\d+)")]
+fn assert_camera_hsize(world: &mut RayTracerWorld, hsize: usize) {
+    let c = world.get_camera_or_panic(&"c".to_string());
+    assert_eq!(c.hsize, hsize);
+}
+
+#[then(regex = r"^c.vsize = (\d+)")]
+fn assert_camera_vsize(world: &mut RayTracerWorld, vsize: usize) {
+    let c = world.get_camera_or_panic(&"c".to_string());
+    assert_eq!(c.vsize, vsize);
+}
+
+#[then(regex = r"^c.field_of_view = (\d+\.\d+)")]
+fn assert_camera_fov(world: &mut RayTracerWorld, fov: f32) {
+    let c = world.get_camera_or_panic(&"c".to_string());
+    assert_eq!(c.field_of_view, fov);
+}
+
+#[then(regex = r"^c.transform = identity_matrix")]
+fn assert_camera_transform(world: &mut RayTracerWorld) {
+    let c = world.get_camera_or_panic(&"c".to_string());
+    assert_eq!(c.transform, identity());
+}
+
+#[then(regex = r"^c.pixel_size = (\d+\.\d+)")]
+fn assert_camera_pixel_size(world: &mut RayTracerWorld, pixel_size: f32) {
+    let c = world.get_camera_or_panic(&"c".to_string());
+    assert_abs_diff_eq!(c.pixel_size, pixel_size, epsilon = EPSILON);
 }

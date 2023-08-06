@@ -7,6 +7,7 @@ use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ppm::Ppm;
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::world::World;
+use ray_tracer_challenge_rs::camera::Camera;
 use std::collections::HashMap;
 
 use nalgebra::{DMatrix, Matrix4};
@@ -29,6 +30,7 @@ pub struct RayTracerWorld {
     pub materials: HashMap<String, Material>,
     pub worlds: HashMap<String, World>,
     pub precomps: HashMap<String, Precompute>,
+    pub cameras: HashMap<String, Camera>,
 }
 
 // TODO this seems like a job for... a macro!
@@ -143,5 +145,11 @@ impl RayTracerWorld {
         self.precomps
             .get(precomp_name)
             .unwrap_or_else(|| panic!("missing precompute {}", precomp_name))
+    }
+
+    pub fn get_camera_or_panic(&self, camera_name: &String) -> &Camera {
+        self.cameras
+            .get(camera_name)
+            .unwrap_or_else(|| panic!("missing camera named {}", camera_name))
     }
 }
