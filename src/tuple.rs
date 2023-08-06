@@ -5,11 +5,11 @@ use std::{
     str::FromStr,
 };
 
-use crate::transforms::translation;
+use crate::transforms::{translation, Transform};
 use crate::util::RayTracerFloat;
 
 use approx::{abs_diff_eq, AbsDiffEq};
-use nalgebra::{Matrix4, Vector3, Vector4};
+use nalgebra::{Vector3, Vector4};
 use regex::Regex;
 
 use crate::util::EPSILON;
@@ -138,14 +138,14 @@ impl Point {
         Tuple::new(x, y, z, 1.0)
     }
 
-    pub fn view_transform(&self, to: &Tuple, up: &Tuple) -> Matrix4<RayTracerFloat> {
+    pub fn view_transform(&self, to: &Tuple, up: &Tuple) -> Transform {
         let forward = (*to - *self).normalize();
         let upn = up.normalize();
         let left = forward.cross(&upn);
         let true_up = left.cross(&forward);
 
         nofmt::pls! {
-            let orientation = Matrix4::new(
+            let orientation = Transform::new(
                 left.x(),     left.y(),     left.z(),    0.,
                 true_up.x(),  true_up.y(),  true_up.z(), 0.,
                -forward.x(), -forward.y(), -forward.z(), 0.,
@@ -173,7 +173,12 @@ impl Vector {
 }
 
 impl Tuple {
-    const fn new(x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat, w: RayTracerFloat) -> Tuple {
+    const fn new(
+        x: RayTracerFloat,
+        y: RayTracerFloat,
+        z: RayTracerFloat,
+        w: RayTracerFloat,
+    ) -> Tuple {
         Tuple(Vector4::new(x, y, z, w))
     }
 
@@ -213,7 +218,7 @@ impl Tuple {
         self.0.dot(&rhs.0)
     }
 
-    pub fn transform(&self, transform_matrix: &Matrix4<RayTracerFloat>) -> Tuple {
+    pub fn transform(&self, transform_matrix: &Transform) -> Tuple {
         let original_w = self.0.w;
         let mut t = Tuple(transform_matrix * self.0);
         t.0.w = original_w; // preserve the point/vectorness

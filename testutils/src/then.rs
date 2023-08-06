@@ -1,6 +1,5 @@
 use crate::{step::get_4x4_matrix_from_step, world::RayTracerWorld, RayTracerFloat, EPSILON};
 use cucumber::{gherkin::Step, then};
-use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::{
     color::Color,
     material::Material,
@@ -191,7 +190,7 @@ fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
 #[then(regex = r"^(\w+) = identity_matrix$")]
 fn assert_transform_identity(world: &mut RayTracerWorld, t: String) {
     let transform = world.get_transform_or_panic(&t);
-    assert_eq!(*transform, Matrix4::identity());
+    assert_eq!(*transform, identity());
 }
 
 #[then(expr = r"{word} = scaling\({float}, {float}, {float}\)")]

@@ -1,6 +1,6 @@
+use crate::transforms::Transform;
 use crate::tuple::{Point, Vector};
 use crate::util::RayTracerFloat;
-use nalgebra::Matrix4;
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct Ray {
@@ -19,7 +19,7 @@ impl Ray {
         self.origin + self.direction * t
     }
 
-    pub fn transform(&self, transform: &Matrix4<RayTracerFloat>) -> Ray {
+    pub fn transform(&self, transform: &Transform) -> Ray {
         Ray::new(
             self.origin.transform(transform),
             self.direction.transform(transform),

@@ -1,10 +1,8 @@
-use nalgebra::Matrix4;
-
 use crate::intersection::{Intersection, Intersections};
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::transforms::{identity, Transform};
 use crate::tuple::{Point, Vector};
-use crate::util::RayTracerFloat;
 use std::default::Default;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -23,7 +21,7 @@ impl Default for Sphere {
         Self {
             center: Point::point(0., 0., 0.),
             props: ObjectProps {
-                transform: Matrix4::identity(),
+                transform: identity(),
                 material: Default::default(),
             },
         }
@@ -31,7 +29,7 @@ impl Default for Sphere {
 }
 
 impl Sphere {
-    pub fn new(transform: Matrix4<RayTracerFloat>, material: Material) -> Self {
+    pub fn new(transform: Transform, material: Material) -> Self {
         Self {
             center: Point::point(0., 0., 0.),
             props: ObjectProps {
@@ -41,7 +39,7 @@ impl Sphere {
         }
     }
 
-    pub fn transform(&self) -> &Matrix4<RayTracerFloat> {
+    pub fn transform(&self) -> &Transform {
         &self.props.transform
     }
 }

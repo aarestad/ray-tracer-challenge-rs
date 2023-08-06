@@ -1,6 +1,6 @@
 use crate::color::Color;
 
-pub mod ppm;
+mod ppm;
 
 pub use crate::canvas::ppm::Ppm;
 

@@ -4,8 +4,6 @@ use std::io::{Result, Write};
 use std::path::Path;
 use std::rc::Rc;
 
-use nalgebra::Matrix4;
-
 use crate::camera::Camera;
 use crate::canvas::Canvas;
 use crate::color::Color;
@@ -13,12 +11,12 @@ use crate::light::PointLight;
 use crate::material::MaterialBuilder;
 use crate::objects::{Object, Sphere};
 use crate::ray::Ray;
-use crate::transforms::{rotation, scaling, translation, RotationAxis};
+use crate::transforms::{rotation, scaling, translation, RotationAxis, Transform};
 use crate::tuple::{Point, Vector};
 use crate::util::RayTracerFloat;
 use crate::world::World;
 
-pub fn basic_ray_trace(filename: &Path, transform: Matrix4<RayTracerFloat>) -> Result<()> {
+pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
     let ray_origin = Point::point(0., 0., -5.);
     let wall_z = 10. as RayTracerFloat;
     let wall_size = 7. as RayTracerFloat;

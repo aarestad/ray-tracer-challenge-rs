@@ -1,7 +1,7 @@
 use cucumber::{then, World};
 use futures_lite::future;
-use nalgebra::Matrix4;
 
+use ray_tracer_challenge_rs::transforms;
 use testutils::world::RayTracerWorld;
 use testutils::RayTracerFloat;
 
@@ -24,7 +24,7 @@ fn assert_transform(world: &mut RayTracerWorld, sphere_name: String, trans_name:
     let s = world.get_sphere_or_panic(&sphere_name);
 
     let t = if trans_name == "identity_matrix" {
-        Matrix4::identity()
+        transforms::identity()
     } else {
         *world.get_transform_or_panic(&trans_name)
     };

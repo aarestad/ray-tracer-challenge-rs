@@ -8,10 +8,11 @@ use ray_tracer_challenge_rs::objects::Sphere;
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};
 use ray_tracer_challenge_rs::world::World;
+use ray_tracer_challenge_rs::transforms::Transform;
 
 use std::collections::HashMap;
 
-use nalgebra::{DMatrix, Matrix4};
+use nalgebra::DMatrix;
 
 use crate::RayTracerFloat;
 
@@ -27,7 +28,7 @@ pub struct RayTracerWorld {
     pub matrices: HashMap<String, DMatrix<RayTracerFloat>>,
     pub tuples: HashMap<String, Tuple>,
     pub rays: HashMap<String, Ray>,
-    pub transforms: HashMap<String, Matrix4<RayTracerFloat>>,
+    pub transforms: HashMap<String, Transform>,
     pub lights: HashMap<String, PointLight>,
     pub materials: HashMap<String, Material>,
     pub worlds: HashMap<String, World>,
@@ -113,7 +114,7 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing ray {}", ray_name))
     }
 
-    pub fn get_transform_or_panic(&self, matrix_name: &String) -> &Matrix4<RayTracerFloat> {
+    pub fn get_transform_or_panic(&self, matrix_name: &String) -> &Transform {
         self.transforms
             .get(matrix_name)
             .unwrap_or_else(|| panic!("missing transform {}", matrix_name))

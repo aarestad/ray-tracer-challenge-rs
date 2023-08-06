@@ -4,7 +4,6 @@ use crate::{
     RayTracerFloat,
 };
 use cucumber::{gherkin::Step, given, when};
-use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::{
     camera::Camera,
     canvas::Canvas,
@@ -178,10 +177,9 @@ fn given_a_sphere_with_default_transform_and_material(
     world: &mut RayTracerWorld,
     sphere_name: String,
 ) {
-    world.spheres.insert(
-        sphere_name,
-        Sphere::new(Matrix4::identity(), Default::default()),
-    );
+    world
+        .spheres
+        .insert(sphere_name, Sphere::new(identity(), Default::default()));
 }
 
 #[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]

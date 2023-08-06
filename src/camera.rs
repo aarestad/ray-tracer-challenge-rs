@@ -1,12 +1,14 @@
-use crate::{canvas::Canvas, ray::Ray, tuple::Point, util::RayTracerFloat, world::World};
-use nalgebra::Matrix4;
+use crate::{
+    canvas::Canvas, ray::Ray, transforms::Transform, tuple::Point, util::RayTracerFloat,
+    world::World,
+};
 
 #[derive(Debug, PartialEq)]
 pub struct Camera {
     pub hsize: usize,
     pub vsize: usize,
     pub field_of_view: RayTracerFloat,
-    pub transform: Matrix4<RayTracerFloat>,
+    pub transform: Transform,
     pub half_width: RayTracerFloat,
     pub half_height: RayTracerFloat,
     pub pixel_size: RayTracerFloat,
@@ -17,7 +19,7 @@ impl Camera {
         hsize: usize,
         vsize: usize,
         field_of_view: RayTracerFloat,
-        transform: Matrix4<RayTracerFloat>,
+        transform: Transform,
     ) -> Self {
         let half_view = (field_of_view / 2.).tan();
         let aspect = (hsize as RayTracerFloat) / (vsize as RayTracerFloat);
