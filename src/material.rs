@@ -3,6 +3,7 @@ use approx::{abs_diff_eq, AbsDiffEq};
 use crate::{
     color::{Color, BLACK},
     light::PointLight,
+    pattern::{Pattern, Solid},
     tuple::{Point, Vector},
     util::RayTracerFloat,
 };
@@ -10,7 +11,7 @@ use crate::{
 use crate::util::EPSILON;
 
 pub struct MaterialBuilder {
-    color: Color,
+    pattern: Solid,
     ambient: RayTracerFloat,
     diffuse: RayTracerFloat,
     specular: RayTracerFloat,
@@ -20,7 +21,7 @@ pub struct MaterialBuilder {
 impl Default for MaterialBuilder {
     fn default() -> Self {
         Self {
-            color: Color::new(1., 1., 1.),
+            pattern: Solid::new(Color::new(1., 1., 1.)),
             ambient: 0.1,
             diffuse: 0.9,
             specular: 0.9,
@@ -31,7 +32,7 @@ impl Default for MaterialBuilder {
 
 impl MaterialBuilder {
     pub fn color(mut self, c: Color) -> Self {
-        self.color = c;
+        self.pattern = Solid::new(c);
         self
     }
 
@@ -57,7 +58,7 @@ impl MaterialBuilder {
 
     pub fn build(&self) -> Material {
         Material {
-            color: self.color,
+            pattern: self.pattern,
             ambient: self.ambient,
             diffuse: self.diffuse,
             specular: self.specular,
@@ -68,7 +69,7 @@ impl MaterialBuilder {
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Material {
-    pub color: Color,
+    pub pattern: Solid,
     pub ambient: RayTracerFloat,
     pub diffuse: RayTracerFloat,
     pub specular: RayTracerFloat,
@@ -89,7 +90,7 @@ impl AbsDiffEq for Material {
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        abs_diff_eq!(self.color, other.color, epsilon = epsilon)
+        abs_diff_eq!(self.pattern, other.pattern, epsilon = epsilon)
             && abs_diff_eq!(self.ambient, other.ambient, epsilon = epsilon)
             && abs_diff_eq!(self.diffuse, other.diffuse, epsilon = epsilon)
             && abs_diff_eq!(self.specular, other.specular, epsilon = epsilon)
@@ -107,7 +108,7 @@ impl Material {
         in_shadow: bool,
     ) -> Color {
         // combine the surface color with the light's color/intensity
-        let effective_color = self.color * light.intensity;
+        let effective_color = self.pattern.color_at(&point) * light.intensity;
 
         // find the direction to the light source
         let lightv = (light.position - point).normalize();

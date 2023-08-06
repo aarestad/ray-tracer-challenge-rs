@@ -3,6 +3,7 @@ use cucumber::{gherkin::Step, then};
 use ray_tracer_challenge_rs::{
     color::Color,
     material::Material,
+    pattern::Solid,
     transforms::{identity, scaling, translation},
     tuple::{Point, Vector},
 };
@@ -74,7 +75,7 @@ fn assert_mat_color(
     b: RayTracerFloat,
 ) {
     let m = world.get_material_or_panic(&mat_name);
-    assert_abs_diff_eq!(m.color, Color::new(r, g, b));
+    assert_abs_diff_eq!(m.pattern, Solid::new(Color::new(r, g, b)));
 }
 
 #[then(expr = r"{word}.ambient = {float}")]
@@ -183,7 +184,7 @@ fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
     let color = world.get_color_or_panic(&c);
     let sphere = world.get_object_or_panic(&s);
 
-    assert_abs_diff_eq!(color, &sphere.material().color);
+    assert_abs_diff_eq!(Solid::new(*color), &sphere.material().pattern);
 }
 
 #[then(regex = r"^(\w+) = identity_matrix$")]

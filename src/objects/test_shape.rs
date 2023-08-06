@@ -9,7 +9,7 @@ use crate::{
 use super::{Object, ObjectProps, PrivateObject};
 
 // TODO get rid of Copy!
-#[derive(Debug, Copy, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct TestShape(ObjectProps);
 
 impl TestShape {
