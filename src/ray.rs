@@ -1,4 +1,5 @@
 use crate::tuple::{Point, Vector};
+use crate::util::RayTracerFloat;
 use nalgebra::Matrix4;
 
 #[derive(Debug, Copy, Clone, Default)]
@@ -14,11 +15,11 @@ impl Ray {
         Ray { origin, direction }
     }
 
-    pub fn position(&self, t: f32) -> Point {
+    pub fn position(&self, t: RayTracerFloat) -> Point {
         self.origin + self.direction * t
     }
 
-    pub fn transform(&self, transform: &Matrix4<f32>) -> Ray {
+    pub fn transform(&self, transform: &Matrix4<RayTracerFloat>) -> Ray {
         Ray::new(
             self.origin.transform(transform),
             self.direction.transform(transform),

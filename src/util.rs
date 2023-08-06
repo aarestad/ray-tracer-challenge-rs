@@ -1,1 +1,3 @@
-pub const EPSILON: f32 = 0.0001;
+pub type RayTracerFloat = f64;
+
+pub const EPSILON: RayTracerFloat = 0.0001;

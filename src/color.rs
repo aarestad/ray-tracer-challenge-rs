@@ -8,8 +8,8 @@ use std::{
 use approx::{abs_diff_eq, AbsDiffEq};
 use regex::Regex;
 
-use crate::tuple::Point;
 use crate::util::EPSILON;
+use crate::{tuple::Point, util::RayTracerFloat};
 
 pub const BLACK: Color = Color::new(0., 0., 0.);
 
@@ -34,7 +34,7 @@ impl Display for Color {
 }
 
 impl AbsDiffEq for Color {
-    type Epsilon = f32;
+    type Epsilon = RayTracerFloat;
 
     fn default_epsilon() -> Self::Epsilon {
         EPSILON
@@ -46,24 +46,24 @@ impl AbsDiffEq for Color {
 }
 
 impl Color {
-    pub const fn new(r: f32, g: f32, b: f32) -> Color {
+    pub const fn new(r: RayTracerFloat, g: RayTracerFloat, b: RayTracerFloat) -> Color {
         Color(Point::point(r, g, b))
     }
 
-    pub fn red(&self) -> f32 {
+    pub fn red(&self) -> RayTracerFloat {
         self.0.x()
     }
 
-    pub fn green(&self) -> f32 {
+    pub fn green(&self) -> RayTracerFloat {
         self.0.y()
     }
 
-    pub fn blue(&self) -> f32 {
+    pub fn blue(&self) -> RayTracerFloat {
         self.0.z()
     }
 
     #[allow(dead_code)]
-    pub fn alpha(&self) -> f32 {
+    pub fn alpha(&self) -> RayTracerFloat {
         self.0.w()
     }
 
@@ -90,10 +90,10 @@ impl FromStr for Color {
 
         let args_str = &args_group[1];
 
-        let args: Vec<Result<f32, ParseFloatError>> = args_str
+        let args: Vec<Result<RayTracerFloat, ParseFloatError>> = args_str
             .replace(' ', "")
             .split(',')
-            .map(f32::from_str)
+            .map(RayTracerFloat::from_str)
             .collect();
 
         if args.iter().any(|a| a.is_err()) {
@@ -145,10 +145,10 @@ impl Mul for Color {
     }
 }
 
-impl Mul<f32> for Color {
+impl Mul<RayTracerFloat> for Color {
     type Output = Self;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: RayTracerFloat) -> Self::Output {
         Color::new(self.red() * rhs, self.green() * rhs, self.blue() * rhs)
     }
 }

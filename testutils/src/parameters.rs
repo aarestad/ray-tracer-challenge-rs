@@ -1,8 +1,9 @@
 use core::convert::Infallible;
 use cucumber::Parameter;
-use std::f32::consts::PI;
+use std::f64::consts::PI;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
+use crate::RayTracerFloat;
 
 use ray_tracer_challenge_rs::transforms::RotationAxis;
 
@@ -23,8 +24,8 @@ macro_rules! impl_single_value {
 // TODO make this work some day
 #[derive(Debug, Parameter)]
 #[param(regex = r"(-?((π|√\d+)/\d+)|(\d+(\.\d*)?))")]
-pub struct MathExpr(f32);
-impl_single_value!(MathExpr, f32);
+pub struct MathExpr(RayTracerFloat);
+impl_single_value!(MathExpr, RayTracerFloat);
 
 impl FromStr for MathExpr {
     type Err = String;
@@ -35,7 +36,7 @@ impl FromStr for MathExpr {
             return Ok(MathExpr(0.));
         }
 
-        if let Ok(val) = f32::from_str(s) {
+        if let Ok(val) = RayTracerFloat::from_str(s) {
             return Ok(MathExpr(val));
         }
 
@@ -58,12 +59,12 @@ impl FromStr for MathExpr {
             "π" => PI,
             d if dividend_str.starts_with('√') => {
                 let operand = d.chars().skip(1).collect::<String>();
-                f32::from_str(&operand).unwrap().sqrt()
+                RayTracerFloat::from_str(&operand).unwrap().sqrt()
             }
             _ => return Err(format!("bad dividend: {}", dividend_str)),
         };
 
-        let divisor = f32::from_str(divisor_str).unwrap();
+        let divisor = RayTracerFloat::from_str(divisor_str).unwrap();
 
         let result = if negate {
             -dividend / divisor

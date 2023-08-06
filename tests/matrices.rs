@@ -4,6 +4,7 @@ use nalgebra::{DMatrix, Matrix4};
 use ray_tracer_challenge_rs::{tuple::Point, util::EPSILON};
 use testutils::step::get_matrix_from_step;
 use testutils::world::RayTracerWorld;
+use testutils::RayTracerFloat;
 
 use approx::assert_abs_diff_eq;
 
@@ -40,7 +41,7 @@ fn assert_entry_value(
     name: String,
     row: usize,
     col: usize,
-    expected: f32,
+    expected: RayTracerFloat,
 ) {
     let matrix = world.get_matrix_or_panic(&name);
     let num_cols = matrix.column_iter().count();
@@ -55,8 +56,8 @@ fn assert_entry_value_fraction(
     name: String,
     row: usize,
     col: usize,
-    expected_num: f32,
-    expected_denom: f32,
+    expected_num: RayTracerFloat,
+    expected_denom: RayTracerFloat,
 ) {
     let matrix = world.get_matrix_or_panic(&name);
     let num_cols = matrix.column_iter().count();
@@ -108,10 +109,10 @@ fn assert_matrix_tuple_mult(
     world: &mut RayTracerWorld,
     lhs_name: String,
     rhs_name: String,
-    x: f32,
-    y: f32,
-    z: f32,
-    w: f32,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+    w: RayTracerFloat,
 ) {
     let lhs = world.get_matrix_or_panic(&lhs_name);
     let rhs = world.get_point_or_panic(&rhs_name);
@@ -131,7 +132,7 @@ fn assert_matrix_identity_mult_rhs(
     assert_eq!(lhs_name, expected_name, "expecting the same name");
     let m = world.get_matrix_or_panic(&lhs_name);
     let matrix_dim = m.column_iter().count();
-    let identity = DMatrix::<f32>::identity(matrix_dim, matrix_dim);
+    let identity = DMatrix::<RayTracerFloat>::identity(matrix_dim, matrix_dim);
 
     assert_eq!(*m, m * identity);
 }
@@ -144,7 +145,7 @@ fn assert_tuple_identity_mult_lhs(
 ) {
     assert_eq!(rhs_name, expected_name, "expecting the same name");
     let t = world.get_point_or_panic(&rhs_name);
-    let identity = Matrix4::<f32>::identity();
+    let identity = Matrix4::<RayTracerFloat>::identity();
 
     assert_eq!(*t, t.transform(&identity));
 }
@@ -163,7 +164,7 @@ fn assert_transpose(
 }
 
 #[then(expr = r"determinant\({word}\) = {float}")]
-fn assert_determinant(world: &mut RayTracerWorld, matrix_name: String, expected: f32) {
+fn assert_determinant(world: &mut RayTracerWorld, matrix_name: String, expected: RayTracerFloat) {
     let m = world.get_matrix_or_panic(&matrix_name);
 
     // bit looser of an epsilon here

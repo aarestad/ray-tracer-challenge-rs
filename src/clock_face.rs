@@ -4,7 +4,7 @@ use crate::{
     transforms::{rotation, translation, RotationAxis},
     tuple::Point,
 };
-use std::f32::consts::TAU;
+use std::f64::consts::TAU;
 use std::fs::File;
 use std::io::{Result, Write};
 use std::path::Path;

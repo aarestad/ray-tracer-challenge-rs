@@ -1,5 +1,7 @@
 use nalgebra::Matrix4;
 
+use crate::util::RayTracerFloat;
+
 #[derive(Debug, Copy, Clone)]
 pub enum RotationAxis {
     X,
@@ -9,11 +11,11 @@ pub enum RotationAxis {
 
 // TODO fluent api?
 nofmt::pls! {
-    pub fn identity() -> Matrix4<f32> {
+    pub fn identity() -> Matrix4<RayTracerFloat> {
         Matrix4::identity()
     }
 
-    pub fn translation(x: f32, y: f32, z: f32) -> Matrix4<f32> {
+    pub fn translation(x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) -> Matrix4<RayTracerFloat> {
         // remember, column-major!
         Matrix4::from_vec(vec![
             1., 0., 0., 0.,
@@ -23,7 +25,7 @@ nofmt::pls! {
         ])
     }
 
-    pub fn scaling(x: f32, y: f32, z: f32) -> Matrix4<f32> {
+    pub fn scaling(x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) -> Matrix4<RayTracerFloat> {
         Matrix4::from_vec(vec![
             x,  0., 0., 0.,
             0., y,  0., 0.,
@@ -32,7 +34,7 @@ nofmt::pls! {
         ])
     }
 
-    pub fn rotation(axis: RotationAxis, r: f32) -> Matrix4<f32> {
+    pub fn rotation(axis: RotationAxis, r: RayTracerFloat) -> Matrix4<RayTracerFloat> {
         match axis {
             RotationAxis::X => Matrix4::from_vec(vec![
                 1., 0.,       0.,      0.,
@@ -55,7 +57,7 @@ nofmt::pls! {
         }
     }
 
-    pub fn shearing(xy: f32, xz: f32, yx: f32, yz: f32, zx: f32, zy: f32) -> Matrix4<f32> {
+    pub fn shearing(xy: RayTracerFloat, xz: RayTracerFloat, yx: RayTracerFloat, yz: RayTracerFloat, zx: RayTracerFloat, zy: RayTracerFloat) -> Matrix4<RayTracerFloat> {
         Matrix4::from_vec(vec![
             1., yx, zx, 0.,
             xy, 1., zy, 0.,

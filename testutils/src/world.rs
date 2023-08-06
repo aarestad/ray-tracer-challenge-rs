@@ -8,10 +8,13 @@ use ray_tracer_challenge_rs::ppm::Ppm;
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::world::World;
 use ray_tracer_challenge_rs::camera::Camera;
+use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};
+
 use std::collections::HashMap;
 
 use nalgebra::{DMatrix, Matrix4};
-use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};
+
+use crate::RayTracerFloat;
 
 #[derive(Debug, Default, cucumber::World)]
 pub struct RayTracerWorld {
@@ -22,10 +25,10 @@ pub struct RayTracerWorld {
     pub intersections: HashMap<String, Intersection>,
     // lol
     pub intersectionses: HashMap<String, Intersections>,
-    pub matrices: HashMap<String, DMatrix<f32>>,
+    pub matrices: HashMap<String, DMatrix<RayTracerFloat>>,
     pub tuples: HashMap<String, Tuple>,
     pub rays: HashMap<String, Ray>,
-    pub transforms: HashMap<String, Matrix4<f32>>,
+    pub transforms: HashMap<String, Matrix4<RayTracerFloat>>,
     pub lights: HashMap<String, PointLight>,
     pub materials: HashMap<String, Material>,
     pub worlds: HashMap<String, World>,
@@ -81,7 +84,7 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing intersections {}", ints_name))
     }
 
-    pub fn get_matrix_or_panic(&self, matrix_name: &String) -> &DMatrix<f32> {
+    pub fn get_matrix_or_panic(&self, matrix_name: &String) -> &DMatrix<RayTracerFloat> {
         self.matrices
             .get(matrix_name)
             .unwrap_or_else(|| panic!("missing array {}", matrix_name))
@@ -111,7 +114,7 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing ray {}", ray_name))
     }
 
-    pub fn get_transform_or_panic(&self, matrix_name: &String) -> &Matrix4<f32> {
+    pub fn get_transform_or_panic(&self, matrix_name: &String) -> &Matrix4<RayTracerFloat> {
         self.transforms
             .get(matrix_name)
             .unwrap_or_else(|| panic!("missing transform {}", matrix_name))

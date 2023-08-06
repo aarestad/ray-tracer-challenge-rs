@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::transforms::translation;
+use crate::util::RayTracerFloat;
 
 use approx::{abs_diff_eq, AbsDiffEq};
 use nalgebra::{Matrix4, Vector3, Vector4};
@@ -14,7 +15,7 @@ use regex::Regex;
 use crate::util::EPSILON;
 
 #[derive(Debug, Default, PartialEq, Copy, Clone)]
-pub struct Tuple(Vector4<f32>);
+pub struct Tuple(Vector4<RayTracerFloat>);
 
 pub type Point = Tuple;
 pub type Vector = Tuple;
@@ -62,18 +63,18 @@ impl Sub for Tuple {
     }
 }
 
-impl Mul<f32> for Tuple {
+impl Mul<RayTracerFloat> for Tuple {
     type Output = Self;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: RayTracerFloat) -> Self::Output {
         Tuple(self.0 * rhs)
     }
 }
 
-impl Div<f32> for Tuple {
+impl Div<RayTracerFloat> for Tuple {
     type Output = Self;
 
-    fn div(self, rhs: f32) -> Self::Output {
+    fn div(self, rhs: RayTracerFloat) -> Self::Output {
         Tuple(self.0 / rhs)
     }
 }
@@ -91,10 +92,10 @@ impl FromStr for Tuple {
 
         let args_str = &args_group[1];
 
-        let args: Vec<Result<f32, ParseFloatError>> = args_str
+        let args: Vec<Result<RayTracerFloat, ParseFloatError>> = args_str
             .replace(' ', "")
             .split(',')
-            .map(f32::from_str)
+            .map(RayTracerFloat::from_str)
             .collect();
 
         if args.iter().any(|a| a.is_err()) {
@@ -121,7 +122,7 @@ impl FromStr for Tuple {
 }
 
 impl AbsDiffEq for Tuple {
-    type Epsilon = f32;
+    type Epsilon = RayTracerFloat;
 
     fn default_epsilon() -> Self::Epsilon {
         EPSILON
@@ -133,11 +134,11 @@ impl AbsDiffEq for Tuple {
 }
 
 impl Point {
-    pub const fn point(x: f32, y: f32, z: f32) -> Tuple {
+    pub const fn point(x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) -> Tuple {
         Tuple::new(x, y, z, 1.0)
     }
 
-    pub fn view_transform(&self, to: &Tuple, up: &Tuple) -> Matrix4<f32> {
+    pub fn view_transform(&self, to: &Tuple, up: &Tuple) -> Matrix4<RayTracerFloat> {
         let forward = (*to - *self).normalize();
         let upn = up.normalize();
         let left = forward.cross(&upn);
@@ -157,7 +158,7 @@ impl Point {
 }
 
 impl Vector {
-    pub const fn vector(x: f32, y: f32, z: f32) -> Tuple {
+    pub const fn vector(x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) -> Tuple {
         Tuple::new(x, y, z, 0.0)
     }
 
@@ -172,23 +173,23 @@ impl Vector {
 }
 
 impl Tuple {
-    const fn new(x: f32, y: f32, z: f32, w: f32) -> Tuple {
+    const fn new(x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat, w: RayTracerFloat) -> Tuple {
         Tuple(Vector4::new(x, y, z, w))
     }
 
-    pub fn x(&self) -> f32 {
+    pub fn x(&self) -> RayTracerFloat {
         self.0.x
     }
 
-    pub fn y(&self) -> f32 {
+    pub fn y(&self) -> RayTracerFloat {
         self.0.y
     }
 
-    pub fn z(&self) -> f32 {
+    pub fn z(&self) -> RayTracerFloat {
         self.0.z
     }
 
-    pub fn w(&self) -> f32 {
+    pub fn w(&self) -> RayTracerFloat {
         self.0.w
     }
 
@@ -200,7 +201,7 @@ impl Tuple {
         self.0.w == 0.0
     }
 
-    pub fn magnitude(&self) -> f32 {
+    pub fn magnitude(&self) -> RayTracerFloat {
         self.0.magnitude()
     }
 
@@ -208,11 +209,11 @@ impl Tuple {
         Tuple(self.0.normalize())
     }
 
-    pub fn dot(&self, rhs: &Tuple) -> f32 {
+    pub fn dot(&self, rhs: &Tuple) -> RayTracerFloat {
         self.0.dot(&rhs.0)
     }
 
-    pub fn transform(&self, transform_matrix: &Matrix4<f32>) -> Tuple {
+    pub fn transform(&self, transform_matrix: &Matrix4<RayTracerFloat>) -> Tuple {
         let original_w = self.0.w;
         let mut t = Tuple(transform_matrix * self.0);
         t.0.w = original_w; // preserve the point/vectorness

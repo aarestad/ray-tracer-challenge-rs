@@ -4,6 +4,7 @@ use crate::intersection::{Intersection, Intersections};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::tuple::{Point, Vector};
+use crate::util::RayTracerFloat;
 use std::default::Default;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -23,7 +24,7 @@ pub trait Object: Debug {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Sphere {
     center: Point,
-    transform: Matrix4<f32>,
+    transform: Matrix4<RayTracerFloat>,
     material: Material,
 }
 
@@ -38,7 +39,7 @@ impl Default for Sphere {
 }
 
 impl Sphere {
-    pub fn new(transform: Matrix4<f32>, material: Material) -> Self {
+    pub fn new(transform: Matrix4<RayTracerFloat>, material: Material) -> Self {
         Self {
             center: Point::point(0., 0., 0.),
             transform,
@@ -46,7 +47,7 @@ impl Sphere {
         }
     }
 
-    pub fn transform(&self) -> &Matrix4<f32> {
+    pub fn transform(&self) -> &Matrix4<RayTracerFloat> {
         &self.transform
     }
 }

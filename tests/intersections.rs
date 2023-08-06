@@ -3,6 +3,7 @@ use ray_tracer_challenge_rs::intersection::Intersections;
 use cucumber::{given, then, when, World};
 use futures_lite::future;
 use testutils::world::RayTracerWorld;
+use testutils::RayTracerFloat;
 
 #[given(expr = r"{word} ← intersections\({word}, {word}\)")]
 #[when(expr = r"{word} ← intersections\({word}, {word}\)")]
@@ -40,7 +41,7 @@ fn given_mega_intersections(
 }
 
 #[then(regex = r"^(\w+)\.t = (\d+\.?\d+)")]
-fn assert_t(world: &mut RayTracerWorld, int_name: String, expected_t: f32) {
+fn assert_t(world: &mut RayTracerWorld, int_name: String, expected_t: RayTracerFloat) {
     let i = world.get_optional_int(&int_name).unwrap();
 
     assert_eq!(i.t, expected_t);

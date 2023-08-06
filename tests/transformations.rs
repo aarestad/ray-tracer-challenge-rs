@@ -5,6 +5,7 @@ use ray_tracer_challenge_rs::tuple::Tuple;
 use testutils::parameters::Axis;
 use testutils::parameters::SingleValue;
 use testutils::world::RayTracerWorld;
+use testutils::RayTracerFloat;
 
 use ray_tracer_challenge_rs::transforms::*;
 
@@ -13,12 +14,12 @@ use ray_tracer_challenge_rs::transforms::*;
 fn given_a_shearing_matrix(
     world: &mut RayTracerWorld,
     matrix_name: String,
-    xy: f32,
-    xz: f32,
-    yx: f32,
-    yz: f32,
-    zx: f32,
-    zy: f32,
+    xy: RayTracerFloat,
+    xz: RayTracerFloat,
+    yx: RayTracerFloat,
+    yz: RayTracerFloat,
+    zx: RayTracerFloat,
+    zy: RayTracerFloat,
 ) {
     world
         .transforms
@@ -35,7 +36,7 @@ fn given_an_inverse(world: &mut RayTracerWorld, inverted_matrix_name: String, ma
 }
 
 #[given(expr = r"{word} ← rotation_{axis}\({float}\)")]
-fn given_a_rotation(world: &mut RayTracerWorld, matrix_name: String, axis: Axis, r: f32) {
+fn given_a_rotation(world: &mut RayTracerWorld, matrix_name: String, axis: Axis, r: RayTracerFloat) {
     let matrix = rotation(axis.val(), r);
     world.transforms.insert(matrix_name, matrix);
 }
@@ -72,9 +73,9 @@ fn assert_point_transform_specified(
     world: &mut RayTracerWorld,
     matrix_name: String,
     point_name: String,
-    x: f32,
-    y: f32,
-    z: f32,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
 ) {
     let lhs = world.get_transform_or_panic(&matrix_name);
     let rhs = world.get_point_or_panic(&point_name);
@@ -86,7 +87,7 @@ fn assert_point_transform_specified(
 }
 
 #[then(expr = r"{word} = point\({float}, {float}, {float}\)")]
-fn assert_point_value(world: &mut RayTracerWorld, point_name: String, x: f32, y: f32, z: f32) {
+fn assert_point_value(world: &mut RayTracerWorld, point_name: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
     let expected = Tuple::point(x, y, z);
     let actual = world.get_point_or_panic(&point_name);
 
@@ -115,9 +116,9 @@ fn assert_vector_transform_specified(
     world: &mut RayTracerWorld,
     matrix_name: String,
     vector_name: String,
-    x: f32,
-    y: f32,
-    z: f32,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
 ) {
     let lhs = world.get_transform_or_panic(&matrix_name);
     let rhs = world.get_point_or_panic(&vector_name);

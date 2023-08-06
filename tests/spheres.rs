@@ -3,13 +3,14 @@ use futures_lite::future;
 use nalgebra::Matrix4;
 
 use testutils::world::RayTracerWorld;
+use testutils::RayTracerFloat;
 
 #[then(expr = r"{word}[{int}] = {float}")]
 fn assert_nth_intersection(
     world: &mut RayTracerWorld,
     int_name: String,
     nth: usize,
-    expected: f32,
+    expected: RayTracerFloat,
 ) {
     let ints = world.get_ints_or_panic(&int_name);
 

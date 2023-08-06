@@ -1,21 +1,26 @@
-use crate::{canvas::Canvas, ray::Ray, transforms::identity, tuple::Point, world::World};
+use crate::{canvas::Canvas, ray::Ray, tuple::Point, util::RayTracerFloat, world::World};
 use nalgebra::Matrix4;
 
 #[derive(Debug, PartialEq)]
 pub struct Camera {
     pub hsize: usize,
     pub vsize: usize,
-    pub field_of_view: f32,
-    pub transform: Matrix4<f32>,
-    pub half_width: f32,
-    pub half_height: f32,
-    pub pixel_size: f32,
+    pub field_of_view: RayTracerFloat,
+    pub transform: Matrix4<RayTracerFloat>,
+    pub half_width: RayTracerFloat,
+    pub half_height: RayTracerFloat,
+    pub pixel_size: RayTracerFloat,
 }
 
 impl Camera {
-    pub fn new(hsize: usize, vsize: usize, field_of_view: f32, transform: Matrix4<f32>) -> Self {
+    pub fn new(
+        hsize: usize,
+        vsize: usize,
+        field_of_view: RayTracerFloat,
+        transform: Matrix4<RayTracerFloat>,
+    ) -> Self {
         let half_view = (field_of_view / 2.).tan();
-        let aspect = (hsize as f32) / (vsize as f32);
+        let aspect = (hsize as RayTracerFloat) / (vsize as RayTracerFloat);
 
         let (half_width, half_height) = if aspect >= 1. {
             (half_view, half_view / aspect)
@@ -23,7 +28,7 @@ impl Camera {
             (half_view * aspect, half_view)
         };
 
-        let pixel_size = (half_width * 2.) / (hsize as f32);
+        let pixel_size = (half_width * 2.) / (hsize as RayTracerFloat);
 
         Self {
             hsize,
@@ -38,8 +43,8 @@ impl Camera {
 
     pub fn ray_for_pixel(&self, x: usize, y: usize) -> Ray {
         // # the offset from the edge of the canvas to the pixel's center
-        let xoffset = (x as f32 + 0.5) * self.pixel_size;
-        let yoffset = (y as f32 + 0.5) * self.pixel_size;
+        let xoffset = (x as RayTracerFloat + 0.5) * self.pixel_size;
+        let yoffset = (y as RayTracerFloat + 0.5) * self.pixel_size;
 
         // # the untransformed coordinates of the pixel in world space.
         // # (remember that the camera looks toward -z, so +x is to the *left*.)

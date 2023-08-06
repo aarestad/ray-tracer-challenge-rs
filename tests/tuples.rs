@@ -2,6 +2,7 @@ use ray_tracer_challenge_rs::color::Color;
 use ray_tracer_challenge_rs::tuple::Tuple;
 use ray_tracer_challenge_rs::util::EPSILON;
 use testutils::world::RayTracerWorld;
+use testutils::RayTracerFloat;
 
 use approx::{abs_diff_eq, assert_abs_diff_eq};
 use cucumber::{then, when, World};
@@ -15,7 +16,7 @@ fn assert_tuple_property(
     world: &mut RayTracerWorld,
     tuple_name: String,
     prop: TupleProperty,
-    expected: f32,
+    expected: RayTracerFloat,
 ) {
     let tuple = world.get_tuple_or_panic(&tuple_name);
 
@@ -100,7 +101,7 @@ fn assert_muldiv(
     world: &mut RayTracerWorld,
     lhs_name: String,
     op: MulDiv,
-    rhs: f32,
+    rhs: RayTracerFloat,
     expected: Tuple,
 ) {
     let lhs = world.get_tuple_or_panic(&lhs_name);
@@ -137,7 +138,7 @@ fn assert_neg(world: &mut RayTracerWorld, tuple_name: String, expected: Tuple) {
 }
 
 #[then(expr = r"magnitude\({word}\) = {float}")]
-fn assert_magnitude_with_f32(world: &mut RayTracerWorld, tuple_name: String, expected: f32) {
+fn assert_magnitude_with_float(world: &mut RayTracerWorld, tuple_name: String, expected: RayTracerFloat) {
     let tuple = world.get_tuple_or_panic(&tuple_name);
     let actual = tuple.magnitude();
 
@@ -186,7 +187,7 @@ fn assert_dot_product(
     world: &mut RayTracerWorld,
     lhs_name: String,
     rhs_name: String,
-    expected: f32,
+    expected: RayTracerFloat,
 ) {
     let lhs = world.get_tuple_or_panic(&lhs_name);
     let rhs = world.get_tuple_or_panic(&rhs_name);
@@ -228,7 +229,7 @@ fn assert_color_property(
     world: &mut RayTracerWorld,
     tuple_name: String,
     prop: ColorProperty,
-    expected: f32,
+    expected: RayTracerFloat,
 ) {
     let color = world.get_color_or_panic(&tuple_name);
 
@@ -247,9 +248,9 @@ fn assert_color_addsub(
     lhs_name: String,
     op: AddSub,
     rhs_name: String,
-    r: f32,
-    g: f32,
-    b: f32,
+    r: RayTracerFloat,
+    g: RayTracerFloat,
+    b: RayTracerFloat,
 ) {
     let lhs = world.get_color_or_panic(&lhs_name);
     let rhs = world.get_color_or_panic(&rhs_name);
@@ -267,14 +268,14 @@ fn assert_color_mul(
     world: &mut RayTracerWorld,
     lhs_name: String,
     rhs: String,
-    r: f32,
-    g: f32,
-    b: f32,
+    r: RayTracerFloat,
+    g: RayTracerFloat,
+    b: RayTracerFloat,
 ) {
     let lhs = world.get_color_or_panic(&lhs_name);
-    let rhs_f32 = f32::from_str(rhs.as_str());
+    let rhs_float = RayTracerFloat::from_str(rhs.as_str());
 
-    let actual = if let Ok(rhs) = rhs_f32 {
+    let actual = if let Ok(rhs) = rhs_float {
         *lhs * rhs
     } else {
         *lhs * *world.get_color_or_panic(&rhs)

@@ -4,16 +4,17 @@ use crate::{
     color::{Color, BLACK},
     light::PointLight,
     tuple::{Point, Vector},
+    util::RayTracerFloat,
 };
 
 use crate::util::EPSILON;
 
 pub struct MaterialBuilder {
     color: Color,
-    ambient: f32,
-    diffuse: f32,
-    specular: f32,
-    shininess: f32,
+    ambient: RayTracerFloat,
+    diffuse: RayTracerFloat,
+    specular: RayTracerFloat,
+    shininess: RayTracerFloat,
 }
 
 impl Default for MaterialBuilder {
@@ -34,22 +35,22 @@ impl MaterialBuilder {
         self
     }
 
-    pub fn ambient(mut self, a: f32) -> Self {
+    pub fn ambient(mut self, a: RayTracerFloat) -> Self {
         self.ambient = a;
         self
     }
 
-    pub fn diffuse(mut self, d: f32) -> Self {
+    pub fn diffuse(mut self, d: RayTracerFloat) -> Self {
         self.diffuse = d;
         self
     }
 
-    pub fn specular(mut self, sp: f32) -> Self {
+    pub fn specular(mut self, sp: RayTracerFloat) -> Self {
         self.specular = sp;
         self
     }
 
-    pub fn shininess(mut self, sh: f32) -> Self {
+    pub fn shininess(mut self, sh: RayTracerFloat) -> Self {
         self.shininess = sh;
         self
     }
@@ -68,10 +69,10 @@ impl MaterialBuilder {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Material {
     pub color: Color,
-    pub ambient: f32,
-    pub diffuse: f32,
-    pub specular: f32,
-    pub shininess: f32,
+    pub ambient: RayTracerFloat,
+    pub diffuse: RayTracerFloat,
+    pub specular: RayTracerFloat,
+    pub shininess: RayTracerFloat,
 }
 
 impl Default for Material {
@@ -81,7 +82,7 @@ impl Default for Material {
 }
 
 impl AbsDiffEq for Material {
-    type Epsilon = f32;
+    type Epsilon = RayTracerFloat;
 
     fn default_epsilon() -> Self::Epsilon {
         EPSILON

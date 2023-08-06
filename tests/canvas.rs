@@ -2,6 +2,7 @@ use cucumber::{gherkin::Step, then, when, World};
 use futures_lite::future;
 use ray_tracer_challenge_rs::color::Color;
 use testutils::world::RayTracerWorld;
+use testutils::RayTracerFloat;
 
 #[when(expr = r"write_pixel\({word}, {int}, {int}, {word}\)")]
 fn when_write_pixel(
@@ -23,7 +24,7 @@ fn when_canvas_to_ppm(world: &mut RayTracerWorld, ppm_name: String, canvas_name:
 }
 
 #[when(expr = r"every pixel of {word} is set to color\({float}, {float}, {float}\)")]
-fn when_every_pixel_set(world: &mut RayTracerWorld, canvas_name: String, r: f32, g: f32, b: f32) {
+fn when_every_pixel_set(world: &mut RayTracerWorld, canvas_name: String, r: RayTracerFloat, g: RayTracerFloat, b: RayTracerFloat) {
     let canvas = world.get_mut_canvas_or_panic(&canvas_name);
 
     for y in 0..canvas.height() {

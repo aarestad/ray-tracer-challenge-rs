@@ -4,6 +4,7 @@ use std::path::Path;
 use nalgebra::Matrix4;
 
 mod basic_ray_trace;
+mod camera;
 mod canvas;
 mod clock_face;
 mod color;
@@ -21,5 +22,6 @@ mod world;
 
 fn main() -> Result<()> {
     basic_ray_trace::basic_ray_trace(Path::new("original_sphere.ppm"), Matrix4::identity())?;
+    basic_ray_trace::chapter_7_scene(Path::new("ch7_world.ppm"))?;
     Ok(())
 }

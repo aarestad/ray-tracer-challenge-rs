@@ -4,6 +4,7 @@ use futures_lite::future;
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::tuple::Tuple;
 use testutils::world::RayTracerWorld;
+use testutils::RayTracerFloat;
 
 #[when(expr = r"{word} ← ray\({word}, {word}\)")]
 fn when_ray_constructed(
@@ -39,13 +40,6 @@ fn assert_origin(world: &mut RayTracerWorld, ray_name: String, origin_name: Stri
     assert_eq!(&ray.origin, origin);
 }
 
-#[then(expr = r"{word}.origin = point\({float}, {float}, {float}\)")]
-fn assert_specific_origin(world: &mut RayTracerWorld, ray_name: String, x: f32, y: f32, z: f32) {
-    let ray = world.get_ray_or_panic(&ray_name);
-
-    assert_eq!(ray.origin, Tuple::point(x, y, z));
-}
-
 #[then(expr = r"{word}.direction = {word}")]
 fn assert_direction(world: &mut RayTracerWorld, ray_name: String, direction_name: String) {
     let ray = world.get_ray_or_panic(&ray_name);
@@ -54,21 +48,14 @@ fn assert_direction(world: &mut RayTracerWorld, ray_name: String, direction_name
     assert_eq!(&ray.direction, direction);
 }
 
-#[then(regex = r"(\w+).direction = vector\((\d+), (\d+), (\d+)\)")]
-fn assert_specific_direction(world: &mut RayTracerWorld, ray_name: String, x: f32, y: f32, z: f32) {
-    let ray = world.get_ray_or_panic(&ray_name);
-
-    assert_eq!(ray.direction, Tuple::vector(x, y, z));
-}
-
 #[then(expr = r"position\({word}, {float}\) = point\({float}, {float}, {float}\)")]
 fn assert_position(
     world: &mut RayTracerWorld,
     ray_name: String,
-    t: f32,
-    px: f32,
-    py: f32,
-    pz: f32,
+    t: RayTracerFloat,
+    px: RayTracerFloat,
+    py: RayTracerFloat,
+    pz: RayTracerFloat,
 ) {
     let ray = world.get_ray_or_panic(&ray_name);
     let expected = Tuple::point(px, py, pz);

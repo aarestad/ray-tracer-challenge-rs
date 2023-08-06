@@ -1,6 +1,7 @@
 use crate::{
     parameters::{Axis, SingleValue},
     world::RayTracerWorld,
+    RayTracerFloat,
 };
 use cucumber::{gherkin::Step, given, when};
 use nalgebra::Matrix4;
@@ -33,7 +34,7 @@ fn given_a_canvas(world: &mut RayTracerWorld, name: String, width: usize, height
 }
 
 #[given(expr = r"{word} ← color\({float}, {float}, {float}\)")]
-fn given_a_color(world: &mut RayTracerWorld, name: String, r: f32, g: f32, b: f32) {
+fn given_a_color(world: &mut RayTracerWorld, name: String, r: RayTracerFloat, g: RayTracerFloat, b: RayTracerFloat) {
     world.colors.insert(name, Color::new(r, g, b));
 }
 
@@ -49,12 +50,12 @@ fn given_default_material(world: &mut RayTracerWorld, name: String) {
 fn given_a_ray(
     world: &mut RayTracerWorld,
     ray_name: String,
-    ox: f32,
-    oy: f32,
-    oz: f32,
-    dx: f32,
-    dy: f32,
-    dz: f32,
+    ox: RayTracerFloat,
+    oy: RayTracerFloat,
+    oz: RayTracerFloat,
+    dx: RayTracerFloat,
+    dy: RayTracerFloat,
+    dz: RayTracerFloat,
 ) {
     world.rays.insert(
         ray_name,
@@ -67,7 +68,7 @@ fn given_a_ray(
 fn when_intersection_created(
     world: &mut RayTracerWorld,
     int_name: String,
-    t: f32,
+    t: RayTracerFloat,
     object_name: String,
 ) {
     let o = world.get_sphere_or_panic(&object_name);
@@ -81,15 +82,15 @@ fn given_a_default_sphere(world: &mut RayTracerWorld, sphere_name: String) {
     world.spheres.insert(sphere_name, Sphere::default());
 }
 
-fn parse_three_args(s: &str) -> (f32, f32, f32) {
+fn parse_three_args(s: &str) -> (RayTracerFloat, RayTracerFloat, RayTracerFloat) {
     let three_args_re = Regex::new(r"\((.+), (.+), (.+)\)").unwrap();
 
-    let args: Vec<f32> = three_args_re
+    let args: Vec<RayTracerFloat> = three_args_re
         .captures(s)
         .unwrap()
         .iter()
         .skip(1)
-        .map(|c| f32::from_str(c.unwrap().as_str()).unwrap())
+        .map(|c| RayTracerFloat::from_str(c.unwrap().as_str()).unwrap())
         .collect();
 
     (args[0], args[1], args[2])
@@ -132,11 +133,11 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
                         }
                         "diffuse" => {
                             material_builder =
-                                material_builder.diffuse(f32::from_str(val).unwrap());
+                                material_builder.diffuse(RayTracerFloat::from_str(val).unwrap());
                         }
                         "specular" => {
                             material_builder =
-                                material_builder.specular(f32::from_str(val).unwrap());
+                                material_builder.specular(RayTracerFloat::from_str(val).unwrap());
                         }
                         _ => panic!("bad mat prop: {}", mat_prop_name),
                     }
@@ -178,12 +179,12 @@ fn given_a_sphere_with_default_transform_and_material(
 }
 
 #[given(expr = r"{word} ← translation\({float}, {float}, {float}\)")]
-fn given_a_translation(world: &mut RayTracerWorld, trans_name: String, x: f32, y: f32, z: f32) {
+fn given_a_translation(world: &mut RayTracerWorld, trans_name: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
     world.transforms.insert(trans_name, translation(x, y, z));
 }
 
 #[given(expr = r"{word} ← scaling\({float}, {float}, {float}\)")]
-fn given_a_scaling(world: &mut RayTracerWorld, trans_name: String, x: f32, y: f32, z: f32) {
+fn given_a_scaling(world: &mut RayTracerWorld, trans_name: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
     world.transforms.insert(trans_name, scaling(x, y, z));
 }
 
@@ -191,11 +192,11 @@ fn given_a_scaling(world: &mut RayTracerWorld, trans_name: String, x: f32, y: f3
 fn given_rotation_scaling(
     world: &mut RayTracerWorld,
     trans_name: String,
-    sx: f32,
-    sy: f32,
-    sz: f32,
+    sx: RayTracerFloat,
+    sy: RayTracerFloat,
+    sz: RayTracerFloat,
     axis: Axis,
-    rot: f32,
+    rot: RayTracerFloat,
 ) {
     let s = scaling(sx, sy, sz);
     let r = rotation(axis.val(), rot);
@@ -207,10 +208,10 @@ fn given_rotation_translation(
     world: &mut RayTracerWorld,
     trans_name: String,
     axis: Axis,
-    rot: f32,
-    tx: f32,
-    ty: f32,
-    tz: f32,
+    rot: RayTracerFloat,
+    tx: RayTracerFloat,
+    ty: RayTracerFloat,
+    tz: RayTracerFloat,
 ) {
     let t = translation(tx, ty, tz);
     let r = rotation(axis.val(), rot);
@@ -224,12 +225,12 @@ fn given_rotation_translation(
 fn given_point_light(
     world: &mut RayTracerWorld,
     light: String,
-    x: f32,
-    y: f32,
-    z: f32,
-    r: f32,
-    g: f32,
-    b: f32,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+    r: RayTracerFloat,
+    g: RayTracerFloat,
+    b: RayTracerFloat,
 ) {
     let l = PointLight::new(Tuple::point(x, y, z), Color::new(r, g, b));
 
@@ -259,7 +260,7 @@ fn given_nth_shape_in_world(world: &mut RayTracerWorld, name: String, nth: Strin
 }
 
 #[given(expr = r"{word}.material.ambient ← {float}")]
-fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: f32) {
+fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayTracerFloat) {
     let sphere = world.get_mut_sphere_or_panic(&s);
     sphere.material_mut().ambient = ambient;
 }
@@ -280,7 +281,7 @@ fn given_a_camera_identity(
     c: String,
     hsize: usize,
     vsize: usize,
-    fov: f32,
+    fov: RayTracerFloat,
 ) {
     world
         .cameras
@@ -294,7 +295,7 @@ fn given_a_camera_transform(
     c: String,
     hsize: usize,
     vsize: usize,
-    fov: f32,
+    fov: RayTracerFloat,
     t: String,
 ) {
     let transform = world.get_transform_or_panic(&t);
@@ -330,9 +331,9 @@ fn when_sphere_normal_at(
     world: &mut RayTracerWorld,
     normal_name: String,
     sphere_name: String,
-    x: f32,
-    y: f32,
-    z: f32,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
 ) {
     let s = world.get_sphere_or_panic(&sphere_name);
     let p = Tuple::point(x, y, z);

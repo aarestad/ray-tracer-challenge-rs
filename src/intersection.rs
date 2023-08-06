@@ -2,6 +2,7 @@ use crate::{
     objects::Object,
     ray::Ray,
     tuple::{Point, Vector},
+    util::RayTracerFloat,
 };
 use std::{fmt::Debug, rc::Rc};
 
@@ -28,7 +29,7 @@ impl Precompute {
 
 #[derive(Debug, Clone)]
 pub struct Intersection {
-    pub t: f32,
+    pub t: RayTracerFloat,
     pub object: Rc<dyn Object>,
 }
 
@@ -45,7 +46,7 @@ impl PartialOrd for Intersection {
 }
 
 impl Intersection {
-    pub fn new(t: f32, object: Rc<dyn Object>) -> Self {
+    pub fn new(t: RayTracerFloat, object: Rc<dyn Object>) -> Self {
         Self { t, object }
     }
 
