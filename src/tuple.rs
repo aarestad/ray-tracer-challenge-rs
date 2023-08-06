@@ -169,10 +169,6 @@ impl Vector {
 
         Tuple::vector(prod[0], prod[1], prod[2])
     }
-
-    pub fn normalize(self) -> Tuple {
-        Tuple(self.0.normalize())
-    }
 }
 
 impl Tuple {
@@ -206,6 +202,10 @@ impl Tuple {
 
     pub fn magnitude(&self) -> f32 {
         self.0.magnitude()
+    }
+
+    pub fn normalize(self) -> Tuple {
+        Tuple(self.0.normalize())
     }
 
     pub fn dot(&self, rhs: &Tuple) -> f32 {

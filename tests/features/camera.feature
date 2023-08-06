@@ -28,9 +28,9 @@ Feature: Camera
     And r.direction = vector(0.66519, 0.33259, -0.66851)
 
   Scenario: Constructing a ray when the camera is transformed
-    Given c ← camera(201, 101, 1.570796)
-    When c.transform ← rotation_y(π/4) * translation(0, -2, 5)
-    And r ← ray_for_pixel(c, 100, 50)
+    Given t ← rotation_y(0.78539) * translation(0, -2, 5)
+    And c ← camera(201, 101, 1.570796, t)
+    When r ← ray_for_pixel(c, 100, 50)
     Then r.origin = point(0, 2, -5)
     And r.direction = vector(0.7071067811865476, 0, -0.7071067811865476)
 

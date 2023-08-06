@@ -1,7 +1,7 @@
 use crate::tuple::{Point, Vector};
 use nalgebra::Matrix4;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Ray {
     pub origin: Point,
     pub direction: Vector,

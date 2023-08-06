@@ -1,4 +1,4 @@
-use crate::transforms::identity;
+use crate::{ray::Ray, transforms::identity, tuple::Point};
 use nalgebra::Matrix4;
 
 #[derive(Debug, PartialEq)]
@@ -13,7 +13,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(hsize: usize, vsize: usize, field_of_view: f32) -> Self {
+    pub fn new(hsize: usize, vsize: usize, field_of_view: f32, transform: Matrix4<f32>) -> Self {
         let half_view = (field_of_view / 2.).tan();
         let aspect = (hsize as f32) / (vsize as f32);
 
@@ -29,10 +29,34 @@ impl Camera {
             hsize,
             vsize,
             field_of_view,
-            transform: identity(),
+            transform,
             half_width,
             half_height,
             pixel_size,
         }
+    }
+
+    pub fn ray_for_pixel(&self, x: usize, y: usize) -> Ray {
+        // # the offset from the edge of the canvas to the pixel's center
+        let xoffset = (x as f32 + 0.5) * self.pixel_size;
+        let yoffset = (y as f32 + 0.5) * self.pixel_size;
+
+        // # the untransformed coordinates of the pixel in world space.
+        // # (remember that the camera looks toward -z, so +x is to the *left*.)
+        let world_x = self.half_width - xoffset;
+        let world_y = self.half_height - yoffset;
+
+        // # using the camera matrix, transform the canvas point and the origin,
+        // # and then compute the ray's direction vector.
+        // # (remember that the canvas is at z=-1)
+        let xform_inv = &self
+            .transform
+            .try_inverse()
+            .expect("cannot invert camera transform");
+
+        let pixel = Point::point(world_x, world_y, -1.).transform(xform_inv);
+        let origin = Point::point(0., 0., 0.).transform(xform_inv);
+        let direction = (pixel - origin).normalize();
+        Ray::new(origin, direction)
     }
 }

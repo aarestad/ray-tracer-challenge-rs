@@ -1,10 +1,8 @@
 use crate::{
     parameters::{Axis, SingleValue},
-    step::get_4x4_matrix_from_step,
     world::RayTracerWorld,
-    EPSILON,
 };
-use cucumber::{gherkin::Step, given, then, when};
+use cucumber::{gherkin::Step, given, when};
 use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::{
     camera::Camera,
@@ -23,8 +21,6 @@ use ray_tracer_challenge_rs::{
 use std::{rc::Rc, str::FromStr};
 
 use regex::Regex;
-
-use approx::assert_abs_diff_eq;
 
 #[given(regex = r"^(\w+)\s*←\s*((tuple|point|vector)\(.+)$")]
 fn given_a_tuple(world: &mut RayTracerWorld, tuple_name: String, tuple: Tuple) {
@@ -206,6 +202,21 @@ fn given_rotation_scaling(
     world.transforms.insert(trans_name, s * r);
 }
 
+#[given(expr = r"{word} ← rotation_{axis}\({float}\) * translation\({float}, {float}, {float}\)")]
+fn given_rotation_translation(
+    world: &mut RayTracerWorld,
+    trans_name: String,
+    axis: Axis,
+    rot: f32,
+    tx: f32,
+    ty: f32,
+    tz: f32,
+) {
+    let t = translation(tx, ty, tz);
+    let r = rotation(axis.val(), rot);
+    world.transforms.insert(trans_name, r * t);
+}
+
 #[given(
     expr = r"{word} ← point_light\(point\({float}, {float}, {float}\), color\({float}, {float}, {float}\)\)"
 )]
@@ -264,8 +275,33 @@ fn given_world_with_objects(world: &mut RayTracerWorld, w: String, s1: String, s
 }
 
 #[given(expr = r"{word} ← camera\({int}, {int}, {float}\)")]
-fn given_a_camera(world: &mut RayTracerWorld, c: String, hsize: usize, vsize: usize, fov: f32) {
-    world.cameras.insert(c, Camera::new(hsize, vsize, fov));
+fn given_a_camera_identity(
+    world: &mut RayTracerWorld,
+    c: String,
+    hsize: usize,
+    vsize: usize,
+    fov: f32,
+) {
+    world
+        .cameras
+        .insert(c, Camera::new(hsize, vsize, fov, identity()));
+}
+
+// c ← camera(201, 101, 1.570796, t)
+#[given(expr = r"{word} ← camera\({int}, {int}, {float}, {word}\)")]
+fn given_a_camera_transform(
+    world: &mut RayTracerWorld,
+    c: String,
+    hsize: usize,
+    vsize: usize,
+    fov: f32,
+    t: String,
+) {
+    let transform = world.get_transform_or_panic(&t);
+
+    world
+        .cameras
+        .insert(c, Camera::new(hsize, vsize, fov, *transform));
 }
 
 #[given(expr = r"{word} ← intersect\({word}, {word}\)")]
@@ -281,6 +317,12 @@ fn when_ray_intersects_sphere(
     world
         .intersectionses
         .insert(int_name, sphere.intersections(ray));
+}
+
+#[when(expr = r"{word} ← ray_for_pixel\({word}, {int}, {int}\)")]
+fn when_ray_for_pixel(world: &mut RayTracerWorld, r: String, c: String, x: usize, y: usize) {
+    let camera = world.get_camera_or_panic(&c);
+    world.rays.insert(r, camera.ray_for_pixel(x, y));
 }
 
 #[when(expr = r"{word} ← normal_at\({word}, point\({float}, {float}, {float}\)\)")]
@@ -414,216 +456,4 @@ fn when_view_transform(
     world
         .transforms
         .insert(transform_name, from.view_transform(to, up));
-}
-
-#[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
-fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: f32, y: f32, z: f32) {
-    let actual = world.get_vector_or_panic(&vector_name);
-    let expected = Tuple::vector(x, y, z);
-
-    assert_abs_diff_eq!(actual, &expected);
-}
-
-#[then(expr = r"{word}.position = {word}")]
-fn assert_light_position(world: &mut RayTracerWorld, light_name: String, pos_name: String) {
-    let l = world.get_light_or_panic(&light_name);
-    let p = world.get_point_or_panic(&pos_name);
-    assert_eq!(&l.position, p);
-}
-
-#[then(expr = r"{word}.intensity = {word}")]
-fn assert_light_intensity(world: &mut RayTracerWorld, light_name: String, color_name: String) {
-    let l = world.get_light_or_panic(&light_name);
-    let c = world.get_color_or_panic(&color_name);
-    assert_eq!(&l.intensity, c);
-}
-
-#[then(expr = r"{word} = normalize\({word}\)")]
-fn assert_vector_normalized(world: &mut RayTracerWorld, lhs_name: String, rhs_name: String) {
-    let lhs = world.get_vector_or_panic(&lhs_name);
-    let rhs = world.get_vector_or_panic(&rhs_name);
-
-    assert_abs_diff_eq!(lhs, &rhs.normalize());
-}
-
-#[then(expr = r"{word} = material\(\)")]
-fn assert_default_material(world: &mut RayTracerWorld, mat_name: String) {
-    let m = world.get_material_or_panic(&mat_name);
-    assert_abs_diff_eq!(*m, Material::default());
-}
-
-#[then(regex = r"^(\w+) = color\((.+), (.+), (.+)\)")]
-fn assert_color(world: &mut RayTracerWorld, color: String, r: f32, g: f32, b: f32) {
-    let c = world.get_color_or_panic(&color);
-    assert_abs_diff_eq!(*c, Color::new(r, g, b));
-}
-
-#[then(regex = r"^(\w+).color = color\((.+), (.+), (.+)\)")]
-fn assert_mat_color(world: &mut RayTracerWorld, mat_name: String, r: f32, g: f32, b: f32) {
-    let m = world.get_material_or_panic(&mat_name);
-    assert_abs_diff_eq!(m.color, Color::new(r, g, b));
-}
-
-#[then(expr = r"{word}.ambient = {float}")]
-fn assert_mat_ambient(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
-    let m = world.get_material_or_panic(&mat_name);
-    assert_abs_diff_eq!(m.ambient, expected);
-}
-
-#[then(expr = r"{word}.diffuse = {float}")]
-fn assert_mat_diffuse(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
-    let m = world.get_material_or_panic(&mat_name);
-    assert_abs_diff_eq!(m.diffuse, expected);
-}
-
-#[then(expr = r"{word}.specular = {float}")]
-fn assert_mat_specular(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
-    let m = world.get_material_or_panic(&mat_name);
-    assert_abs_diff_eq!(m.specular, expected);
-}
-
-#[then(expr = r"{word}.shininess = {float}")]
-fn assert_mat_shininess(world: &mut RayTracerWorld, mat_name: String, expected: f32) {
-    let m = world.get_material_or_panic(&mat_name);
-    assert_abs_diff_eq!(m.shininess, expected);
-}
-
-// very specific re for this
-#[then(regex = r"^w.light = light$")]
-fn assert_world_light(world: &mut RayTracerWorld) {
-    assert_eq!(
-        &world.get_world_or_panic(&"w".into()).light_source,
-        world.get_light_or_panic(&"light".into()),
-    );
-}
-
-#[then(expr = r"{word} contains {word}")]
-fn assert_world_contains_sphere(world: &mut RayTracerWorld, w: String, s: String) {
-    let render_world = world.get_world_or_panic(&w);
-    let sphere = world.get_sphere_or_panic(&s);
-
-    assert!(render_world
-        .objects
-        .iter()
-        .any(|o| { o.as_sphere() == sphere }));
-}
-
-#[then(regex = r"^(\w+)\.count = (\d+)$")]
-fn assert_intersection_count(world: &mut RayTracerWorld, int_name: String, expected: usize) {
-    let intersects = world.get_ints_or_panic(&int_name);
-
-    assert_eq!(intersects.ints().len(), expected)
-}
-
-#[then(regex = r"^(\w+)\[(\d)\]\.t = (.+)")]
-fn assert_nth_intersection_t(
-    world: &mut RayTracerWorld,
-    int_name: String,
-    nth: usize,
-    expected: f32,
-) {
-    let ints = world.get_ints_or_panic(&int_name);
-
-    let actual = &ints.ints()[nth];
-
-    assert_eq!(actual.t, expected);
-}
-
-#[then(regex = r"^comps\.(\w+) = (.+)$")]
-fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, prop_expr: String) {
-    let pc = world.get_precomp_or_panic(&"comps".to_string());
-
-    match prop_name.as_str() {
-        "t" => {
-            let i_name = prop_expr.split('.').next().unwrap();
-            let i = world.get_optional_int(&i_name.to_string()).unwrap();
-            assert_eq!(pc.intersection.t, i.t);
-        }
-        "object" => {
-            let i_name = prop_expr.split('.').next().unwrap();
-            let i = world.get_optional_int(&i_name.to_string()).unwrap();
-            assert_eq!(pc.intersection.object.as_sphere(), i.object.as_sphere());
-        }
-        "point" => {
-            let p = Tuple::from_str(prop_expr.as_str()).unwrap();
-            assert_eq!(pc.point, p);
-        }
-        "eyev" | "normalv" => {
-            let v = Tuple::from_str(prop_expr.as_str()).unwrap();
-
-            if prop_name == "eyev" {
-                assert_eq!(pc.eyev, v);
-            } else {
-                assert_eq!(pc.normalv, v);
-            }
-        }
-        "inside" => {
-            let expected = bool::from_str(prop_expr.as_str()).unwrap();
-            assert_eq!(pc.inside, expected);
-        }
-        _ => panic!("bad prop name {}", prop_name),
-    }
-}
-
-#[then(expr = r"{word} = {word}.material.color")]
-fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
-    let color = world.get_color_or_panic(&c);
-    let sphere = world.get_sphere_or_panic(&s);
-
-    assert_abs_diff_eq!(color, &sphere.material().color);
-}
-
-#[then(regex = r"^(\w+) = identity_matrix$")]
-fn assert_transform_identity(world: &mut RayTracerWorld, t: String) {
-    let transform = world.get_transform_or_panic(&t);
-    assert_eq!(*transform, Matrix4::identity());
-}
-
-#[then(expr = r"{word} = scaling\({float}, {float}, {float}\)")]
-fn assert_transform_scaling(world: &mut RayTracerWorld, t: String, x: f32, y: f32, z: f32) {
-    let transform = world.get_transform_or_panic(&t);
-    assert_eq!(*transform, scaling(x, y, z));
-}
-
-#[then(expr = r"{word} = translation\({float}, {float}, {float}\)")]
-fn assert_transform_translation(world: &mut RayTracerWorld, t: String, x: f32, y: f32, z: f32) {
-    let transform = world.get_transform_or_panic(&t);
-    assert_eq!(*transform, translation(x, y, z));
-}
-
-#[then(regex = r"^(\w+) is the following 4x4 matrix:")]
-fn assert_transform_arbitrary(world: &mut RayTracerWorld, step: &Step, t: String) {
-    let transform = world.get_transform_or_panic(&t);
-    let expected = get_4x4_matrix_from_step(step);
-    assert_abs_diff_eq!(*transform, expected, epsilon = EPSILON);
-}
-
-#[then(regex = r"^c.hsize = (\d+)")]
-fn assert_camera_hsize(world: &mut RayTracerWorld, hsize: usize) {
-    let c = world.get_camera_or_panic(&"c".to_string());
-    assert_eq!(c.hsize, hsize);
-}
-
-#[then(regex = r"^c.vsize = (\d+)")]
-fn assert_camera_vsize(world: &mut RayTracerWorld, vsize: usize) {
-    let c = world.get_camera_or_panic(&"c".to_string());
-    assert_eq!(c.vsize, vsize);
-}
-
-#[then(regex = r"^c.field_of_view = (\d+\.\d+)")]
-fn assert_camera_fov(world: &mut RayTracerWorld, fov: f32) {
-    let c = world.get_camera_or_panic(&"c".to_string());
-    assert_eq!(c.field_of_view, fov);
-}
-
-#[then(regex = r"^c.transform = identity_matrix")]
-fn assert_camera_transform(world: &mut RayTracerWorld) {
-    let c = world.get_camera_or_panic(&"c".to_string());
-    assert_eq!(c.transform, identity());
-}
-
-#[then(regex = r"^c.pixel_size = (\d+\.\d+)")]
-fn assert_camera_pixel_size(world: &mut RayTracerWorld, pixel_size: f32) {
-    let c = world.get_camera_or_panic(&"c".to_string());
-    assert_abs_diff_eq!(c.pixel_size, pixel_size, epsilon = EPSILON);
 }
