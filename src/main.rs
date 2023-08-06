@@ -6,18 +6,15 @@ use nalgebra::Matrix4;
 mod basic_ray_trace;
 mod camera;
 mod canvas;
-mod clock_face;
 mod color;
 mod intersection;
 mod light;
 mod material;
 mod objects;
-mod ppm;
 mod ray;
 mod transforms;
 mod tuple;
 mod util;
-mod virtual_cannon;
 mod world;
 
 fn main() -> Result<()> {

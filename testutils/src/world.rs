@@ -1,14 +1,13 @@
-use ray_tracer_challenge_rs::canvas::Canvas;
+use ray_tracer_challenge_rs::camera::Camera;
+use ray_tracer_challenge_rs::canvas::{Canvas, Ppm};
 use ray_tracer_challenge_rs::color::Color;
 use ray_tracer_challenge_rs::intersection::{Intersection, Intersections, Precompute};
 use ray_tracer_challenge_rs::light::PointLight;
 use ray_tracer_challenge_rs::material::Material;
 use ray_tracer_challenge_rs::objects::Sphere;
-use ray_tracer_challenge_rs::ppm::Ppm;
 use ray_tracer_challenge_rs::ray::Ray;
-use ray_tracer_challenge_rs::world::World;
-use ray_tracer_challenge_rs::camera::Camera;
 use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};
+use ray_tracer_challenge_rs::world::World;
 
 use std::collections::HashMap;
 

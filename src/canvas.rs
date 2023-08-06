@@ -1,5 +1,8 @@
 use crate::color::Color;
-use crate::ppm::Ppm;
+
+pub mod ppm;
+
+pub use crate::canvas::ppm::Ppm;
 
 #[derive(Default, Debug)]
 pub struct Canvas {
