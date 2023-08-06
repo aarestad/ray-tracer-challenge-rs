@@ -63,6 +63,21 @@ impl World {
         Intersections::new(all_intersections)
     }
 
+    pub fn is_shadowed(&self, p: &Point) -> bool {
+        let v = self.light_source.position - *p;
+        let distance = v.magnitude();
+        let direction = v.normalize();
+        let r = Ray::new(*p, direction);
+        let intersections = self.intersects_with(&r);
+        let h = intersections.hit();
+
+        if let Some(hit) = h {
+            hit.t < distance
+        } else {
+            false
+        }
+    }
+
     pub fn shade_hit(&self, comps: &Precompute) -> Color {
         comps.intersection.object.material().lighting(
             self.light_source,

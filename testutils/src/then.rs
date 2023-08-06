@@ -1,4 +1,4 @@
-use crate::{step::get_4x4_matrix_from_step, world::RayTracerWorld, EPSILON, RayTracerFloat};
+use crate::{step::get_4x4_matrix_from_step, world::RayTracerWorld, RayTracerFloat, EPSILON};
 use cucumber::{gherkin::Step, then};
 use nalgebra::Matrix4;
 use ray_tracer_challenge_rs::{
@@ -14,7 +14,13 @@ use std::str::FromStr;
 use approx::assert_abs_diff_eq;
 
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
-fn assert_vector(world: &mut RayTracerWorld, vector_name: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
+fn assert_vector(
+    world: &mut RayTracerWorld,
+    vector_name: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
     let actual = world.get_vector_or_panic(&vector_name);
     let expected = Vector::vector(x, y, z);
 
@@ -50,13 +56,25 @@ fn assert_default_material(world: &mut RayTracerWorld, mat_name: String) {
 }
 
 #[then(regex = r"^(\w+) = color\((.+), (.+), (.+)\)")]
-fn assert_color(world: &mut RayTracerWorld, color: String, r: RayTracerFloat, g: RayTracerFloat, b: RayTracerFloat) {
+fn assert_color(
+    world: &mut RayTracerWorld,
+    color: String,
+    r: RayTracerFloat,
+    g: RayTracerFloat,
+    b: RayTracerFloat,
+) {
     let c = world.get_color_or_panic(&color);
     assert_abs_diff_eq!(*c, Color::new(r, g, b));
 }
 
 #[then(regex = r"^(\w+).color = color\((.+), (.+), (.+)\)")]
-fn assert_mat_color(world: &mut RayTracerWorld, mat_name: String, r: RayTracerFloat, g: RayTracerFloat, b: RayTracerFloat) {
+fn assert_mat_color(
+    world: &mut RayTracerWorld,
+    mat_name: String,
+    r: RayTracerFloat,
+    g: RayTracerFloat,
+    b: RayTracerFloat,
+) {
     let m = world.get_material_or_panic(&mat_name);
     assert_abs_diff_eq!(m.color, Color::new(r, g, b));
 }
@@ -177,13 +195,25 @@ fn assert_transform_identity(world: &mut RayTracerWorld, t: String) {
 }
 
 #[then(expr = r"{word} = scaling\({float}, {float}, {float}\)")]
-fn assert_transform_scaling(world: &mut RayTracerWorld, t: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
+fn assert_transform_scaling(
+    world: &mut RayTracerWorld,
+    t: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
     let transform = world.get_transform_or_panic(&t);
     assert_eq!(*transform, scaling(x, y, z));
 }
 
 #[then(expr = r"{word} = translation\({float}, {float}, {float}\)")]
-fn assert_transform_translation(world: &mut RayTracerWorld, t: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
+fn assert_transform_translation(
+    world: &mut RayTracerWorld,
+    t: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
     let transform = world.get_transform_or_panic(&t);
     assert_eq!(*transform, translation(x, y, z));
 }
@@ -226,7 +256,13 @@ fn assert_camera_pixel_size(world: &mut RayTracerWorld, pixel_size: RayTracerFlo
 }
 
 #[then(regex = r"^(\w+)\.origin = point\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)")]
-fn assert_ray_origin(world: &mut RayTracerWorld, r: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
+fn assert_ray_origin(
+    world: &mut RayTracerWorld,
+    r: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
     let ray = world.get_ray_or_panic(&r);
     assert_abs_diff_eq!(ray.origin, Point::point(x, y, z));
 }
@@ -234,12 +270,20 @@ fn assert_ray_origin(world: &mut RayTracerWorld, r: String, x: RayTracerFloat, y
 #[then(
     regex = r"^(\w+)\.direction = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)"
 )]
-fn assert_ray_direction(world: &mut RayTracerWorld, r: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
+fn assert_ray_direction(
+    world: &mut RayTracerWorld,
+    r: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
     let ray = world.get_ray_or_panic(&r);
     assert_abs_diff_eq!(ray.direction, Vector::vector(x, y, z));
 }
 
-#[then(regex = r"^pixel_at\((\w+), (\d+), (\d+)\) = color\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)")]
+#[then(
+    regex = r"^pixel_at\((\w+), (\d+), (\d+)\) = color\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)"
+)]
 fn assert_pixel_at(
     world: &mut RayTracerWorld,
     canvas_name: String,
@@ -250,5 +294,15 @@ fn assert_pixel_at(
     b: RayTracerFloat,
 ) {
     let canvas = world.get_canvas_or_panic(&canvas_name);
-    assert_abs_diff_eq!(Color::new(r,g,b), canvas.pixel_at(x, y));
+    assert_abs_diff_eq!(Color::new(r, g, b), canvas.pixel_at(x, y));
+}
+
+#[then(expr = r"is_shadowed\({word}, {word}\) is {word}")]
+fn assert_is_shadowed(world: &mut RayTracerWorld, w: String, p: String, is_shadowed: String) {
+    let rt_world = world.get_world_or_panic(&w);
+    let point = world.get_point_or_panic(&p);
+    let expected = is_shadowed == "true";
+    let actual = rt_world.is_shadowed(point);
+
+    assert!(if expected { actual } else { !actual });
 }
