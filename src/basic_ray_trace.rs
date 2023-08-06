@@ -9,9 +9,9 @@ use crate::canvas::Canvas;
 use crate::color::Color;
 use crate::light::PointLight;
 use crate::material::MaterialBuilder;
-use crate::objects::{Object, Sphere};
+use crate::objects::{Object, Plane, Sphere};
 use crate::ray::Ray;
-use crate::transforms::{rotation, scaling, translation, RotationAxis, Transform};
+use crate::transforms::{identity, rotation, scaling, translation, RotationAxis, Transform};
 use crate::tuple::{Point, Vector};
 use crate::util::RayTracerFloat;
 use crate::world::World;
@@ -67,23 +67,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
         .specular(0.)
         .build();
 
-    let floor = Sphere::new(scaling(10., 0.01, 10.), side_mat);
-
-    let left_wall = Sphere::new(
-        translation(0., 0., 5.)
-            * rotation(RotationAxis::Y, -PI / 4.)
-            * rotation(RotationAxis::X, PI / 2.)
-            * scaling(10., 0.01, 10.),
-        side_mat,
-    );
-
-    let right_wall = Sphere::new(
-        translation(0., 0., 5.)
-            * rotation(RotationAxis::Y, PI / 4.)
-            * rotation(RotationAxis::X, PI / 2.)
-            * scaling(10., 0.01, 10.),
-        side_mat,
-    );
+    let floor = Plane::new(identity(), side_mat);
 
     let middle_sphere = Sphere::new(
         translation(-0.5, 1., 0.5),
@@ -117,8 +101,6 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
     let world = World::new(
         vec![
             Rc::new(floor),
-            Rc::new(left_wall),
-            Rc::new(right_wall),
             Rc::new(middle_sphere),
             Rc::new(right_sphere),
             Rc::new(left_sphere),
