@@ -435,6 +435,21 @@ fn given_or_when_default_world(world: &mut RayTracerWorld, world_name: String) {
     world.worlds.insert(world_name, World::default_world());
 }
 
+#[given(expr = r"{word} ← world\([{}], {word}\)")]
+fn given_arbitrary_world(world: &mut RayTracerWorld, w: String, objects: String, l: String) {
+    let obj_names: Vec<_> = objects.split(",").collect();
+
+    let mut objs: Vec<Rc<dyn Object>> = vec![];
+
+    for obj in obj_names {
+        objs.push(Rc::new(*world.get_sphere_or_panic(&obj.trim().to_string())));
+    }
+
+    let light = world.get_light_or_panic(&l);
+
+    world.worlds.insert(w, World::new(objs, *light));
+}
+
 #[given(expr = r"{word} ← intersect_world\({word}, {word}\)")]
 #[when(expr = r"{word} ← intersect_world\({word}, {word}\)")]
 fn when_ray_intersects_world(world: &mut RayTracerWorld, ints: String, w: String, r: String) {

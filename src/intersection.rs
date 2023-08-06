@@ -2,7 +2,7 @@ use crate::{
     objects::Object,
     ray::Ray,
     tuple::{Point, Vector},
-    util::RayTracerFloat,
+    util::{RayTracerFloat, EPSILON},
 };
 use std::{fmt::Debug, rc::Rc};
 
@@ -13,16 +13,25 @@ pub struct Precompute {
     pub eyev: Vector,
     pub normalv: Vector,
     pub inside: bool,
+    pub over_point: Point,
 }
 
 impl Precompute {
-    pub fn new(i: Intersection, p: Point, e: Vector, n: Vector, inside: bool) -> Self {
+    pub fn new(
+        i: Intersection,
+        p: Point,
+        e: Vector,
+        n: Vector,
+        inside: bool,
+        over_point: Point,
+    ) -> Self {
         Self {
             intersection: i,
             point: p,
             eyev: e,
             normalv: n,
             inside,
+            over_point,
         }
     }
 }
@@ -55,6 +64,7 @@ impl Intersection {
         let eyev = -r.direction;
         let normalv = self.object.normal_at(point);
         let inside = normalv.dot(&eyev) < 0.;
+        let over_point = point + normalv * EPSILON;
 
         Precompute::new(
             self.clone(),
@@ -62,6 +72,7 @@ impl Intersection {
             -r.direction,
             if inside { -normalv } else { normalv },
             inside,
+            over_point,
         )
     }
 }

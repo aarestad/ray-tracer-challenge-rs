@@ -306,3 +306,15 @@ fn assert_is_shadowed(world: &mut RayTracerWorld, w: String, p: String, is_shado
 
     assert!(if expected { actual } else { !actual });
 }
+
+#[then(expr = r"{word}.over_point.z < -EPSILON\/2")]
+fn assert_over_point_small(world: &mut RayTracerWorld, c: String) {
+    let comps = world.get_precomp_or_panic(&c);
+    assert!(comps.over_point.z() < -EPSILON / 2.);
+}
+
+#[then(expr = r"{word}.point.z > {word}.over_point.z")]
+fn assert_point_z_gt_over_point(world: &mut RayTracerWorld, c: String) {
+    let comps = world.get_precomp_or_panic(&c);
+    assert!(comps.point.z() > comps.over_point.z());
+}
