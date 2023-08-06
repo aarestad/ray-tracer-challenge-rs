@@ -1,3 +1,4 @@
+pub mod camera;
 pub mod canvas;
 pub mod color;
 pub mod intersection;
@@ -11,4 +12,3 @@ pub mod tuple;
 pub mod util;
 pub mod virtual_cannon;
 pub mod world;
-pub mod camera;
