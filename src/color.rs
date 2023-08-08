@@ -12,13 +12,14 @@ use crate::util::EPSILON;
 use crate::{tuple::Point, util::RayTracerFloat};
 
 pub const BLACK: Color = Color::new(0., 0., 0.);
+pub const WHITE: Color = Color::new(1., 1., 1.);
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Color(Point);
 
 impl Default for Color {
     fn default() -> Self {
-        Self::new(0., 0., 0.)
+        BLACK
     }
 }
 

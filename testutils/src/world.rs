@@ -9,6 +9,7 @@ use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::transforms::Transform;
 use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};
 use ray_tracer_challenge_rs::world::World;
+use ray_tracer_challenge_rs::pattern::Pattern;
 
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -35,6 +36,7 @@ pub struct RayTracerWorld {
     pub worlds: HashMap<String, World>,
     pub precomps: HashMap<String, Precompute>,
     pub cameras: HashMap<String, Camera>,
+    pub patterns: HashMap<String, Rc<dyn Pattern>>
 }
 
 // TODO this seems like a job for... a macro!
@@ -149,5 +151,11 @@ impl RayTracerWorld {
         self.cameras
             .get(camera_name)
             .unwrap_or_else(|| panic!("missing camera named {}", camera_name))
+    }
+
+    pub fn get_pattern_or_panic(&self, pattern_name: &String) -> &Rc<dyn Pattern> {
+        self.patterns
+            .get(pattern_name)
+            .unwrap_or_else(|| panic!("missing pattern named {}", pattern_name))
     }
 }

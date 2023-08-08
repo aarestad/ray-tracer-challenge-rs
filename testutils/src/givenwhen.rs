@@ -16,6 +16,7 @@ use ray_tracer_challenge_rs::{
     transforms::{identity, rotation, scaling, translation, RotationAxis},
     tuple::Tuple,
     world::World,
+    pattern::Stripe,
 };
 
 use std::{rc::Rc, str::FromStr};
@@ -259,7 +260,7 @@ fn given_point_light(
     } else {
         // if so, we're setting the light on a world
         let world_name = light.split('.').next().unwrap();
-        let mut ray_world = world.get_mut_world_or_panic(&world_name.to_string());
+        let ray_world = world.get_mut_world_or_panic(&world_name.to_string());
         ray_world.light_source = l;
     }
 }
@@ -596,4 +597,11 @@ fn given_a_test_shape_named_mat(world: &mut RayTracerWorld, s: String, m: String
 #[given(expr = r"{word} ← plane\(\)")]
 fn given_default_plane(world: &mut RayTracerWorld, p: String) {
     world.objects.insert(p, Rc::new(Plane::default()));
+}
+
+#[given(expr = r"{word} ← stripe_pattern\({word}, {word}\)")]
+fn given_stripe_pattern(world: &mut RayTracerWorld, p: String, c1: String, c2: String) {
+    let even = world.get_color_or_panic(&c1);
+    let odd = world.get_color_or_panic(&c2);
+    world.patterns.insert(p, Rc::new(Stripe::new(*even, *odd)));
 }

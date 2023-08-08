@@ -1,12 +1,13 @@
 use approx::{abs_diff_eq, AbsDiffEq};
+use std::fmt::Debug;
 
 use crate::{
-    color::Color,
+    color::{Color},
     tuple::Point,
     util::{RayTracerFloat, EPSILON},
 };
 
-pub trait Pattern {
+pub trait Pattern: Debug {
     fn color_at(&self, p: &Point) -> Color;
 }
 
@@ -39,18 +40,18 @@ impl AbsDiffEq for Solid {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Stripe {
-    a: Color,
-    b: Color,
+    even: Color,
+    odd: Color,
 }
 
 impl Stripe {
-    pub fn new(a: Color, b: Color) -> Stripe {
-        Stripe { a, b }
+    pub fn new(even: Color, odd: Color) -> Self {
+        Self { even, odd }
     }
 }
 
 impl Pattern for Stripe {
     fn color_at(&self, p: &Point) -> Color {
-        todo!()
+        if p.x().floor() % 2. == 0. { self.even } else { self.odd }
     }
 }
