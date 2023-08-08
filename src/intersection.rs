@@ -78,13 +78,11 @@ impl Intersection {
 }
 
 #[derive(Debug, PartialEq, Default)]
-pub struct Intersections {
-    intersections: Vec<Intersection>,
-}
+pub struct Intersections(Vec<Intersection>);
 
 impl Intersections {
     pub fn new(intersections: Vec<Intersection>) -> Intersections {
-        Intersections { intersections }
+        Intersections(intersections)
     }
 
     pub fn empty() -> Intersections {
@@ -92,12 +90,12 @@ impl Intersections {
     }
 
     pub fn ints(&self) -> &Vec<Intersection> {
-        &self.intersections
+        &self.0
     }
 
     pub fn hit(&self) -> Option<&Intersection> {
         let mut nonnegative_t_ints: Vec<&Intersection> =
-            self.intersections.iter().filter(|i| i.t >= 0.).collect();
+            self.0.iter().filter(|i| i.t >= 0.).collect();
 
         if nonnegative_t_ints.is_empty() {
             return None;
