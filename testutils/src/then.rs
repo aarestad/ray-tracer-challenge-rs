@@ -380,3 +380,11 @@ fn assert_nth_intersection_object(
 
     assert_eq!(actual, expected);
 }
+
+#[then(expr = r"stripe_at\({word}, point\({float}, {float}, {float}\)\) = {word}")]
+fn assert_stripe_color_at_point(world: &mut RayTracerWorld, p: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat, c: String) {
+    let pattern = world.get_pattern_or_panic(&p);
+    let point = Point::point(x,y,z);
+    let color = world.get_color_or_panic(&c);
+    assert_eq!(&pattern.color_at(&point), color);
+}
