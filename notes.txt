@@ -1,0 +1,84 @@
+TIL about self: Rc<Self>! That made my life so much easier in this ray-tracer toy project I'm doing: https://github.com/aarestad/ray-tracer-challenge-rs/pull/1
+
+Although if anyone see something in there that looks :cringe: lmk
+
+I also had to throw away PartialEq because you can't use that on trait objects (at least, not out of the box?)
+
+Ben Wilson, 10:58 AM
+Is your code single-threaded only? Rc tends to cause headaches any time there's threading or async involved.
+
+Ben Wilson, 11:03 AM
+A quick skim of that code doesn't look like anything super problematic. The main thing I would do is double-check anywhere that you're using self: &Rc<Self> and self: Rc<Self> and see if you actually need the Rc in the function signature. Rc<Self> derefs to &Self, which makes your functions easier to use.
+
+Taymon Beal, 11:04 AM
+I would consider &Rc to be a code smell almost unconditionally. Shouldn't a direct reference still work?
+
+Ben Wilson, 11:05 AM
+You do still need to take self: &Rc if you want to be able to call self.clone() in the function and have it return an Rc.
+
+Otherwise it will try to call Self::clone() which may not exist and also may not be what you want.
+
+Taymon Beal, 11:06 AM
+Okay, the first place I looked wasn't doing that, so I think some of these &Rcs are unnecessary. But I guess there might be somewhere that needs to do it.
+
+I also have a vague sense that this is less idiomatic than just passing Rc by value in that case, but I don't know if that's really right.
+
+(You do fewer increments and decrements of the reference count, but you also have to chase more indirect pointers, so it's hard to say which is better for performance.)
+
+Ben Wilson, 11:09 AM
+True. Rc uses non-atomic reference counting which should be dang near instant, so cloning an Rc is likely faster than the double indirection. For Arc it might be closer.
+
+But as always it's hard to say without benchmarking and this also seems like something the compiler might optimize out in release mode.
+
+Taymon Beal, 11:10 AM
+...also if the point is to clone, then in passing by value you're just making the caller do the clone, so actually passing by value should be a strict performance win in most cases.
+
+Ben Wilson, 11:10 AM
+Oh yeah that's right.
+
+So if your function is going to clone, you should just ask for an Rc<Self>, and if it's only going to reference then it should just take &Self
+
+Ben Saunders, 11:29 AM
+&Rc is good if you might clone, in theory
+
+You, 11:56 AM
+So yeah for now it's single-threaded - I have another one of these where I have Arcs everywhere
+
+I appreciate the comments!
+
+You, 11:57 AM, Edited
+In particular I will look at the &Rc<Self> s
+
+You, 11:59 AM
+I was trying to get this done with references and lifetimes to the trait objects, but quickly hit lifetime-hell issues, and on top of that dealing with "trait object safety" (that's why I had to remove PartialEq which I would love to get back for the sake of my tests)
+
+Ben Saunders, 12:03 PM
+doing equality tests through type erasure is a bit tedious and painful in most languages, and Rust is no different here
+
+Ben Saunders, 12:05 PM
+you'll need to manually impl PartialEq for anything containing an Rc<dyn Object>, and you must add a method to Object that looks like fn partial_cmp(&self, other: &dyn Object) -> Option<Ordering> { ... }
+
+Ben Saunders, 12:06 PM
+because you don't know the dynamic type of other, implementing that will require you extend Object to support downcasting, e.g. using https://docs.rs/downcast-rs/latest/downcast_rs/
+
+Ben Saunders, 12:07 PM
+alternatively, you could ditch trait Object entirely, and instead have an enum Object { ... } which you can derive traits like PartialEq for as usual
+
+You, 12:12 PM
+neat, thank you for the pointers!
+
+Ben Saunders, 12:13 PM
+actually, correction, you can impl PartialEq for dyn Object directly, rather than having a separate impl for each type that owns one
+
+still has to be implemented by hand that one time, but then you can derive for downstream code
+
+Taymon Beal, 12:13 PM
+I'm in a meeting right now but I'd be interested to better understand why you need the conjunction of equality semantics and dynamic dispatch. It's not totally obvious to me that that's required for a raytracer.
+
+Ben Saunders, 12:14 PM
+probably easiest to still have it delegate to a method on the trait, since that method will only need to try one downcast, instead of n^2
+
+Ben Saunders, 12:14 PM, Edited
+my understanding is that they want to be able to compare compound Objects in unit tests, which seems like a reasonable ask if there's nontrivial code to construct them
+
+
