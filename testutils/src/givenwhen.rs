@@ -46,7 +46,7 @@ fn given_a_color(
 
 #[given(expr = r"{word} ← material\(\)")]
 fn given_default_material(world: &mut RayTracerWorld, name: String) {
-    world.materials.insert(name, Material::default());
+    world.materials.insert(name, Rc::new(Material::default()));
 }
 
 #[given(
@@ -80,7 +80,7 @@ fn when_intersection_created(
     let o = world.get_object_or_panic(&object_name);
     world
         .intersections
-        .insert(int_name, Intersection::new(t, Rc::clone(o)));
+        .insert(int_name, Rc::new(Intersection::new(t, Rc::clone(o))));
 }
 
 #[given(expr = r"{word} ← sphere\(\)")]
@@ -159,7 +159,7 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
 
     world.objects.insert(
         sphere_name,
-        Rc::new(Sphere::new(transform, material_builder.build())),
+        Rc::new(Sphere::new(transform, Rc::new(material_builder.build()))),
     );
 }
 
@@ -260,8 +260,8 @@ fn given_point_light(
     } else {
         // if so, we're setting the light on a world
         let world_name = light.split('.').next().unwrap();
-        let ray_world = world.get_mut_world_or_panic(&world_name.to_string());
-        ray_world.light_source = l;
+        let ray_world = world.get_world_or_panic(&world_name.to_string());
+        world.worlds.insert(world_name.to_string(), Rc::new(World::new(ray_world.objects.clone(), l)));
     }
 }
 
@@ -277,26 +277,25 @@ fn given_nth_sphere_in_world(world: &mut RayTracerWorld, name: String, nth: Stri
 
     world
         .objects
-        .insert(name, Rc::new(*ray_world.objects[n].as_sphere()));
+        .insert(name, ray_world.objects[n].clone());
 }
 
 #[given(regex = r"^(\w+)\.material\.ambient ← (.+)")]
 fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayTracerFloat) {
     let sphere = world.get_object_or_panic(&s);
-    let mut mat = *sphere.material();
+    let mut mat = Material::from(sphere.material());
     mat.ambient = ambient;
 
-    let new_sphere = Sphere::new(*sphere.as_ref().transform(), mat);
+    let new_sphere = Sphere::new(*sphere.as_ref().transform(), Rc::new(mat));
     world.objects.insert(s, Rc::new(new_sphere));
 }
 
 #[given(regex = r"^(\w+)\.ambient ← (.+)")]
 fn given_material_ambient_val(world: &mut RayTracerWorld, m: String, ambient: RayTracerFloat) {
     let material = world.get_material_or_panic(&m);
-    let mut new_mat = *material;
+    let mut new_mat = Material::from(material);
     new_mat.ambient = ambient;
-
-    world.materials.insert(m, new_mat);
+    world.materials.insert(m, Rc::new(new_mat));
 }
 
 #[given(expr = r"{word} ← default_world_with_objects\({word}, {word}\)")]
@@ -305,7 +304,7 @@ fn given_world_with_objects(world: &mut RayTracerWorld, w: String, s1: String, s
     let o2 = world.get_object_or_panic(&s2);
     world.worlds.insert(
         w,
-        World::default_world_with_objects(vec![Rc::clone(o1), Rc::clone(o2)]),
+        Rc::new(World::default_world_with_objects(vec![Rc::clone(o1), Rc::clone(o2)])),
     );
 }
 
@@ -350,7 +349,7 @@ fn when_ray_intersects_sphere(
     let ray = world.get_ray_or_panic(&ray_name);
     world
         .intersectionses
-        .insert(int_name, sphere.intersections(ray));
+        .insert(int_name, Rc::new(sphere.clone().intersections(ray)));
 }
 
 #[when(expr = r"{word} ← ray_for_pixel\({word}, {int}, {int}\)")]
@@ -400,7 +399,7 @@ fn when_light_created(
 #[when(expr = r"{word} ← {word}.material")]
 fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, sphere_name: String) {
     let s = world.get_object_or_panic(&sphere_name);
-    world.materials.insert(mat_name, *s.material());
+    world.materials.insert(mat_name, s.material().clone());
 }
 
 #[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}\)")]
@@ -448,7 +447,7 @@ fn when_lighting_material_possibly_in_shadow(
 #[given(expr = r"{word} ← default_world\(\)")]
 #[when(expr = r"{word} ← default_world\(\)")]
 fn given_or_when_default_world(world: &mut RayTracerWorld, world_name: String) {
-    world.worlds.insert(world_name, World::default_world());
+    world.worlds.insert(world_name, Rc::new(World::default_world()));
 }
 
 #[given(expr = r"{word} ← world\([{}], {word}\)")]
@@ -465,7 +464,7 @@ fn given_arbitrary_world(world: &mut RayTracerWorld, w: String, objects: String,
 
     let light = world.get_light_or_panic(&l);
 
-    world.worlds.insert(w, World::new(objs, *light));
+    world.worlds.insert(w, Rc::new(World::new(objs, *light)));
 }
 
 #[given(expr = r"{word} ← intersect_world\({word}, {word}\)")]
@@ -506,12 +505,12 @@ fn when_color_at(world: &mut RayTracerWorld, c: String, w: String, r: String) {
 #[when(expr = r"{word} ← hit\({word}\)")]
 fn when_hit_queried(world: &mut RayTracerWorld, hit_name: String, ints_name: String) {
     let i = world.get_ints_or_panic(&ints_name);
-    let maybe_hit = i.hit();
+    let maybe_hit = Rc::clone(&i).hit();
 
     if let Some(i) = maybe_hit {
         world
             .intersections
-            .insert(hit_name, Intersection::new(i.t, i.object.clone()));
+            .insert(hit_name, Rc::new(Intersection::new(i.t, i.object.clone())));
     }
 }
 
@@ -537,7 +536,7 @@ fn when_view_transform(
 fn when_rendering(world: &mut RayTracerWorld, i: String, c: String, w: String) {
     let camera = world.get_camera_or_panic(&c);
     let render_world = world.get_world_or_panic(&w);
-    world.canvases.insert(i, camera.render(render_world));
+    world.canvases.insert(i, camera.render(&render_world));
 }
 
 #[given(expr = r"{word} ← test_shape\(\)")]
@@ -556,7 +555,7 @@ fn given_a_test_shape_translation(
 ) {
     world.objects.insert(
         s,
-        Rc::new(TestShape::new(translation(x, y, z), Material::default())),
+        Rc::new(TestShape::new(translation(x, y, z), Rc::new(Material::default()))),
     );
 }
 
@@ -570,7 +569,7 @@ fn given_a_test_shape_scaling(
 ) {
     world.objects.insert(
         s,
-        Rc::new(TestShape::new(scaling(x, y, z), Material::default())),
+        Rc::new(TestShape::new(scaling(x, y, z), Rc::new(Material::default()))),
     );
 }
 
@@ -580,7 +579,7 @@ fn given_arbitrary_test_shape(world: &mut RayTracerWorld) {
         "s".to_string(),
         Rc::new(TestShape::new(
             scaling(1., 0.5, 1.) * rotation(RotationAxis::Z, 0.628318),
-            Material::default(),
+            Rc::new(Material::default()),
         )),
     );
 }
@@ -591,7 +590,7 @@ fn given_a_test_shape_named_mat(world: &mut RayTracerWorld, s: String, m: String
 
     world
         .objects
-        .insert(s, Rc::new(TestShape::new(identity(), *material)));
+        .insert(s, Rc::new(TestShape::new(identity(), material.clone())));
 }
 
 #[given(expr = r"{word} ← plane\(\)")]

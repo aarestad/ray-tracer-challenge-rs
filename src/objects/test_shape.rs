@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     intersection::Intersections,
     material::Material,
@@ -9,11 +11,11 @@ use crate::{
 use super::{Object, ObjectProps, PrivateObject};
 
 // TODO get rid of Copy!
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Default)]
 pub struct TestShape(ObjectProps);
 
 impl TestShape {
-    pub fn new(transform: Transform, material: Material) -> Self {
+    pub fn new(transform: Transform, material: Rc<Material>) -> Self {
         Self(ObjectProps {
             transform,
             material,
@@ -22,7 +24,7 @@ impl TestShape {
 }
 
 impl PrivateObject for TestShape {
-    fn local_intersect(&self, _local_ray: &Ray) -> Intersections {
+    fn local_intersect(self: Rc<Self>, _local_ray: &Ray) -> Intersections {
         Intersections::empty()
     }
 
@@ -39,7 +41,7 @@ impl Object for TestShape {
         &self.0.transform
     }
 
-    fn material(&self) -> &Material {
+    fn material(&self) -> &Rc<Material> {
         &self.0.material
     }
 }

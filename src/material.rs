@@ -1,4 +1,4 @@
-use approx::{abs_diff_eq, AbsDiffEq};
+use std::rc::Rc;
 
 use crate::{
     color::{Color, BLACK},
@@ -8,10 +8,8 @@ use crate::{
     util::RayTracerFloat,
 };
 
-use crate::util::EPSILON;
-
 pub struct MaterialBuilder {
-    pattern: Solid,
+    pattern: Rc<dyn Pattern>,
     ambient: RayTracerFloat,
     diffuse: RayTracerFloat,
     specular: RayTracerFloat,
@@ -21,7 +19,7 @@ pub struct MaterialBuilder {
 impl Default for MaterialBuilder {
     fn default() -> Self {
         Self {
-            pattern: Solid::new(Color::new(1., 1., 1.)),
+            pattern: Rc::new(Solid::new(Color::new(1., 1., 1.))),
             ambient: 0.1,
             diffuse: 0.9,
             specular: 0.9,
@@ -32,7 +30,7 @@ impl Default for MaterialBuilder {
 
 impl MaterialBuilder {
     pub fn color(mut self, c: Color) -> Self {
-        self.pattern = Solid::new(c);
+        self.pattern = Rc::new(Solid::new(c));
         self
     }
 
@@ -56,7 +54,7 @@ impl MaterialBuilder {
         self
     }
 
-    pub fn build(&self) -> Material {
+    pub fn build(self) -> Material {
         Material {
             pattern: self.pattern,
             ambient: self.ambient,
@@ -67,9 +65,9 @@ impl MaterialBuilder {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug)]
 pub struct Material {
-    pub pattern: Solid,
+    pub pattern: Rc<dyn Pattern>,
     pub ambient: RayTracerFloat,
     pub diffuse: RayTracerFloat,
     pub specular: RayTracerFloat,
@@ -82,23 +80,17 @@ impl Default for Material {
     }
 }
 
-impl AbsDiffEq for Material {
-    type Epsilon = RayTracerFloat;
-
-    fn default_epsilon() -> Self::Epsilon {
-        EPSILON
-    }
-
-    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        abs_diff_eq!(self.pattern, other.pattern, epsilon = epsilon)
-            && abs_diff_eq!(self.ambient, other.ambient, epsilon = epsilon)
-            && abs_diff_eq!(self.diffuse, other.diffuse, epsilon = epsilon)
-            && abs_diff_eq!(self.specular, other.specular, epsilon = epsilon)
-            && abs_diff_eq!(self.shininess, other.shininess, epsilon = epsilon)
-    }
-}
-
 impl Material {
+    pub fn from(other: &Rc<Material>) -> Self {
+        Self{
+            pattern: Rc::clone(&other.pattern),
+            ambient: other.ambient,
+            diffuse: other.diffuse,
+            specular: other.specular,
+            shininess: other.shininess,
+        }
+    }
+
     pub fn lighting(
         &self,
         light: PointLight,

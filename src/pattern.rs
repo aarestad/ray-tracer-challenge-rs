@@ -2,7 +2,7 @@ use approx::{abs_diff_eq, AbsDiffEq};
 use std::fmt::Debug;
 
 use crate::{
-    color::{Color},
+    color::Color,
     tuple::Point,
     util::{RayTracerFloat, EPSILON},
 };
