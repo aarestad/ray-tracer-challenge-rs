@@ -6,9 +6,9 @@ use crate::{
 };
 use std::{fmt::Debug, rc::Rc};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Precompute {
-    pub intersection: Intersection,
+    pub intersection: Rc<Intersection>,
     pub point: Point,
     pub eyev: Vector,
     pub normalv: Vector,
@@ -18,7 +18,7 @@ pub struct Precompute {
 
 impl Precompute {
     pub fn new(
-        i: Intersection,
+        i: Rc<Intersection>,
         p: Point,
         e: Vector,
         n: Vector,
@@ -36,7 +36,7 @@ impl Precompute {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Intersection {
     pub t: RayTracerFloat,
     pub object: Rc<dyn Object>,
@@ -59,7 +59,7 @@ impl Intersection {
         Self { t, object }
     }
 
-    pub fn precompute_with(&self, r: &Ray) -> Precompute {
+    pub fn precompute_with(self: &Rc<Self>, r: &Ray) -> Precompute {
         let point = r.position(self.t);
         let eyev = -r.direction;
         let normalv = self.object.normal_at(point);
@@ -78,10 +78,10 @@ impl Intersection {
 }
 
 #[derive(Debug, PartialEq, Default)]
-pub struct Intersections(Vec<Intersection>);
+pub struct Intersections(Vec<Rc<Intersection>>);
 
 impl Intersections {
-    pub fn new(intersections: Vec<Intersection>) -> Intersections {
+    pub fn new(intersections: Vec<Rc<Intersection>>) -> Intersections {
         Intersections(intersections)
     }
 
@@ -89,13 +89,13 @@ impl Intersections {
         Self::default()
     }
 
-    pub fn ints(&self) -> &Vec<Intersection> {
+    pub fn ints(&self) -> &Vec<Rc<Intersection>> {
         &self.0
     }
 
-    pub fn hit(&self) -> Option<&Intersection> {
-        let mut nonnegative_t_ints: Vec<&Intersection> =
-            self.0.iter().filter(|i| i.t >= 0.).collect();
+    pub fn hit(self: Rc<Self>) -> Option<Rc<Intersection>> {
+        let mut nonnegative_t_ints: Vec<Rc<Intersection>> =
+            self.0.iter().filter(|i| i.t >= 0.).map(|i| i.clone()).collect();
 
         if nonnegative_t_ints.is_empty() {
             return None;
@@ -103,6 +103,6 @@ impl Intersections {
 
         nonnegative_t_ints.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
 
-        Some(nonnegative_t_ints.first().unwrap())
+        Some(nonnegative_t_ints.first().unwrap().clone())
     }
 }

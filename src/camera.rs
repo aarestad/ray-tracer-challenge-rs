@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     canvas::Canvas, ray::Ray, transforms::Transform, tuple::Point, util::RayTracerFloat,
     world::World,
@@ -67,7 +69,7 @@ impl Camera {
         Ray::new(origin, direction)
     }
 
-    pub fn render(&self, world: &World) -> Canvas {
+    pub fn render(&self, world: &Rc<World>) -> Canvas {
         let mut image = Canvas::new(self.hsize, self.vsize);
 
         for y in 0..self.vsize {

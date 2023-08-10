@@ -10,7 +10,7 @@ use std::rc::Rc;
 use super::{Object, ObjectProps, PrivateObject};
 
 // TODO get rid of Copy!
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug)]
 pub struct Sphere(ObjectProps);
 
 impl Default for Sphere {
@@ -23,7 +23,7 @@ impl Default for Sphere {
 }
 
 impl Sphere {
-    pub fn new(transform: Transform, material: Material) -> Self {
+    pub fn new(transform: Transform, material: Rc<Material>) -> Self {
         Self(ObjectProps {
             transform,
             material,
@@ -32,7 +32,7 @@ impl Sphere {
 }
 
 impl PrivateObject for Sphere {
-    fn local_intersect(&self, local_ray: &Ray) -> Intersections {
+    fn local_intersect(self: Rc<Self>, local_ray: &Ray) -> Intersections {
         let sphere_to_ray = local_ray.origin - Point::origin();
         let a = local_ray.direction.dot(&local_ray.direction);
         let b = 2. * local_ray.direction.dot(&sphere_to_ray);
@@ -45,8 +45,8 @@ impl PrivateObject for Sphere {
         }
 
         Intersections::new(vec![
-            Intersection::new((-b - discriminant.sqrt()) / (2. * a), Rc::new(*self)),
-            Intersection::new((-b + discriminant.sqrt()) / (2. * a), Rc::new(*self)),
+            Intersection::new((-b - discriminant.sqrt()) / (2. * a), self.clone()).into(),
+            Intersection::new((-b + discriminant.sqrt()) / (2. * a), self.clone()).into(),
         ])
     }
 
@@ -64,7 +64,7 @@ impl Object for Sphere {
         &self.0.transform
     }
 
-    fn material(&self) -> &Material {
+    fn material(&self) -> &Rc<Material> {
         &self.0.material
     }
 }

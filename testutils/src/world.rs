@@ -24,16 +24,16 @@ pub struct RayTracerWorld {
     pub colors: HashMap<String, Color>,
     pub ppms: HashMap<String, Ppm>,
     pub objects: HashMap<String, Rc<dyn Object>>,
-    pub intersections: HashMap<String, Intersection>,
+    pub intersections: HashMap<String, Rc<Intersection>>,
     // lol
-    pub intersectionses: HashMap<String, Intersections>,
+    pub intersectionses: HashMap<String, Rc<Intersections>>,
     pub matrices: HashMap<String, DMatrix<RayTracerFloat>>,
     pub tuples: HashMap<String, Tuple>,
     pub rays: HashMap<String, Ray>,
     pub transforms: HashMap<String, Transform>,
     pub lights: HashMap<String, PointLight>,
-    pub materials: HashMap<String, Material>,
-    pub worlds: HashMap<String, World>,
+    pub materials: HashMap<String, Rc<Material>>,
+    pub worlds: HashMap<String, Rc<World>>,
     pub precomps: HashMap<String, Precompute>,
     pub cameras: HashMap<String, Camera>,
     pub patterns: HashMap<String, Rc<dyn Pattern>>
@@ -71,11 +71,11 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing object named {}", object_name))
     }
 
-    pub fn get_optional_int(&self, int_name: &String) -> Option<&Intersection> {
+    pub fn get_optional_int(&self, int_name: &String) -> Option<&Rc<Intersection>> {
         self.intersections.get(int_name)
     }
 
-    pub fn get_ints_or_panic(&self, ints_name: &String) -> &Intersections {
+    pub fn get_ints_or_panic(&self, ints_name: &String) -> &Rc<Intersections> {
         self.intersectionses
             .get(ints_name)
             .unwrap_or_else(|| panic!("missing intersections {}", ints_name))
@@ -123,21 +123,15 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing light {}", light_name))
     }
 
-    pub fn get_material_or_panic(&self, material_name: &String) -> &Material {
+    pub fn get_material_or_panic(&self, material_name: &String) -> &Rc<Material> {
         self.materials
             .get(material_name)
             .unwrap_or_else(|| panic!("missing material {}", material_name))
     }
 
-    pub fn get_world_or_panic(&self, world_name: &String) -> &World {
+    pub fn get_world_or_panic(&self, world_name: &String) -> &Rc<World> {
         self.worlds
             .get(world_name)
-            .unwrap_or_else(|| panic!("missing world {}", world_name))
-    }
-
-    pub fn get_mut_world_or_panic(&mut self, world_name: &String) -> &mut World {
-        self.worlds
-            .get_mut(world_name)
             .unwrap_or_else(|| panic!("missing world {}", world_name))
     }
 

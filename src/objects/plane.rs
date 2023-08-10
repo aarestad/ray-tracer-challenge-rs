@@ -11,8 +11,7 @@ use crate::{
 
 use super::{Object, ObjectProps, PrivateObject};
 
-// TODO get rid of copyyyy
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug)]
 pub struct Plane(ObjectProps);
 
 impl Default for Plane {
@@ -25,7 +24,7 @@ impl Default for Plane {
 }
 
 impl Plane {
-    pub fn new(transform: Transform, material: Material) -> Self {
+    pub fn new(transform: Transform, material: Rc<Material>) -> Self {
         Self(ObjectProps {
             transform,
             material,
@@ -34,14 +33,14 @@ impl Plane {
 }
 
 impl PrivateObject for Plane {
-    fn local_intersect(&self, local_ray: &Ray) -> Intersections {
+    fn local_intersect(self: Rc<Self>, local_ray: &Ray) -> Intersections {
         if local_ray.direction.y().abs() < EPSILON {
             return Intersections::empty();
         }
 
         let t = -local_ray.origin.y() / local_ray.direction.y();
 
-        Intersections::new(vec![Intersection::new(t, Rc::new(*self))])
+        Intersections::new(vec![Intersection::new(t, self.clone()).into()])
     }
 
     fn local_normal_at(&self, _local_point: &Point) -> Vector {
@@ -58,7 +57,7 @@ impl Object for Plane {
         &self.0.transform
     }
 
-    fn material(&self) -> &Material {
+    fn material(&self) -> &Rc<Material> {
         &self.0.material
     }
 }

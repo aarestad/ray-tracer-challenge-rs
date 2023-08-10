@@ -25,34 +25,34 @@ impl World {
         }
     }
 
-    pub fn default_world() -> World {
+    pub fn default_world() -> Self {
         World::new(
             vec![
                 Rc::new(Sphere::new(
                     identity(),
-                    MaterialBuilder::default()
+                    Rc::new(MaterialBuilder::default()
                         .color(Color::new(0.8, 1., 0.6))
                         .diffuse(0.7)
                         .specular(0.2)
-                        .build(),
+                        .build()),
                 )),
-                Rc::new(Sphere::new(scaling(0.5, 0.5, 0.5), Material::default())),
+                Rc::new(Sphere::new(scaling(0.5, 0.5, 0.5), Rc::new(Material::default()))),
             ],
             PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )
     }
 
-    pub fn default_world_with_objects(objects: Vec<Rc<dyn Object>>) -> World {
+    pub fn default_world_with_objects(objects: Vec<Rc<dyn Object>>) -> Self {
         let mut w = Self::default_world();
         w.objects = objects;
         w
     }
 
-    pub fn intersects_with(&self, r: &Ray) -> Intersections {
-        let mut all_intersections: Vec<Intersection> = vec![];
+    pub fn intersects_with(self: &Rc<Self>, r: &Ray) -> Rc<Intersections> {
+        let mut all_intersections: Vec<Rc<Intersection>> = vec![];
 
         for o in &self.objects {
-            o.intersections(r)
+            o.clone().intersections(r)
                 .ints()
                 .iter()
                 .for_each(|i| all_intersections.push(i.clone()));
@@ -60,10 +60,10 @@ impl World {
 
         all_intersections.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
-        Intersections::new(all_intersections)
+        Intersections::new(all_intersections).into()
     }
 
-    pub fn is_shadowed(&self, p: &Point) -> bool {
+    pub fn is_shadowed(self: &Rc<Self>, p: &Point) -> bool {
         let v = self.light_source.position - *p;
         let distance = v.magnitude();
         let direction = v.normalize();
@@ -78,7 +78,7 @@ impl World {
         }
     }
 
-    pub fn shade_hit(&self, comps: &Precompute) -> Color {
+    pub fn shade_hit(self: &Rc<Self>, comps: &Precompute) -> Color {
         comps.intersection.object.material().lighting(
             self.light_source,
             comps.point,
@@ -88,7 +88,7 @@ impl World {
         )
     }
 
-    pub fn color_at(&self, ray: &Ray) -> Color {
+    pub fn color_at(self: &Rc<Self>, ray: &Ray) -> Color {
         if let Some(hit) = self.intersects_with(ray).hit() {
             self.shade_hit(&hit.precompute_with(ray))
         } else {

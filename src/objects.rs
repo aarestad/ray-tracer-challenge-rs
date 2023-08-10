@@ -4,6 +4,7 @@ use crate::ray::Ray;
 use crate::transforms::{identity, Transform};
 use crate::tuple::{Point, Vector};
 use std::fmt::Debug;
+use std::rc::Rc;
 
 mod plane;
 mod sphere;
@@ -29,14 +30,14 @@ pub trait Object: Debug + PrivateObject {
         panic!("not a Plane");
     }
 
-    fn intersections(&self, ray: &Ray) -> Intersections {
+    fn intersections(self: Rc<Self>, ray: &Ray) -> Intersections {
         let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
         self.local_intersect(&local_ray)
     }
 
     fn transform(&self) -> &Transform;
 
-    fn material(&self) -> &Material;
+    fn material(&self) -> &Rc<Material>;
 
     fn normal_at(&self, p: Point) -> Vector {
         let inverse = &self.transform().try_inverse().unwrap();
@@ -49,6 +50,8 @@ pub trait Object: Debug + PrivateObject {
 }
 
 mod internal {
+    use std::rc::Rc;
+
     use crate::{
         intersection::Intersections,
         ray::Ray,
@@ -56,22 +59,22 @@ mod internal {
     };
 
     pub trait PrivateObject {
-        fn local_intersect(&self, local_ray: &Ray) -> Intersections;
+        fn local_intersect(self: Rc<Self>, local_ray: &Ray) -> Intersections;
         fn local_normal_at(&self, local_point: &Point) -> Vector;
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug)]
 pub struct ObjectProps {
     transform: Transform,
-    material: Material,
+    material: Rc<Material>,
 }
 
 impl Default for ObjectProps {
     fn default() -> Self {
         Self {
             transform: identity(),
-            material: Material::default(),
+            material: Rc::new(Material::default()),
         }
     }
 }
