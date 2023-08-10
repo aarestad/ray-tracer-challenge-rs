@@ -135,12 +135,6 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing world {}", world_name))
     }
 
-    pub fn get_mut_world_or_panic(&mut self, world_name: &String) -> &mut Rc<World> {
-        self.worlds
-            .get_mut(world_name)
-            .unwrap_or_else(|| panic!("missing world {}", world_name))
-    }
-
     pub fn get_precomp_or_panic(&self, precomp_name: &String) -> &Precompute {
         self.precomps
             .get(precomp_name)
