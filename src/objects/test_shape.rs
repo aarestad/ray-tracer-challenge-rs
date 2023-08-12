@@ -14,15 +14,6 @@ use super::{Object, ObjectProps, PrivateObject};
 #[derive(Debug, Default)]
 pub struct TestShape(ObjectProps);
 
-impl TestShape {
-    pub fn new(transform: Transform, material: Rc<Material>) -> Self {
-        Self(ObjectProps {
-            transform,
-            material,
-        })
-    }
-}
-
 impl PrivateObject for TestShape {
     fn local_intersect(self: Rc<Self>, _local_ray: &Ray) -> Intersections {
         Intersections::empty()
@@ -34,6 +25,13 @@ impl PrivateObject for TestShape {
 }
 
 impl Object for TestShape {
+    fn new(transform: Transform, material: Rc<Material>) -> Self {
+        Self(ObjectProps {
+            transform,
+            material,
+        })
+    }
+
     fn as_test_shape(&self) -> &TestShape {
         self
     }

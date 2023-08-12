@@ -23,15 +23,6 @@ impl Default for Plane {
     }
 }
 
-impl Plane {
-    pub fn new(transform: Transform, material: Rc<Material>) -> Self {
-        Self(ObjectProps {
-            transform,
-            material,
-        })
-    }
-}
-
 impl PrivateObject for Plane {
     fn local_intersect(self: Rc<Self>, local_ray: &Ray) -> Intersections {
         if local_ray.direction.y().abs() < EPSILON {
@@ -49,6 +40,13 @@ impl PrivateObject for Plane {
 }
 
 impl Object for Plane {
+    fn new(transform: Transform, material: Rc<Material>) -> Self {
+        Self(ObjectProps {
+            transform,
+            material,
+        })
+    }
+
     fn as_plane(&self) -> &Plane {
         self
     }

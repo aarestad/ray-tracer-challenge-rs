@@ -22,15 +22,6 @@ impl Default for Sphere {
     }
 }
 
-impl Sphere {
-    pub fn new(transform: Transform, material: Rc<Material>) -> Self {
-        Self(ObjectProps {
-            transform,
-            material,
-        })
-    }
-}
-
 impl PrivateObject for Sphere {
     fn local_intersect(self: Rc<Self>, local_ray: &Ray) -> Intersections {
         let sphere_to_ray = local_ray.origin - Point::origin();
@@ -56,6 +47,13 @@ impl PrivateObject for Sphere {
 }
 
 impl Object for Sphere {
+    fn new(transform: Transform, material: Rc<Material>) -> Self {
+        Self(ObjectProps {
+            transform,
+            material,
+        })
+    }
+
     fn as_sphere(&self) -> &Sphere {
         self
     }

@@ -30,14 +30,18 @@ pub trait Object: Debug + PrivateObject {
         panic!("not a Plane");
     }
 
-    fn intersections(self: Rc<Self>, ray: &Ray) -> Intersections {
-        let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
-        self.local_intersect(&local_ray)
-    }
+    fn new(transform: Transform, material: Rc<Material>) -> Self
+    where
+        Self: Sized;
 
     fn transform(&self) -> &Transform;
 
     fn material(&self) -> &Rc<Material>;
+
+    fn intersections(self: Rc<Self>, ray: &Ray) -> Intersections {
+        let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
+        self.local_intersect(&local_ray)
+    }
 
     fn normal_at(&self, p: Point) -> Vector {
         let inverse = &self.transform().try_inverse().unwrap();
