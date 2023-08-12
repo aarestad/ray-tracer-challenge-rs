@@ -30,13 +30,18 @@ impl World {
             vec![
                 Rc::new(Sphere::new(
                     identity(),
-                    Rc::new(MaterialBuilder::default()
-                        .color(Color::new(0.8, 1., 0.6))
-                        .diffuse(0.7)
-                        .specular(0.2)
-                        .build()),
+                    Rc::new(
+                        MaterialBuilder::default()
+                            .color(Color::new(0.8, 1., 0.6))
+                            .diffuse(0.7)
+                            .specular(0.2)
+                            .build(),
+                    ),
                 )),
-                Rc::new(Sphere::new(scaling(0.5, 0.5, 0.5), Rc::new(Material::default()))),
+                Rc::new(Sphere::new(
+                    scaling(0.5, 0.5, 0.5),
+                    Rc::new(Material::default()),
+                )),
             ],
             PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )
@@ -52,7 +57,8 @@ impl World {
         let mut all_intersections: Vec<Rc<Intersection>> = vec![];
 
         for o in &self.objects {
-            o.clone().intersections(r)
+            o.clone()
+                .intersections(r)
                 .ints()
                 .iter()
                 .for_each(|i| all_intersections.push(i.clone()));
