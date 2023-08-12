@@ -12,6 +12,7 @@ pub struct Precompute {
     pub point: Point,
     pub eyev: Vector,
     pub normalv: Vector,
+    pub reflectv: Vector,
     pub inside: bool,
     pub over_point: Point,
 }
@@ -22,6 +23,7 @@ impl Precompute {
         p: Point,
         e: Vector,
         n: Vector,
+        r: Vector,
         inside: bool,
         over_point: Point,
     ) -> Self {
@@ -30,6 +32,7 @@ impl Precompute {
             point: p,
             eyev: e,
             normalv: n,
+            reflectv: r,
             inside,
             over_point,
         }
@@ -63,14 +66,16 @@ impl Intersection {
         let world_point = r.position(self.t);
         let eyev = -r.direction;
         let normalv = self.object.normal_at(world_point);
+        let reflectv = r.direction.reflect(&normalv);
         let inside = normalv.dot(&eyev) < 0.;
         let over_point = world_point + normalv * EPSILON;
 
         Precompute::new(
             self.clone(),
             world_point,
-            -r.direction,
+            eyev,
             if inside { -normalv } else { normalv },
+            reflectv,
             inside,
             over_point,
         )
@@ -104,5 +109,35 @@ impl Intersections {
         nonnegative_t_ints.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
 
         Some(nonnegative_t_ints.first().unwrap().clone())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::rc::Rc;
+
+    use approx::assert_abs_diff_eq;
+
+    use crate::{
+        objects::Plane,
+        ray::Ray,
+        tuple::{Point, Vector},
+        util::RayTracerFloat,
+    };
+
+    use super::Intersection;
+
+    const SQRT_2: RayTracerFloat = 1.4142135623730951;
+
+    #[test]
+    fn precompute_reflectv() {
+        let o = Plane::default();
+        let r = Ray::new(
+            Point::point(0., 1., -1.),
+            Vector::vector(0., -SQRT_2 / 2., SQRT_2 / 2.),
+        );
+        let i = Rc::new(Intersection::new(SQRT_2, Rc::new(o)));
+        let comps = i.precompute_with(&r);
+        assert_abs_diff_eq!(comps.reflectv, Vector::vector(0., SQRT_2 / 2., SQRT_2 / 2.));
     }
 }

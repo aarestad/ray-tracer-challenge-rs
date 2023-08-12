@@ -15,6 +15,7 @@ pub struct MaterialBuilder {
     diffuse: RayTracerFloat,
     specular: RayTracerFloat,
     shininess: RayTracerFloat,
+    reflective: RayTracerFloat,
 }
 
 impl Default for MaterialBuilder {
@@ -25,6 +26,7 @@ impl Default for MaterialBuilder {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.,
+            reflective: 0.,
         }
     }
 }
@@ -60,6 +62,11 @@ impl MaterialBuilder {
         self
     }
 
+    pub fn reflective(mut self, re: RayTracerFloat) -> Self {
+        self.reflective = re;
+        self
+    }
+
     pub fn build(self) -> Material {
         Material {
             pattern: self.pattern,
@@ -67,6 +74,7 @@ impl MaterialBuilder {
             diffuse: self.diffuse,
             specular: self.specular,
             shininess: self.shininess,
+            reflective: self.reflective,
         }
     }
 }
@@ -78,6 +86,7 @@ pub struct Material {
     pub diffuse: RayTracerFloat,
     pub specular: RayTracerFloat,
     pub shininess: RayTracerFloat,
+    reflective: RayTracerFloat,
 }
 
 impl Default for Material {
@@ -94,6 +103,7 @@ impl Material {
             diffuse: other.diffuse,
             specular: other.specular,
             shininess: other.shininess,
+            reflective: other.reflective,
         }
     }
 
@@ -145,5 +155,16 @@ impl Material {
 
         // # Add the three contributions together to get the final shading
         ambient + diffuse + specular
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::MaterialBuilder;
+
+    #[test]
+    fn default_reflectiveness() {
+        let m = MaterialBuilder::default().build();
+        assert_eq!(m.reflective, 0.);
     }
 }
