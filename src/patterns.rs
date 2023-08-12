@@ -23,8 +23,8 @@ pub trait Pattern: Debug {
 
     fn local_color_at(&self, p: &Point) -> Color;
 
-    fn color_at(&self, p: &Point) -> Color {
-        let pattern_point = p.transform(
+    fn color_at(&self, object_point: &Point) -> Color {
+        let pattern_point = object_point.transform(
             &self
                 .transform()
                 .unwrap_or(&identity())
