@@ -95,7 +95,7 @@ impl Intersections {
 
     pub fn hit(self: Rc<Self>) -> Option<Rc<Intersection>> {
         let mut nonnegative_t_ints: Vec<Rc<Intersection>> =
-            self.0.iter().filter(|i| i.t >= 0.).map(|i| i.clone()).collect();
+            self.0.iter().filter(|i| i.t >= 0.).cloned().collect();
 
         if nonnegative_t_ints.is_empty() {
             return None;

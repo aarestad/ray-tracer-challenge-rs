@@ -37,7 +37,7 @@ impl PrivateObject for Sphere {
 
         Intersections::new(vec![
             Intersection::new((-b - discriminant.sqrt()) / (2. * a), self.clone()).into(),
-            Intersection::new((-b + discriminant.sqrt()) / (2. * a), self.clone()).into(),
+            Intersection::new((-b + discriminant.sqrt()) / (2. * a), self).into(),
         ])
     }
 

@@ -31,7 +31,7 @@ impl PrivateObject for Plane {
 
         let t = -local_ray.origin.y() / local_ray.direction.y();
 
-        Intersections::new(vec![Intersection::new(t, self.clone()).into()])
+        Intersections::new(vec![Intersection::new(t, self).into()])
     }
 
     fn local_normal_at(&self, _local_point: &Point) -> Vector {
