@@ -53,7 +53,7 @@ impl World {
         w
     }
 
-    pub fn intersects_with(self: &Rc<Self>, r: &Ray) -> Rc<Intersections> {
+    pub fn intersects_with(&self, r: &Ray) -> Rc<Intersections> {
         let mut all_intersections: Vec<Rc<Intersection>> = vec![];
 
         for o in &self.objects {
@@ -69,7 +69,7 @@ impl World {
         Intersections::new(all_intersections).into()
     }
 
-    pub fn is_shadowed(self: &Rc<Self>, p: &Point) -> bool {
+    pub fn is_shadowed(&self, p: &Point) -> bool {
         let v = self.light_source.position - *p;
         let distance = v.magnitude();
         let direction = v.normalize();
@@ -84,7 +84,7 @@ impl World {
         }
     }
 
-    pub fn shade_hit(self: &Rc<Self>, comps: &Precompute) -> Color {
+    pub fn shade_hit(&self, comps: &Precompute) -> Color {
         comps.intersection.object.material().lighting(
             comps.intersection.object.as_ref(),
             self.light_source,
@@ -95,7 +95,7 @@ impl World {
         )
     }
 
-    pub fn color_at(self: &Rc<Self>, ray: &Ray) -> Color {
+    pub fn color_at(&self, ray: &Ray) -> Color {
         if let Some(hit) = self.intersects_with(ray).hit() {
             self.shade_hit(&hit.precompute_with(ray))
         } else {
