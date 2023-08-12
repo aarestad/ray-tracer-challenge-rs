@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::{
     color::{Color, BLACK},
     light::PointLight,
+    objects::Object,
     patterns::{Pattern, Solid},
     tuple::{Point, Vector},
     util::RayTracerFloat,
@@ -98,6 +99,7 @@ impl Material {
 
     pub fn lighting(
         &self,
+        object: &dyn Object,
         light: PointLight,
         point: Point,
         eyev: Vector,
@@ -105,7 +107,7 @@ impl Material {
         in_shadow: bool,
     ) -> Color {
         // combine the surface color with the light's color/intensity
-        let effective_color = self.pattern.color_at(&point) * light.intensity;
+        let effective_color = self.pattern.color_at(object, &point) * light.intensity;
 
         // find the direction to the light source
         let lightv = (light.position - point).normalize();

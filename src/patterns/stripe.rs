@@ -56,8 +56,7 @@ mod test {
         let p = Stripe::new(WHITE, BLACK, identity());
         let s = Sphere::new(scaling(2., 2., 2.), Rc::new(Material::default()));
         let point = Point::point(1.5, 0., 0.);
-        let object_point = point.transform(&s.transform().try_inverse().unwrap());
-        let c = p.color_at(&object_point);
+        let c = p.color_at(&s, &point);
         assert_eq!(c, WHITE);
     }
 
@@ -66,8 +65,7 @@ mod test {
         let p = Stripe::new(WHITE, BLACK, scaling(2., 2., 2.));
         let s = Sphere::new(identity(), Rc::new(Material::default()));
         let point = Point::point(1.5, 0., 0.);
-        let object_point = point.transform(&s.transform().try_inverse().unwrap());
-        let c = p.color_at(&object_point);
+        let c = p.color_at(&s, &point);
         assert_eq!(c, WHITE);
     }
 
@@ -76,8 +74,7 @@ mod test {
         let p = Stripe::new(WHITE, BLACK, translation(0.5, 0., 0.));
         let s = Sphere::new(scaling(2., 2., 2.), Rc::new(Material::default()));
         let point = Point::point(2.5, 0., 0.);
-        let object_point = point.transform(&s.transform().try_inverse().unwrap());
-        let c = p.color_at(&object_point);
+        let c = p.color_at(&s, &point);
         assert_eq!(c, WHITE);
     }
 }

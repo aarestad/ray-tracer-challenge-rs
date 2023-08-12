@@ -9,8 +9,7 @@ use std::{fmt::Debug, rc::Rc};
 #[derive(Debug)]
 pub struct Precompute {
     pub intersection: Rc<Intersection>,
-    pub world_point: Point,
-    pub object_point: Point,
+    pub point: Point,
     pub eyev: Vector,
     pub normalv: Vector,
     pub inside: bool,
@@ -21,7 +20,6 @@ impl Precompute {
     pub fn new(
         i: Rc<Intersection>,
         p: Point,
-        op: Point,
         e: Vector,
         n: Vector,
         inside: bool,
@@ -29,8 +27,7 @@ impl Precompute {
     ) -> Self {
         Self {
             intersection: i,
-            world_point: p,
-            object_point: op,
+            point: p,
             eyev: e,
             normalv: n,
             inside,
@@ -72,7 +69,6 @@ impl Intersection {
         Precompute::new(
             self.clone(),
             world_point,
-            world_point.transform(&self.object.transform().try_inverse().unwrap()),
             -r.direction,
             if inside { -normalv } else { normalv },
             inside,

@@ -86,8 +86,9 @@ impl World {
 
     pub fn shade_hit(self: &Rc<Self>, comps: &Precompute) -> Color {
         comps.intersection.object.material().lighting(
+            comps.intersection.object.as_ref(),
             self.light_source,
-            comps.object_point,
+            comps.point,
             comps.eyev,
             comps.normalv,
             self.is_shadowed(&comps.over_point),

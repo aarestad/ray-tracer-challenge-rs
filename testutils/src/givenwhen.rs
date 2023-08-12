@@ -447,7 +447,9 @@ fn when_lighting_material_not_in_shadow(
     let e = *world.get_vector_or_panic(&eyev);
     let n = *world.get_vector_or_panic(&normalv);
 
-    world.colors.insert(result, m.lighting(l, p, e, n, false));
+    world
+        .colors
+        .insert(result, m.lighting(&Sphere::default(), l, p, e, n, false));
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -468,9 +470,10 @@ fn when_lighting_material_possibly_in_shadow(
     let e = *world.get_vector_or_panic(&eyev);
     let n = *world.get_vector_or_panic(&normalv);
 
-    world
-        .colors
-        .insert(result, m.lighting(l, p, e, n, in_shadow == "true"));
+    world.colors.insert(
+        result,
+        m.lighting(&Sphere::default(), l, p, e, n, in_shadow == "true"),
+    );
 }
 
 #[when(
@@ -497,7 +500,14 @@ fn when_lighting_color(
 
     world.colors.insert(
         c,
-        material.lighting(*light, point, *eyev, *normalv, in_shadow),
+        material.lighting(
+            &Sphere::default(),
+            *light,
+            point,
+            *eyev,
+            *normalv,
+            in_shadow,
+        ),
     );
 }
 

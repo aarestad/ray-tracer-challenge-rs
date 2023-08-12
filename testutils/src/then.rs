@@ -2,6 +2,7 @@ use crate::{step::get_4x4_matrix_from_step, world::RayTracerWorld, RayTracerFloa
 use cucumber::{gherkin::Step, then};
 use ray_tracer_challenge_rs::{
     color::Color,
+    objects::Sphere,
     transforms::{identity, scaling, translation},
     tuple::{Point, Vector},
 };
@@ -146,7 +147,7 @@ fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, pro
         }
         "point" => {
             let p = Point::from_str(prop_expr.as_str()).unwrap();
-            assert_eq!(pc.world_point, p);
+            assert_eq!(pc.point, p);
         }
         "eyev" | "normalv" => {
             let v = Vector::from_str(prop_expr.as_str()).unwrap();
@@ -301,7 +302,7 @@ fn assert_over_point_small(world: &mut RayTracerWorld, c: String) {
 #[then(expr = r"{word}.point.z > {word}.over_point.z")]
 fn assert_point_z_gt_over_point(world: &mut RayTracerWorld, c: String) {
     let comps = world.get_precomp_or_panic(&c);
-    assert!(comps.world_point.z() > comps.over_point.z());
+    assert!(comps.point.z() > comps.over_point.z());
 }
 
 #[then(regex = r"^s\.transform = (\w+)$")]
@@ -407,5 +408,5 @@ fn assert_stripe_color_at_point(
     let pattern = world.get_pattern_or_panic(&p);
     let point = Point::point(x, y, z);
     let color = world.get_color_or_panic(&c);
-    assert_eq!(&pattern.color_at(&point), color);
+    assert_eq!(&pattern.color_at(&Sphere::default(), &point), color);
 }
