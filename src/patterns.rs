@@ -7,6 +7,7 @@ use crate::{
     tuple::Point,
 };
 
+mod checker;
 mod gradient;
 mod ring;
 mod solid;
@@ -15,6 +16,7 @@ mod stripe;
 #[cfg(test)]
 mod test_pattern;
 
+pub use checker::Checker;
 pub use gradient::Gradient;
 pub use ring::Ring;
 pub use solid::Solid;
