@@ -9,7 +9,7 @@ mod intersection;
 mod light;
 mod material;
 mod objects;
-mod pattern;
+mod patterns;
 mod ray;
 mod transforms;
 mod tuple;

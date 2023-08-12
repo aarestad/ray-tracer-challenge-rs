@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{
     color::{Color, BLACK},
     light::PointLight,
-    pattern::{Pattern, Solid},
+    patterns::{Pattern, Solid},
     tuple::{Point, Vector},
     util::RayTracerFloat,
 };

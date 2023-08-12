@@ -10,9 +10,9 @@ mod plane;
 mod sphere;
 mod test_shape;
 
-pub use crate::objects::plane::Plane;
-pub use crate::objects::sphere::Sphere;
-pub use crate::objects::test_shape::TestShape;
+pub use plane::Plane;
+pub use sphere::Sphere;
+pub use test_shape::TestShape;
 
 use self::internal::PrivateObject;
 

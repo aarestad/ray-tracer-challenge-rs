@@ -12,7 +12,7 @@ use ray_tracer_challenge_rs::{
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{Object, Plane, Sphere, TestShape},
-    pattern::Stripe,
+    patterns::Stripe,
     ray::Ray,
     transforms::{identity, rotation, scaling, translation, RotationAxis, Transform},
     tuple::{Point, Tuple},

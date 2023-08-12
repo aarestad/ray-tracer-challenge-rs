@@ -10,7 +10,7 @@ use crate::color::{Color, WHITE};
 use crate::light::PointLight;
 use crate::material::MaterialBuilder;
 use crate::objects::{Object, Plane, Sphere};
-use crate::pattern::Stripe;
+use crate::patterns::Stripe;
 use crate::ray::Ray;
 use crate::transforms::{identity, scaling, translation, Transform};
 use crate::tuple::{Point, Vector};

@@ -6,7 +6,7 @@ pub mod intersection;
 pub mod light;
 pub mod material;
 pub mod objects;
-pub mod pattern;
+pub mod patterns;
 pub mod ray;
 pub mod transforms;
 pub mod tuple;

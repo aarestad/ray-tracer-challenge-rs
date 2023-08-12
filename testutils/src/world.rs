@@ -5,11 +5,11 @@ use ray_tracer_challenge_rs::intersection::{Intersection, Intersections, Precomp
 use ray_tracer_challenge_rs::light::PointLight;
 use ray_tracer_challenge_rs::material::Material;
 use ray_tracer_challenge_rs::objects::Object;
+use ray_tracer_challenge_rs::patterns::Pattern;
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::transforms::Transform;
 use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};
 use ray_tracer_challenge_rs::world::World;
-use ray_tracer_challenge_rs::pattern::Pattern;
 
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -36,7 +36,7 @@ pub struct RayTracerWorld {
     pub worlds: HashMap<String, Rc<World>>,
     pub precomps: HashMap<String, Precompute>,
     pub cameras: HashMap<String, Camera>,
-    pub patterns: HashMap<String, Rc<dyn Pattern>>
+    pub patterns: HashMap<String, Rc<dyn Pattern>>,
 }
 
 // TODO this seems like a job for... a macro!
