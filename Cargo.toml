@@ -15,6 +15,7 @@ regex = "1.9.1"
 testutils = { path = "testutils" }
 futures-lite = "1.13.0"
 cucumber = "0.20"
+clap = "4.3.21"
 
 [[test]]
 name = "tuples"
