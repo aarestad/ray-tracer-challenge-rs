@@ -10,7 +10,7 @@ use crate::color::{Color, WHITE};
 use crate::light::PointLight;
 use crate::material::MaterialBuilder;
 use crate::objects::{Object, Plane, Sphere};
-use crate::patterns::Stripe;
+use crate::patterns::{Gradient, Stripe};
 use crate::ray::Ray;
 use crate::transforms::{identity, scaling, translation, Transform};
 use crate::tuple::{Point, Vector};
@@ -68,18 +68,19 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
 }
 
 pub fn chapter_7_scene(filename: &Path) -> Result<()> {
-    let side_mat = Rc::new(
-        MaterialBuilder::default()
-            .pattern(Rc::new(Stripe::new(
-                Color::new(1., 0., 0.),
-                WHITE,
-                identity(),
-            )))
-            .specular(0.)
-            .build(),
+    let floor = Plane::new(
+        identity(),
+        Rc::new(
+            MaterialBuilder::default()
+                .pattern(Rc::new(Gradient::new(
+                    Color::new(1., 0., 0.),
+                    WHITE,
+                    identity(),
+                )))
+                .specular(0.)
+                .build(),
+        ),
     );
-
-    let floor = Plane::new(identity(), side_mat);
 
     let middle_sphere = Sphere::new(
         translation(-0.5, 1., 0.5),
@@ -100,7 +101,11 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
         Rc::new(
             MaterialBuilder::default()
-                .color(Color::new(0.5, 1., 0.1))
+                .pattern(Rc::new(Gradient::new(
+                    Color::new(1., 0., 0.),
+                    WHITE,
+                    identity(),
+                )))
                 .diffuse(0.7)
                 .specular(0.3)
                 .build(),

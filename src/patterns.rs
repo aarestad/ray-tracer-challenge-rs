@@ -1,4 +1,4 @@
-use std::{fmt::Debug, rc::Rc};
+use std::fmt::Debug;
 
 use crate::{
     color::Color,
@@ -7,9 +7,14 @@ use crate::{
     tuple::Point,
 };
 
+mod gradient;
 mod solid;
 mod stripe;
 
+#[cfg(test)]
+mod test_pattern;
+
+pub use gradient::Gradient;
 pub use solid::Solid;
 pub use stripe::Stripe;
 
