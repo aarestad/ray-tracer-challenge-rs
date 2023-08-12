@@ -7,16 +7,16 @@ use cucumber::{gherkin::Step, given, when};
 use ray_tracer_challenge_rs::{
     camera::Camera,
     canvas::Canvas,
-    color::Color,
+    color::{Color, BLACK, WHITE},
     intersection::Intersection,
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{Object, Plane, Sphere, TestShape},
+    pattern::Stripe,
     ray::Ray,
     transforms::{identity, rotation, scaling, translation, RotationAxis},
-    tuple::Tuple,
+    tuple::{Point, Tuple},
     world::World,
-    pattern::Stripe,
 };
 
 use std::{rc::Rc, str::FromStr};
@@ -261,7 +261,10 @@ fn given_point_light(
         // if so, we're setting the light on a world
         let world_name = light.split('.').next().unwrap();
         let ray_world = world.get_world_or_panic(&world_name.to_string());
-        world.worlds.insert(world_name.to_string(), Rc::new(World::new(ray_world.objects.clone(), l)));
+        world.worlds.insert(
+            world_name.to_string(),
+            Rc::new(World::new(ray_world.objects.clone(), l)),
+        );
     }
 }
 
@@ -275,9 +278,7 @@ fn given_nth_sphere_in_world(world: &mut RayTracerWorld, name: String, nth: Stri
         _ => panic!("bad nth: {}", nth),
     };
 
-    world
-        .objects
-        .insert(name, ray_world.objects[n].clone());
+    world.objects.insert(name, ray_world.objects[n].clone());
 }
 
 #[given(regex = r"^(\w+)\.material\.ambient ← (.+)")]
@@ -290,11 +291,35 @@ fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayT
     world.objects.insert(s, Rc::new(new_sphere));
 }
 
+#[given(regex = r"^(\w+).pattern ← stripe_pattern\(color\(1, 1, 1\), color\(0, 0, 0\)\)")]
+fn given_material_stripe_pattern(world: &mut RayTracerWorld, m: String) {
+    let material = world.get_material_or_panic(&m);
+    let mut new_mat = Material::from(material);
+    new_mat.pattern = Rc::new(Stripe::new(WHITE, BLACK));
+    world.materials.insert(m, Rc::new(new_mat));
+}
+
 #[given(regex = r"^(\w+)\.ambient ← (.+)")]
 fn given_material_ambient_val(world: &mut RayTracerWorld, m: String, ambient: RayTracerFloat) {
     let material = world.get_material_or_panic(&m);
     let mut new_mat = Material::from(material);
     new_mat.ambient = ambient;
+    world.materials.insert(m, Rc::new(new_mat));
+}
+
+#[given(regex = r"^(\w+)\.diffuse ← (.+)")]
+fn given_material_diffuse_val(world: &mut RayTracerWorld, m: String, diffuse: RayTracerFloat) {
+    let material = world.get_material_or_panic(&m);
+    let mut new_mat = Material::from(material);
+    new_mat.diffuse = diffuse;
+    world.materials.insert(m, Rc::new(new_mat));
+}
+
+#[given(regex = r"^(\w+)\.specular ← (.+)")]
+fn given_material_specular_val(world: &mut RayTracerWorld, m: String, specular: RayTracerFloat) {
+    let material = world.get_material_or_panic(&m);
+    let mut new_mat = Material::from(material);
+    new_mat.specular = specular;
     world.materials.insert(m, Rc::new(new_mat));
 }
 
@@ -304,7 +329,10 @@ fn given_world_with_objects(world: &mut RayTracerWorld, w: String, s1: String, s
     let o2 = world.get_object_or_panic(&s2);
     world.worlds.insert(
         w,
-        Rc::new(World::default_world_with_objects(vec![Rc::clone(o1), Rc::clone(o2)])),
+        Rc::new(World::default_world_with_objects(vec![
+            Rc::clone(o1),
+            Rc::clone(o2),
+        ])),
     );
 }
 
@@ -444,10 +472,40 @@ fn when_lighting_material_possibly_in_shadow(
         .insert(result, m.lighting(l, p, e, n, in_shadow == "true"));
 }
 
+#[when(
+    expr = r"{word} ← lighting\({word}, {word}, point\({float}, {float}, {float}\), {word}, {word}, {word}\)"
+)]
+fn when_lighting_color(
+    world: &mut RayTracerWorld,
+    c: String,
+    m: String,
+    l: String,
+    px: RayTracerFloat,
+    py: RayTracerFloat,
+    pz: RayTracerFloat,
+    ev: String,
+    nv: String,
+    shad: String,
+) {
+    let material = world.get_material_or_panic(&m);
+    let light = world.get_light_or_panic(&l);
+    let point = Point::point(px, py, pz);
+    let eyev = world.get_vector_or_panic(&ev);
+    let normalv = world.get_vector_or_panic(&nv);
+    let in_shadow = shad == "true";
+
+    world.colors.insert(
+        c,
+        material.lighting(*light, point, *eyev, *normalv, in_shadow),
+    );
+}
+
 #[given(expr = r"{word} ← default_world\(\)")]
 #[when(expr = r"{word} ← default_world\(\)")]
 fn given_or_when_default_world(world: &mut RayTracerWorld, world_name: String) {
-    world.worlds.insert(world_name, Rc::new(World::default_world()));
+    world
+        .worlds
+        .insert(world_name, Rc::new(World::default_world()));
 }
 
 #[given(expr = r"{word} ← world\([{}], {word}\)")]
@@ -555,7 +613,10 @@ fn given_a_test_shape_translation(
 ) {
     world.objects.insert(
         s,
-        Rc::new(TestShape::new(translation(x, y, z), Rc::new(Material::default()))),
+        Rc::new(TestShape::new(
+            translation(x, y, z),
+            Rc::new(Material::default()),
+        )),
     );
 }
 
@@ -569,7 +630,10 @@ fn given_a_test_shape_scaling(
 ) {
     world.objects.insert(
         s,
-        Rc::new(TestShape::new(scaling(x, y, z), Rc::new(Material::default()))),
+        Rc::new(TestShape::new(
+            scaling(x, y, z),
+            Rc::new(Material::default()),
+        )),
     );
 }
 
