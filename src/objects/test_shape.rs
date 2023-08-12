@@ -10,7 +10,6 @@ use crate::{
 
 use super::{Object, ObjectProps, PrivateObject};
 
-// TODO get rid of Copy!
 #[derive(Debug, Default)]
 pub struct TestShape(ObjectProps);
 

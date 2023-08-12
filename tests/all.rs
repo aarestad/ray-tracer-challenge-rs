@@ -1,39 +1,36 @@
 use clap::arg;
-use cucumber::{cli, World};
+use cucumber::{
+    cli::{Args, Opts},
+    World,
+};
 use futures_lite::future;
-use std::env::args;
 use testutils::world::RayTracerWorld;
 
-const ALL_TESTS: [&str; 7] = [
+const ALL_TESTS: [&str; 8] = [
     "lights",
     "materials",
     "world",
     "camera",
     "shapes",
+    "spheres",
     "planes",
     "patterns",
 ];
 
-#[derive(cli::Args, Clone)]
+#[derive(Args, Clone)]
 struct CustomOpts {
     #[arg(long)]
     rt_tests: Option<String>,
 }
 
 fn main() {
-    let mut tests: Vec<String> = args().collect();
-    dbg!(&tests);
+    let mut tests: Vec<String> = vec![];
 
-    let opts = cli::Opts::<_, _, _, CustomOpts>::parsed();
+    let opts = Opts::<_, _, _, CustomOpts>::parsed();
     let tests_opt = opts.custom.rt_tests.clone();
 
     if let Some(tests_str) = tests_opt {
-        tests.extend(
-            tests_str
-                .split(',')
-                .map(|s| s.to_string())
-                .collect::<Vec<_>>(),
-        );
+        tests.extend(tests_str.split(',').map(|s| s.to_string()));
     } else {
         tests.extend(ALL_TESTS.iter().map(|s| s.to_string()));
     }

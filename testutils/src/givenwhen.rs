@@ -14,7 +14,7 @@ use ray_tracer_challenge_rs::{
     objects::{Object, Plane, Sphere, TestShape},
     pattern::Stripe,
     ray::Ray,
-    transforms::{identity, rotation, scaling, translation, RotationAxis},
+    transforms::{identity, rotation, scaling, translation, RotationAxis, Transform},
     tuple::{Point, Tuple},
     world::World,
 };
@@ -91,17 +91,28 @@ fn given_a_default_sphere(world: &mut RayTracerWorld, sphere_name: String) {
 }
 
 fn parse_three_args(s: &str) -> (RayTracerFloat, RayTracerFloat, RayTracerFloat) {
-    let three_args_re = Regex::new(r"\((.+), (.+), (.+)\)").unwrap();
+    let three_args_re = Regex::new(r"\((.+), (.+), ([^\)]+)").unwrap();
 
     let args: Vec<RayTracerFloat> = three_args_re
         .captures(s)
         .unwrap()
         .iter()
-        .skip(1)
-        .map(|c| RayTracerFloat::from_str(c.unwrap().as_str()).unwrap())
+        .skip(1) // skips group "0", i.e. the whole match
+        .map(|g| g.unwrap().as_str())
+        .map(|s| RayTracerFloat::from_str(s).expect(&format!("bad number: {}", s)))
         .collect();
 
     (args[0], args[1], args[2])
+}
+
+fn transform_for_args(expr: &str) -> Transform {
+    let args = parse_three_args(expr);
+
+    match expr {
+        _ if expr.starts_with("scaling") => scaling(args.0, args.1, args.2),
+        _ if expr.starts_with("translation") => translation(args.0, args.1, args.2),
+        _ => panic!("bad transform name: {}", expr),
+    }
 }
 
 #[given(expr = r"{word} ← sphere\(\) with:")]
@@ -117,17 +128,7 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
         if let [prop, val] = &row[0..2] {
             match prop {
                 _ if prop == "transform" => {
-                    let args = parse_three_args(val);
-
-                    match val {
-                        _ if val.starts_with("scaling") => {
-                            transform = scaling(args.0, args.1, args.2);
-                        }
-                        _ if val.starts_with("translation") => {
-                            transform = translation(args.0, args.1, args.2);
-                        }
-                        _ => panic!("bad transform val: {}", val),
-                    }
+                    transform = transform_for_args(val);
                 }
                 _ if prop.starts_with("material") => {
                     let mat_prop_name = &prop_re.captures(prop).unwrap()[1];
@@ -295,7 +296,7 @@ fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayT
 fn given_material_stripe_pattern(world: &mut RayTracerWorld, m: String) {
     let material = world.get_material_or_panic(&m);
     let mut new_mat = Material::from(material);
-    new_mat.pattern = Rc::new(Stripe::new(WHITE, BLACK));
+    new_mat.pattern = Rc::new(Stripe::new(WHITE, BLACK, identity()));
     world.materials.insert(m, Rc::new(new_mat));
 }
 
@@ -666,5 +667,27 @@ fn given_default_plane(world: &mut RayTracerWorld, p: String) {
 fn given_stripe_pattern(world: &mut RayTracerWorld, p: String, c1: String, c2: String) {
     let even = world.get_color_or_panic(&c1);
     let odd = world.get_color_or_panic(&c2);
-    world.patterns.insert(p, Rc::new(Stripe::new(*even, *odd)));
+    world
+        .patterns
+        .insert(p, Rc::new(Stripe::new(*even, *odd, identity())));
+}
+
+#[given(expr = r"set_transform\({word}, {}")]
+fn given_sphere_with_transform(w: &mut RayTracerWorld, s: String, t: String) {
+    let sphere = w.get_object_or_panic(&s);
+    let transform = transform_for_args(&t);
+
+    w.objects.insert(
+        s,
+        Rc::new(Sphere::new(transform, sphere.material().clone())),
+    );
+}
+
+#[given(expr = r"set_pattern_transform\(pattern, {word}\)\)")]
+fn given_stripe_with_transform(w: &mut RayTracerWorld, p: String, t: String) {
+    let stripe = w.get_pattern_or_panic(&p).as_stripe();
+    let transform = transform_for_args(&t);
+
+    w.patterns
+        .insert(p, Rc::new(Stripe::new(stripe.even, stripe.odd, transform)));
 }

@@ -9,7 +9,6 @@ use std::rc::Rc;
 
 use super::{Object, ObjectProps, PrivateObject};
 
-// TODO get rid of Copy!
 #[derive(Debug)]
 pub struct Sphere(ObjectProps);
 

@@ -34,6 +34,11 @@ impl MaterialBuilder {
         self
     }
 
+    pub fn pattern(mut self, p: Rc<dyn Pattern>) -> Self {
+        self.pattern = p;
+        self
+    }
+
     pub fn ambient(mut self, a: RayTracerFloat) -> Self {
         self.ambient = a;
         self
@@ -82,7 +87,7 @@ impl Default for Material {
 
 impl Material {
     pub fn from(other: &Rc<Material>) -> Self {
-        Self{
+        Self {
             pattern: Rc::clone(&other.pattern),
             ambient: other.ambient,
             diffuse: other.diffuse,

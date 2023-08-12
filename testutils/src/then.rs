@@ -146,7 +146,7 @@ fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, pro
         }
         "point" => {
             let p = Point::from_str(prop_expr.as_str()).unwrap();
-            assert_eq!(pc.point, p);
+            assert_eq!(pc.world_point, p);
         }
         "eyev" | "normalv" => {
             let v = Vector::from_str(prop_expr.as_str()).unwrap();
@@ -301,7 +301,7 @@ fn assert_over_point_small(world: &mut RayTracerWorld, c: String) {
 #[then(expr = r"{word}.point.z > {word}.over_point.z")]
 fn assert_point_z_gt_over_point(world: &mut RayTracerWorld, c: String) {
     let comps = world.get_precomp_or_panic(&c);
-    assert!(comps.point.z() > comps.over_point.z());
+    assert!(comps.world_point.z() > comps.over_point.z());
 }
 
 #[then(regex = r"^s\.transform = (\w+)$")]
@@ -380,7 +380,6 @@ fn assert_nth_intersection_t(
     assert_eq!(actual.t, expected);
 }
 
-
 #[then(regex = r"^(\w+)\[(\d)\]\.object = (.+)")]
 fn assert_nth_intersection_object(
     world: &mut RayTracerWorld,
@@ -397,9 +396,16 @@ fn assert_nth_intersection_object(
 }
 
 #[then(expr = r"stripe_at\({word}, point\({float}, {float}, {float}\)\) = {word}")]
-fn assert_stripe_color_at_point(world: &mut RayTracerWorld, p: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat, c: String) {
+fn assert_stripe_color_at_point(
+    world: &mut RayTracerWorld,
+    p: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+    c: String,
+) {
     let pattern = world.get_pattern_or_panic(&p);
-    let point = Point::point(x,y,z);
+    let point = Point::point(x, y, z);
     let color = world.get_color_or_panic(&c);
     assert_eq!(&pattern.color_at(&point), color);
 }
