@@ -8,6 +8,7 @@ use crate::{
 };
 
 mod gradient;
+mod ring;
 mod solid;
 mod stripe;
 
@@ -15,6 +16,7 @@ mod stripe;
 mod test_pattern;
 
 pub use gradient::Gradient;
+pub use ring::Ring;
 pub use solid::Solid;
 pub use stripe::Stripe;
 
