@@ -86,7 +86,7 @@ pub struct Material {
     pub diffuse: RayTracerFloat,
     pub specular: RayTracerFloat,
     pub shininess: RayTracerFloat,
-    reflective: RayTracerFloat,
+    pub reflective: RayTracerFloat,
 }
 
 impl Default for Material {

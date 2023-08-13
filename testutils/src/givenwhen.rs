@@ -559,7 +559,7 @@ fn when_precomputing(world: &mut RayTracerWorld, pc: String, i: String, r: Strin
 fn when_shade_hit(world: &mut RayTracerWorld, c: String, w: String, pc: String) {
     let ray_world = world.get_world_or_panic(&w);
     let precompute = world.get_precomp_or_panic(&pc);
-    world.colors.insert(c, ray_world.shade_hit(precompute));
+    world.colors.insert(c, ray_world.shade_hit(precompute, 1));
 }
 
 #[given(expr = r"{word} ← color_at\({word}, {word}\)")]
@@ -567,7 +567,7 @@ fn when_shade_hit(world: &mut RayTracerWorld, c: String, w: String, pc: String) 
 fn when_color_at(world: &mut RayTracerWorld, c: String, w: String, r: String) {
     let ray_world = world.get_world_or_panic(&w);
     let ray = world.get_ray_or_panic(&r);
-    world.colors.insert(c, ray_world.color_at(ray));
+    world.colors.insert(c, ray_world.color_at(ray, 1));
 }
 
 #[given(expr = r"{word} ← hit\({word}\)")]

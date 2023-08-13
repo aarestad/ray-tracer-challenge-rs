@@ -114,6 +114,7 @@ impl Intersections {
 
 #[cfg(test)]
 mod test {
+    use std::f64::consts::SQRT_2;
     use std::rc::Rc;
 
     use approx::assert_abs_diff_eq;
@@ -122,12 +123,9 @@ mod test {
         objects::Plane,
         ray::Ray,
         tuple::{Point, Vector},
-        util::RayTracerFloat,
     };
 
     use super::Intersection;
-
-    const SQRT_2: RayTracerFloat = 1.4142135623730951;
 
     #[test]
     fn precompute_reflectv() {
