@@ -113,13 +113,13 @@ impl World {
             return BLACK;
         }
 
-        // if remaining == 0 {
-        //     BLACK
-        // } else {
-        let reflect_ray = Ray::new(comps.over_point, comps.reflectv);
-        let color = self.color_at(&reflect_ray, remaining - 1);
-        color * reflective
-        // }
+        if remaining == 0 {
+            BLACK
+        } else {
+            let reflect_ray = Ray::new(comps.over_point, comps.reflectv);
+            let color = self.color_at(&reflect_ray, remaining - 1);
+            color * reflective
+        }
     }
 
     #[cfg(test)]
