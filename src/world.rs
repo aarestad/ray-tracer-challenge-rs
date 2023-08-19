@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    color::{Color, BLACK},
+    color::{Color, BLACK, WHITE},
     intersection::{Intersection, Intersections, Precompute},
     light::PointLight,
     material::{Material, MaterialBuilder},
@@ -121,6 +121,14 @@ impl World {
             let reflect_ray = Ray::new(comps.over_point, comps.reflectv);
             let color = self.color_at(&reflect_ray, remaining - 1);
             color * reflective
+        }
+    }
+
+    pub fn refracted_color_at(&self, comps: &Precompute, remaining: usize) -> Color {
+        if comps.object.material().transparency == 0. {
+            BLACK
+        } else {
+            WHITE
         }
     }
 
@@ -272,5 +280,19 @@ mod test {
             .precompute_with(&r, Rc::new(Intersections::new(vec![i])));
         let color = w.reflected_color_at(&comps, 0);
         assert_abs_diff_eq!(color, BLACK);
+    }
+
+    #[test]
+    fn refracted_color_opaque_surface() {
+        let w = World::default_world();
+        let shape = w.objects[0].clone();
+        let r = Ray::new(Point::point(0., 0., -5.), Vector::vector(0., 0., 1.));
+        let xs = Intersections::new(vec![
+            Intersection::new(4., shape.clone()).into(),
+            Intersection::new(6., shape.clone()).into(),
+        ]);
+
+        let comps = xs.ints()[0].clone().precompute_with(&r, xs.into());
+        assert_eq!(w.refracted_color_at(&comps, 5), BLACK);
     }
 }
