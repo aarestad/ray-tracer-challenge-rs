@@ -233,8 +233,6 @@ mod test {
         let i = Rc::new(Intersection::new(5.0, shape));
         let xs = Intersections::new(vec![i.clone()]);
         let comps = i.precompute_with(&r, xs.into());
-        println!("z={}", comps.under_point.z());
-        println!("epsilon/2={}", EPSILON / 2.);
         assert!(comps.under_point.z() > EPSILON / 2.);
         assert!(comps.point.z() < comps.under_point.z());
     }
