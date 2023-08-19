@@ -1,10 +1,22 @@
-use crate::{color::Color, transforms::Transform, tuple::Point};
+use crate::{
+    color::Color,
+    transforms::{identity, Transform},
+    tuple::Point,
+};
 
 use super::Pattern;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct TestPattern {
     transform: Transform,
+}
+
+impl Default for TestPattern {
+    fn default() -> Self {
+        Self {
+            transform: identity(),
+        }
+    }
 }
 
 impl TestPattern {

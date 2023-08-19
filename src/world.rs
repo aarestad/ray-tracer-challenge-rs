@@ -95,7 +95,9 @@ impl World {
         );
 
         let reflected = self.reflected_color_at(comps, remaining);
-        surface + reflected
+        let refracted = self.refracted_color_at(comps, remaining);
+
+        surface + reflected + refracted
     }
 
     pub fn color_at(&self, ray: &Ray, remaining: usize) -> Color {
@@ -125,11 +127,19 @@ impl World {
     }
 
     pub fn refracted_color_at(&self, comps: &Precompute, remaining: usize) -> Color {
-        if comps.object.material().transparency == 0. {
-            BLACK
-        } else {
-            WHITE
+        let n12 = comps.n1 / comps.n2;
+        let cos_i = comps.eyev.dot(&comps.normalv);
+        let sin2_t = n12.powi(2) * (1. - cos_i.powi(2));
+
+        if remaining == 0 || sin2_t > 1. || comps.object.material().transparency == 0. {
+            return BLACK;
         }
+
+        let cos_t = (1.0 - sin2_t).sqrt();
+        let direction = comps.normalv * (n12 * cos_i - cos_t) - comps.eyev * n12;
+        let refract_ray = Ray::new(comps.under_point, direction);
+
+        self.color_at(&refract_ray, remaining - 1) * comps.object.material().transparency
     }
 
     #[cfg(test)]
@@ -148,8 +158,9 @@ mod test {
         color::{Color, BLACK, WHITE},
         intersection::{Intersection, Intersections},
         light::PointLight,
-        material::MaterialBuilder,
+        material::{Material, MaterialBuilder},
         objects::{Object, Plane, Sphere},
+        patterns::TestPattern,
         ray::Ray,
         transforms::{identity, scaling, translation},
         tuple::{Point, Vector},
@@ -235,6 +246,46 @@ mod test {
     }
 
     #[test]
+    fn shade_hit_transparent_mat() {
+        let mut w = World::default_world();
+
+        let floor = Rc::new(Plane::new(
+            translation(0., -1., 0.),
+            Rc::new(
+                MaterialBuilder::default()
+                    .transparency(0.5)
+                    .refractive(1.5)
+                    .build(),
+            ),
+        ));
+
+        let ball = Rc::new(Sphere::new(
+            translation(0., -3.5, -0.5),
+            Rc::new(
+                MaterialBuilder::default()
+                    .color(Color::new(1.0, 0.0, 0.0))
+                    .ambient(0.5)
+                    .build(),
+            ),
+        ));
+
+        w.objects.push(floor.clone());
+        w.objects.push(ball);
+
+        let r = Ray::new(
+            Point::point(0., 0., -3.),
+            Vector::vector(0., -SQRT_2 / 2., SQRT_2 / 2.),
+        );
+
+        let xs = Intersections::new(vec![Intersection::new(SQRT_2, floor).into()]);
+        let comps = xs.ints()[0].clone().precompute_with(&r, xs.into());
+        assert_abs_diff_eq!(
+            w.shade_hit(&comps, 5),
+            Color::new(0.93642, 0.68642, 0.68642)
+        );
+    }
+
+    #[test]
     fn color_at_mutually_reflective_surfaces() {
         let mut w = World::default_world();
         w.light_source = PointLight::new(Point::point(0., 0., 0.), WHITE);
@@ -260,7 +311,7 @@ mod test {
     }
 
     #[test]
-    fn reflected_color_max_recusion() {
+    fn reflected_color_max_recursion() {
         let mut w = World::default_world();
 
         let p = Rc::new(Plane::new(
@@ -294,5 +345,124 @@ mod test {
 
         let comps = xs.ints()[0].clone().precompute_with(&r, xs.into());
         assert_eq!(w.refracted_color_at(&comps, 5), BLACK);
+    }
+
+    #[test]
+    fn refracted_color_max_recursion() {
+        let shape = Rc::new(Sphere::new(
+            identity(),
+            Rc::new(
+                MaterialBuilder::default()
+                    .color(Color::new(0.8, 1., 0.6))
+                    .diffuse(0.7)
+                    .specular(0.2)
+                    .transparency(1.0)
+                    .refractive(1.5)
+                    .build(),
+            ),
+        ));
+
+        let shapes: Vec<Rc<dyn Object>> = vec![
+            shape.clone(),
+            Rc::new(Sphere::new(
+                scaling(0.5, 0.5, 0.5),
+                Rc::new(Material::default()),
+            )),
+        ];
+
+        let w = World::default_world_with_objects(shapes);
+
+        let r = Ray::new(Point::point(0., 0., -5.), Vector::vector(0., 0., 1.));
+
+        let xs = Intersections::new(vec![
+            Intersection::new(4., shape.clone()).into(),
+            Intersection::new(6., shape.clone()).into(),
+        ]);
+
+        let comps = xs.ints()[0].clone().precompute_with(&r, xs.into());
+        assert_eq!(w.refracted_color_at(&comps, 0), BLACK);
+    }
+
+    #[test]
+    fn refracted_color_total_internal_refraction() {
+        let shape = Rc::new(Sphere::new(
+            identity(),
+            Rc::new(
+                MaterialBuilder::default()
+                    .color(Color::new(0.8, 1., 0.6))
+                    .diffuse(0.7)
+                    .specular(0.2)
+                    .transparency(1.0)
+                    .refractive(1.5)
+                    .build(),
+            ),
+        ));
+
+        let shapes: Vec<Rc<dyn Object>> = vec![
+            shape.clone(),
+            Rc::new(Sphere::new(
+                scaling(0.5, 0.5, 0.5),
+                Rc::new(Material::default()),
+            )),
+        ];
+
+        let w = World::default_world_with_objects(shapes);
+
+        let r = Ray::new(
+            Point::point(0., 0., SQRT_2 / 2.),
+            Vector::vector(0., 1., 0.),
+        );
+
+        let xs = Intersections::new(vec![
+            Intersection::new(-SQRT_2 / 2., shape.clone()).into(),
+            Intersection::new(SQRT_2 / 2., shape.clone()).into(),
+        ]);
+
+        let comps = xs.ints()[1].clone().precompute_with(&r, xs.into());
+        assert_eq!(w.refracted_color_at(&comps, 5), BLACK);
+    }
+
+    #[test]
+    fn refracted_color_refracted_ray() {
+        let shape_a = Rc::new(Sphere::new(
+            identity(),
+            Rc::new(
+                MaterialBuilder::default()
+                    .color(Color::new(0.8, 1., 0.6))
+                    .diffuse(0.7)
+                    .specular(0.2)
+                    .ambient(1.0)
+                    .pattern(Rc::new(TestPattern::default()))
+                    .build(),
+            ),
+        ));
+
+        let shape_b = Rc::new(Sphere::new(
+            scaling(0.5, 0.5, 0.5),
+            Rc::new(
+                MaterialBuilder::default()
+                    .transparency(1.0)
+                    .refractive(1.5)
+                    .build(),
+            ),
+        ));
+
+        let shapes: Vec<Rc<dyn Object>> = vec![shape_a.clone(), shape_b.clone()];
+
+        let w = World::default_world_with_objects(shapes);
+        let r = Ray::new(Point::point(0., 0., 0.1), Vector::vector(0., 1., 0.));
+
+        let xs = Intersections::new(vec![
+            Intersection::new(-0.9899, shape_a.clone()).into(),
+            Intersection::new(-0.4899, shape_b.clone()).into(),
+            Intersection::new(0.4899, shape_b.clone()).into(),
+            Intersection::new(0.9899, shape_a.clone()).into(),
+        ]);
+
+        let comps = xs.ints()[2].clone().precompute_with(&r, xs.into());
+        assert_abs_diff_eq!(
+            w.refracted_color_at(&comps, 5),
+            Color::new(0., 0.99888, 0.04725),
+        );
     }
 }

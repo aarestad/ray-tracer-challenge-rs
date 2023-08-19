@@ -13,14 +13,17 @@ mod ring;
 mod solid;
 mod stripe;
 
-#[cfg(test)]
-mod test_pattern;
-
 pub use checker::Checker;
 pub use gradient::Gradient;
 pub use ring::Ring;
 pub use solid::Solid;
 pub use stripe::Stripe;
+
+#[cfg(test)]
+mod test_pattern;
+
+#[cfg(test)]
+pub use test_pattern::TestPattern;
 
 pub trait Pattern: Debug {
     fn as_stripe(&self) -> &Stripe {
