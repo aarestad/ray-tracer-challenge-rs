@@ -7,12 +7,12 @@ use crate::util::{RayTracerFloat, EPSILON};
 use std::fmt::Debug;
 use std::rc::Rc;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Object {
-    TestShape(Transform, Rc<Material>),
-    Plane(Transform, Rc<Material>),
-    Sphere(Transform, Rc<Material>),
-    Cube(Transform, Rc<Material>),
+    TestShape(Transform, Material),
+    Plane(Transform, Material),
+    Sphere(Transform, Material),
+    Cube(Transform, Material),
 }
 
 impl Object {
@@ -25,7 +25,7 @@ impl Object {
         }
     }
 
-    pub fn material(&self) -> &Rc<Material> {
+    pub fn material(&self) -> &Material {
         match self {
             Object::TestShape(_, m) => m,
             Object::Plane(_, m) => m,

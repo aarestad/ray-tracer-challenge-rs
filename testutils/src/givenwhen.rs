@@ -12,7 +12,7 @@ use ray_tracer_challenge_rs::{
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{default_plane, default_sphere, default_test_shape, Object},
-    patterns::Stripe,
+    patterns::Pattern,
     ray::Ray,
     transforms::{identity, rotation, scaling, translation, RotationAxis, Transform},
     tuple::{Point, Tuple},
@@ -46,7 +46,7 @@ fn given_a_color(
 
 #[given(expr = r"{word} ← material\(\)")]
 fn given_default_material(world: &mut RayTracerWorld, name: String) {
-    world.materials.insert(name, Rc::new(Material::default()));
+    world.materials.insert(name, Material::default());
 }
 
 #[given(
@@ -158,7 +158,7 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
 
     world.objects.insert(
         sphere_name,
-        Rc::new(Object::Sphere(transform, Rc::new(material_builder.build()))),
+        Rc::new(Object::Sphere(transform, material_builder.build())),
     );
 }
 
@@ -286,7 +286,7 @@ fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayT
     let mut mat = Material::from(sphere.material());
     mat.ambient = ambient;
 
-    let new_sphere = Object::Sphere(*sphere.as_ref().transform(), Rc::new(mat));
+    let new_sphere = Object::Sphere(*sphere.as_ref().transform(), mat);
     world.objects.insert(s, Rc::new(new_sphere));
 }
 
@@ -294,8 +294,12 @@ fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayT
 fn given_material_stripe_pattern(world: &mut RayTracerWorld, m: String) {
     let material = world.get_material_or_panic(&m);
     let mut new_mat = Material::from(material);
-    new_mat.pattern = Rc::new(Stripe::new(WHITE, BLACK, identity()));
-    world.materials.insert(m, Rc::new(new_mat));
+    new_mat.pattern = Pattern::Stripe {
+        even: WHITE,
+        odd: BLACK,
+        transform: identity(),
+    };
+    world.materials.insert(m, new_mat);
 }
 
 #[given(regex = r"^(\w+)\.ambient ← (.+)")]
@@ -303,7 +307,7 @@ fn given_material_ambient_val(world: &mut RayTracerWorld, m: String, ambient: Ra
     let material = world.get_material_or_panic(&m);
     let mut new_mat = Material::from(material);
     new_mat.ambient = ambient;
-    world.materials.insert(m, Rc::new(new_mat));
+    world.materials.insert(m, new_mat);
 }
 
 #[given(regex = r"^(\w+)\.diffuse ← (.+)")]
@@ -311,7 +315,7 @@ fn given_material_diffuse_val(world: &mut RayTracerWorld, m: String, diffuse: Ra
     let material = world.get_material_or_panic(&m);
     let mut new_mat = Material::from(material);
     new_mat.diffuse = diffuse;
-    world.materials.insert(m, Rc::new(new_mat));
+    world.materials.insert(m, new_mat);
 }
 
 #[given(regex = r"^(\w+)\.specular ← (.+)")]
@@ -319,7 +323,7 @@ fn given_material_specular_val(world: &mut RayTracerWorld, m: String, specular: 
     let material = world.get_material_or_panic(&m);
     let mut new_mat = Material::from(material);
     new_mat.specular = specular;
-    world.materials.insert(m, Rc::new(new_mat));
+    world.materials.insert(m, new_mat);
 }
 
 #[given(expr = r"{word} ← default_world_with_objects\({word}, {word}\)")]
@@ -426,7 +430,7 @@ fn when_light_created(
 #[when(expr = r"{word} ← {word}.material")]
 fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, sphere_name: String) {
     let s = world.get_object_or_panic(&sphere_name);
-    world.materials.insert(mat_name, s.material().clone());
+    world.materials.insert(mat_name, *s.material());
 }
 
 #[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}\)")]
@@ -619,10 +623,7 @@ fn given_a_test_shape_translation(
 ) {
     world.objects.insert(
         s,
-        Rc::new(Object::TestShape(
-            translation(x, y, z),
-            Rc::new(Material::default()),
-        )),
+        Rc::new(Object::TestShape(translation(x, y, z), Material::default())),
     );
 }
 
@@ -636,10 +637,7 @@ fn given_a_test_shape_scaling(
 ) {
     world.objects.insert(
         s,
-        Rc::new(Object::TestShape(
-            scaling(x, y, z),
-            Rc::new(Material::default()),
-        )),
+        Rc::new(Object::TestShape(scaling(x, y, z), Material::default())),
     );
 }
 
@@ -649,7 +647,7 @@ fn given_arbitrary_test_shape(world: &mut RayTracerWorld) {
         "s".to_string(),
         Rc::new(Object::TestShape(
             scaling(1., 0.5, 1.) * rotation(RotationAxis::Z, 0.628318),
-            Rc::new(Material::default()),
+            Material::default(),
         )),
     );
 }
@@ -672,9 +670,15 @@ fn given_default_plane(world: &mut RayTracerWorld, p: String) {
 fn given_stripe_pattern(world: &mut RayTracerWorld, p: String, c1: String, c2: String) {
     let even = world.get_color_or_panic(&c1);
     let odd = world.get_color_or_panic(&c2);
-    world
-        .patterns
-        .insert(p, Rc::new(Stripe::new(*even, *odd, identity())));
+    world.patterns.insert(
+        p,
+        Pattern::Stripe {
+            even: *even,
+            odd: *odd,
+            transform: identity(),
+        }
+        .into(),
+    );
 }
 
 #[given(expr = r"set_transform\({word}, {}")]
@@ -690,9 +694,25 @@ fn given_sphere_with_transform(w: &mut RayTracerWorld, s: String, t: String) {
 
 #[given(expr = r"set_pattern_transform\(pattern, {word}\)\)")]
 fn given_stripe_with_transform(w: &mut RayTracerWorld, p: String, t: String) {
-    let stripe = w.get_pattern_or_panic(&p).as_stripe();
+    let stripe = w.get_pattern_or_panic(&p);
     let transform = transform_for_args(&t);
 
-    w.patterns
-        .insert(p, Rc::new(Stripe::new(stripe.even, stripe.odd, transform)));
+    let (even, odd) = match stripe.as_ref() {
+        Pattern::Stripe {
+            transform: _,
+            even,
+            odd,
+        } => (*even, *odd),
+        _ => panic!("not a stripe!"),
+    };
+
+    w.patterns.insert(
+        p,
+        Pattern::Stripe {
+            transform,
+            even,
+            odd,
+        }
+        .into(),
+    );
 }

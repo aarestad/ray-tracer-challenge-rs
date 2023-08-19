@@ -33,11 +33,11 @@ pub struct RayTracerWorld {
     pub rays: HashMap<String, Ray>,
     pub transforms: HashMap<String, Transform>,
     pub lights: HashMap<String, PointLight>,
-    pub materials: HashMap<String, Rc<Material>>,
+    pub materials: HashMap<String, Material>,
     pub worlds: HashMap<String, Rc<World>>,
     pub precomps: HashMap<String, Precompute>,
     pub cameras: HashMap<String, Camera>,
-    pub patterns: HashMap<String, Rc<dyn Pattern>>,
+    pub patterns: HashMap<String, Rc<Pattern>>,
 }
 
 // TODO this seems like a job for... a macro!
@@ -124,7 +124,7 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing light {}", light_name))
     }
 
-    pub fn get_material_or_panic(&self, material_name: &String) -> &Rc<Material> {
+    pub fn get_material_or_panic(&self, material_name: &String) -> &Material {
         self.materials
             .get(material_name)
             .unwrap_or_else(|| panic!("missing material {}", material_name))
@@ -148,7 +148,7 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing camera named {}", camera_name))
     }
 
-    pub fn get_pattern_or_panic(&self, pattern_name: &String) -> &Rc<dyn Pattern> {
+    pub fn get_pattern_or_panic(&self, pattern_name: &String) -> &Rc<Pattern> {
         self.patterns
             .get(pattern_name)
             .unwrap_or_else(|| panic!("missing pattern named {}", pattern_name))

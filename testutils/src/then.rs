@@ -53,7 +53,7 @@ fn assert_vector_normalized(world: &mut RayTracerWorld, lhs_name: String, rhs_na
 #[then(regex = r"^(\w+) = material\(\)")]
 fn assert_default_material(world: &mut RayTracerWorld, mat_name: String) {
     let m = world.get_material_or_panic(&mat_name);
-    assert_eq!(m.as_ref(), &Material::default());
+    assert_eq!(m, &Material::default());
 }
 
 #[then(regex = r"^(\w+) = color\((.+), (.+), (.+)\)")]
@@ -335,7 +335,7 @@ fn assert_object_transform_translation(
 #[then(regex = r"^s\.material = material\(\)")]
 fn assert_object_default_material(world: &mut RayTracerWorld) {
     let object = world.get_object_or_panic(&"s".to_string());
-    assert_eq!(object.material().as_ref(), &Material::default());
+    assert_eq!(object.material(), &Material::default());
 }
 
 #[then(regex = r"^s\.material = (\w+)$")]

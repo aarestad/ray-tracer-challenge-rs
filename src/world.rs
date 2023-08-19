@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    color::{Color, BLACK, WHITE},
+    color::{Color, BLACK},
     intersection::{Intersection, Intersections},
     light::PointLight,
     material::{Material, MaterialBuilder},
@@ -165,7 +165,7 @@ mod test {
         light::PointLight,
         material::{Material, MaterialBuilder},
         objects::Object,
-        patterns::TestPattern,
+        patterns::default_test_pattern,
         ray::Ray,
         transforms::{identity, scaling, translation},
         tuple::{Point, Vector},
@@ -178,17 +178,15 @@ mod test {
         let mut w = World::default_world_with_objects(vec![
             Rc::new(Object::Sphere(
                 identity(),
-                Rc::new(
-                    MaterialBuilder::default()
-                        .color(Color::new(0.8, 1., 0.6))
-                        .diffuse(0.7)
-                        .specular(0.2)
-                        .build(),
-                ),
+                MaterialBuilder::default()
+                    .color(Color::new(0.8, 1., 0.6))
+                    .diffuse(0.7)
+                    .specular(0.2)
+                    .build(),
             )),
             Rc::new(Object::Sphere(
                 scaling(0.5, 0.5, 0.5),
-                Rc::new(MaterialBuilder::default().ambient(1.).build()),
+                MaterialBuilder::default().ambient(1.).build(),
             )),
         ]);
 
@@ -208,7 +206,7 @@ mod test {
 
         let s = Rc::new(Object::Plane(
             translation(0., -1., 0.),
-            Rc::new(MaterialBuilder::default().reflective(0.5).build()),
+            MaterialBuilder::default().reflective(0.5).build(),
         ));
 
         w.objects.push(s.clone());
@@ -232,7 +230,7 @@ mod test {
 
         let s = Rc::new(Object::Plane(
             translation(0., -1., 0.),
-            Rc::new(MaterialBuilder::default().reflective(0.5).build()),
+            MaterialBuilder::default().reflective(0.5).build(),
         ));
 
         w.objects.push(s.clone());
@@ -256,22 +254,18 @@ mod test {
 
         let floor = Rc::new(Object::Plane(
             translation(0., -1., 0.),
-            Rc::new(
-                MaterialBuilder::default()
-                    .transparency(0.5)
-                    .refractive(1.5)
-                    .build(),
-            ),
+            MaterialBuilder::default()
+                .transparency(0.5)
+                .refractive(1.5)
+                .build(),
         ));
 
         let ball = Rc::new(Object::Sphere(
             translation(0., -3.5, -0.5),
-            Rc::new(
-                MaterialBuilder::default()
-                    .color(Color::new(1.0, 0.0, 0.0))
-                    .ambient(0.5)
-                    .build(),
-            ),
+            MaterialBuilder::default()
+                .color(Color::new(1.0, 0.0, 0.0))
+                .ambient(0.5)
+                .build(),
         ));
 
         w.objects.push(floor.clone());
@@ -296,23 +290,19 @@ mod test {
 
         let floor = Rc::new(Object::Plane(
             translation(0., -1., 0.),
-            Rc::new(
-                MaterialBuilder::default()
-                    .reflective(0.5)
-                    .transparency(0.5)
-                    .refractive(1.5)
-                    .build(),
-            ),
+            MaterialBuilder::default()
+                .reflective(0.5)
+                .transparency(0.5)
+                .refractive(1.5)
+                .build(),
         ));
 
         let ball = Rc::new(Object::Sphere(
             translation(0., -3.5, -0.5),
-            Rc::new(
-                MaterialBuilder::default()
-                    .color(Color::new(1.0, 0.0, 0.0))
-                    .ambient(0.5)
-                    .build(),
-            ),
+            MaterialBuilder::default()
+                .color(Color::new(1.0, 0.0, 0.0))
+                .ambient(0.5)
+                .build(),
         ));
 
         w.objects.push(floor.clone());
@@ -338,12 +328,12 @@ mod test {
 
         let lower = Rc::new(Object::Plane(
             translation(0., -1., 0.),
-            Rc::new(MaterialBuilder::default().reflective(1.).build()),
+            MaterialBuilder::default().reflective(1.).build(),
         ));
 
         let upper = Rc::new(Object::Plane(
             translation(0., 1., 0.),
-            Rc::new(MaterialBuilder::default().reflective(1.).build()),
+            MaterialBuilder::default().reflective(1.).build(),
         ));
 
         w.objects.push(lower);
@@ -362,7 +352,7 @@ mod test {
 
         let p = Rc::new(Object::Plane(
             translation(0., -1., 0.),
-            Rc::new(MaterialBuilder::default().reflective(0.5).build()),
+            MaterialBuilder::default().reflective(0.5).build(),
         ));
         w.objects.push(p.clone());
 
@@ -397,23 +387,18 @@ mod test {
     fn refracted_color_max_recursion() {
         let shape = Rc::new(Object::Sphere(
             identity(),
-            Rc::new(
-                MaterialBuilder::default()
-                    .color(Color::new(0.8, 1., 0.6))
-                    .diffuse(0.7)
-                    .specular(0.2)
-                    .transparency(1.0)
-                    .refractive(1.5)
-                    .build(),
-            ),
+            MaterialBuilder::default()
+                .color(Color::new(0.8, 1., 0.6))
+                .diffuse(0.7)
+                .specular(0.2)
+                .transparency(1.0)
+                .refractive(1.5)
+                .build(),
         ));
 
         let shapes: Vec<Rc<Object>> = vec![
             shape.clone(),
-            Rc::new(Object::Sphere(
-                scaling(0.5, 0.5, 0.5),
-                Rc::new(Material::default()),
-            )),
+            Rc::new(Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default())),
         ];
 
         let w = World::default_world_with_objects(shapes);
@@ -433,23 +418,18 @@ mod test {
     fn refracted_color_total_internal_refraction() {
         let shape = Rc::new(Object::Sphere(
             identity(),
-            Rc::new(
-                MaterialBuilder::default()
-                    .color(Color::new(0.8, 1., 0.6))
-                    .diffuse(0.7)
-                    .specular(0.2)
-                    .transparency(1.0)
-                    .refractive(1.5)
-                    .build(),
-            ),
+            MaterialBuilder::default()
+                .color(Color::new(0.8, 1., 0.6))
+                .diffuse(0.7)
+                .specular(0.2)
+                .transparency(1.0)
+                .refractive(1.5)
+                .build(),
         ));
 
         let shapes: Vec<Rc<Object>> = vec![
             shape.clone(),
-            Rc::new(Object::Sphere(
-                scaling(0.5, 0.5, 0.5),
-                Rc::new(Material::default()),
-            )),
+            Rc::new(Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default())),
         ];
 
         let w = World::default_world_with_objects(shapes);
@@ -472,25 +452,21 @@ mod test {
     fn refracted_color_refracted_ray() {
         let shape_a = Rc::new(Object::Sphere(
             identity(),
-            Rc::new(
-                MaterialBuilder::default()
-                    .color(Color::new(0.8, 1., 0.6))
-                    .diffuse(0.7)
-                    .specular(0.2)
-                    .ambient(1.0)
-                    .pattern(Rc::new(TestPattern::default()))
-                    .build(),
-            ),
+            MaterialBuilder::default()
+                .color(Color::new(0.8, 1., 0.6))
+                .diffuse(0.7)
+                .specular(0.2)
+                .ambient(1.0)
+                .pattern(default_test_pattern().into())
+                .build(),
         ));
 
         let shape_b = Rc::new(Object::Sphere(
             scaling(0.5, 0.5, 0.5),
-            Rc::new(
-                MaterialBuilder::default()
-                    .transparency(1.0)
-                    .refractive(1.5)
-                    .build(),
-            ),
+            MaterialBuilder::default()
+                .transparency(1.0)
+                .refractive(1.5)
+                .build(),
         ));
 
         let shapes: Vec<Rc<Object>> = vec![shape_a.clone(), shape_b.clone()];

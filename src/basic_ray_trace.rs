@@ -10,7 +10,7 @@ use crate::color::{Color, WHITE};
 use crate::light::PointLight;
 use crate::material::MaterialBuilder;
 use crate::objects::Object;
-use crate::patterns::{Gradient, Stripe};
+use crate::patterns::Pattern;
 use crate::ray::Ray;
 use crate::transforms::{identity, scaling, translation, Transform};
 use crate::tuple::{Point, Vector};
@@ -67,29 +67,28 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
 }
 
 pub fn chapter_7_scene(filename: &Path) -> Result<()> {
+    let gradient = Pattern::Gradient {
+        transform: identity(),
+        start: Color::new(1., 0., 0.),
+        end: WHITE,
+    };
+
     let floor = Object::Plane(
         identity(),
-        Rc::new(
-            MaterialBuilder::default()
-                .pattern(Rc::new(Gradient::new(
-                    Color::new(1., 0., 0.),
-                    WHITE,
-                    identity(),
-                )))
-                .specular(0.)
-                .reflective(0.5)
-                .build(),
-        ),
+        MaterialBuilder::default().pattern(gradient).build().into(),
     );
 
     let middle_sphere = Object::Sphere(
         translation(-0.5, 1., 0.5),
         MaterialBuilder::default()
-            .pattern(Rc::new(Stripe::new(
-                Color::new(1., 0., 0.),
-                WHITE,
-                identity(),
-            )))
+            .pattern(
+                Pattern::Stripe {
+                    transform: identity(),
+                    even: Color::new(1., 0., 0.),
+                    odd: WHITE,
+                }
+                .into(),
+            )
             .diffuse(0.7)
             .specular(0.3)
             .reflective(0.8)
@@ -100,11 +99,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
     let right_sphere = Object::Sphere(
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
         MaterialBuilder::default()
-            .pattern(Rc::new(Gradient::new(
-                Color::new(1., 0., 0.),
-                WHITE,
-                identity(),
-            )))
+            .pattern(gradient)
             .diffuse(0.7)
             .specular(0.3)
             .reflective(1.)

@@ -4,7 +4,7 @@ use crate::{
     color::{Color, BLACK},
     light::PointLight,
     objects::Object,
-    patterns::{Pattern, Solid},
+    patterns::Pattern,
     tuple::{Point, Vector},
     util::RayTracerFloat,
 };
@@ -16,7 +16,7 @@ const REFRAC_GLASS: RayTracerFloat = 1.52;
 const REFRAC_DIAMOND: RayTracerFloat = 2.417;
 
 pub struct MaterialBuilder {
-    pattern: Rc<dyn Pattern>,
+    pattern: Pattern,
     ambient: RayTracerFloat,
     diffuse: RayTracerFloat,
     specular: RayTracerFloat,
@@ -29,7 +29,7 @@ pub struct MaterialBuilder {
 impl Default for MaterialBuilder {
     fn default() -> Self {
         Self {
-            pattern: Rc::new(Solid::new(Color::new(1., 1., 1.))),
+            pattern: Pattern::Solid(Color::new(1., 1., 1.)),
             ambient: 0.1,
             diffuse: 0.9,
             specular: 0.9,
@@ -43,11 +43,11 @@ impl Default for MaterialBuilder {
 
 impl MaterialBuilder {
     pub fn color(mut self, c: Color) -> Self {
-        self.pattern = Rc::new(Solid::new(c));
+        self.pattern = Pattern::Solid(c);
         self
     }
 
-    pub fn pattern(mut self, p: Rc<dyn Pattern>) -> Self {
+    pub fn pattern(mut self, p: Pattern) -> Self {
         self.pattern = p;
         self
     }
@@ -101,9 +101,9 @@ impl MaterialBuilder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Material {
-    pub pattern: Rc<dyn Pattern>,
+    pub pattern: Pattern,
     pub ambient: RayTracerFloat,
     pub diffuse: RayTracerFloat,
     pub specular: RayTracerFloat,
@@ -113,19 +113,6 @@ pub struct Material {
     pub refractive: RayTracerFloat,
 }
 
-impl PartialEq for Material {
-    fn eq(&self, other: &Self) -> bool {
-        // FIXME equate patterns as well!
-        self.ambient == other.ambient
-            && self.diffuse == other.diffuse
-            && self.specular == other.specular
-            && self.shininess == other.shininess
-            && self.reflective == other.reflective
-            && self.transparency == other.transparency
-            && self.refractive == other.refractive
-    }
-}
-
 impl Default for Material {
     fn default() -> Self {
         MaterialBuilder::default().build()
@@ -133,9 +120,9 @@ impl Default for Material {
 }
 
 impl Material {
-    pub fn from(other: &Rc<Material>) -> Self {
+    pub fn from(other: &Material) -> Self {
         Self {
-            pattern: other.pattern.clone(),
+            pattern: other.pattern,
             ambient: other.ambient,
             diffuse: other.diffuse,
             specular: other.specular,
