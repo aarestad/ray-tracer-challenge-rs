@@ -27,10 +27,10 @@ fn main() {
     let mut tests: Vec<String> = vec![];
 
     let opts = Opts::<_, _, _, CustomOpts>::parsed();
-    let tests_opt = opts.custom.rt_tests.clone();
+    let tests_opt = opts.custom.rt_tests.clone().unwrap_or_default();
 
-    if let Some(tests_str) = tests_opt {
-        tests.extend(tests_str.split(',').map(|s| s.to_string()));
+    if tests_opt != String::default() {
+        tests.extend(tests_opt.split(',').map(|s| s.to_string()));
     } else {
         tests.extend(ALL_TESTS.iter().map(|s| s.to_string()));
     }

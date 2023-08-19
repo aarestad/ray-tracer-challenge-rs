@@ -8,6 +8,7 @@
     "eyev",
     "normalv",
     "reflectv",
-    "schlick"
+    "schlick",
+    "testutils"
   ]
 }
