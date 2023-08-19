@@ -16,6 +16,7 @@ pub struct Precompute {
     pub reflectv: Vector,
     pub inside: bool,
     pub over_point: Point,
+    pub under_point: Point,
     pub n1: RayTracerFloat,
     pub n2: RayTracerFloat,
 }
@@ -23,24 +24,26 @@ pub struct Precompute {
 impl Precompute {
     pub fn new(
         i: Rc<Intersection>,
-        p: Point,
-        e: Vector,
-        n: Vector,
-        r: Vector,
+        point: Point,
+        eyev: Vector,
+        normalv: Vector,
+        reflectv: Vector,
         inside: bool,
         over_point: Point,
+        under_point: Point,
         n1: RayTracerFloat,
         n2: RayTracerFloat,
     ) -> Self {
         Self {
             t: i.t,
             object: i.object.clone(),
-            point: p,
-            eyev: e,
-            normalv: n,
-            reflectv: r,
+            point,
+            eyev,
+            normalv,
+            reflectv,
             inside,
             over_point,
+            under_point,
             n1,
             n2,
         }
@@ -76,6 +79,7 @@ impl Intersection {
         let normalv = self.object.normal_at(world_point);
         let inside = normalv.dot(&eyev) < 0.;
         let over_point = world_point + normalv * EPSILON;
+        let under_point = world_point - (if inside { -normalv } else { normalv }) * EPSILON;
         let reflectv = r.direction.reflect(&normalv);
 
         let mut containers: Vec<Rc<dyn Object>> = vec![];
@@ -119,6 +123,7 @@ impl Intersection {
             reflectv,
             inside,
             over_point,
+            under_point,
             n1,
             n2,
         )
@@ -168,7 +173,7 @@ mod test {
         ray::Ray,
         transforms::{scaling, translation},
         tuple::{Point, Vector},
-        util::RayTracerFloat,
+        util::{RayTracerFloat, EPSILON},
     };
 
     use super::{Intersection, Intersections};
@@ -219,5 +224,18 @@ mod test {
             assert_abs_diff_eq!(comps.n1, example.1);
             assert_abs_diff_eq!(comps.n2, example.2);
         }
+    }
+
+    #[test]
+    fn precompute_under_point() {
+        let r = Ray::new(Point::point(0., 0., -5.), Vector::vector(0., 0., 1.));
+        let shape = Rc::new(custom_glass_sphere(translation(0., 0., -0.25), 2.0));
+        let i = Rc::new(Intersection::new(5.0, shape));
+        let xs = Intersections::new(vec![i.clone()]);
+        let comps = i.precompute_with(&r, xs.into());
+        println!("z={}", comps.under_point.z());
+        println!("epsilon/2={}", EPSILON / 2.);
+        assert!(comps.under_point.z() > EPSILON / 2.);
+        assert!(comps.point.z() < comps.under_point.z());
     }
 }
