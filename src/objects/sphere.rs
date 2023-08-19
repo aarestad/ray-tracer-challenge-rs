@@ -1,15 +1,16 @@
 use crate::intersection::{Intersection, Intersections};
-use crate::material::Material;
+use crate::material::{Material, MaterialBuilder};
 use crate::ray::Ray;
 use crate::transforms::{identity, Transform};
 use crate::tuple::{Point, Vector};
+use crate::util::RayTracerFloat;
 use std::default::Default;
 use std::fmt::Debug;
 use std::rc::Rc;
 
 use super::{Object, ObjectProps, PrivateObject};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Sphere(ObjectProps);
 
 impl Default for Sphere {
@@ -53,6 +54,10 @@ impl Object for Sphere {
         })
     }
 
+    fn props(&self) -> &ObjectProps {
+        &self.0
+    }
+
     fn as_sphere(&self) -> &Sphere {
         self
     }
@@ -63,5 +68,33 @@ impl Object for Sphere {
 
     fn material(&self) -> &Rc<Material> {
         &self.0.material
+    }
+}
+
+pub fn glass_sphere() -> Sphere {
+    custom_glass_sphere(identity(), 1.5)
+}
+
+pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> Sphere {
+    Sphere::new(
+        transform,
+        Rc::new(
+            MaterialBuilder::default()
+                .transparency(1.0)
+                .refractive(refractive)
+                .build(),
+        ),
+    )
+}
+
+#[cfg(test)]
+mod test {
+    use super::{glass_sphere, Object};
+
+    #[test]
+    fn glass_sphere_properties() {
+        let gs = glass_sphere();
+        assert_eq!(gs.material().transparency, 1.0);
+        assert_eq!(gs.material().refractive, 1.5);
     }
 }

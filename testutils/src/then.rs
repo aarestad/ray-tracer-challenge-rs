@@ -138,7 +138,7 @@ fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, pro
         "t" => {
             let i_name = prop_expr.split('.').next().unwrap();
             let i = world.get_optional_int(&i_name.to_string()).unwrap();
-            assert_eq!(pc.intersection.t, i.t);
+            assert_eq!(pc.t, i.t);
         }
         "object" => {
             let i_name = prop_expr.split('.').next().unwrap();

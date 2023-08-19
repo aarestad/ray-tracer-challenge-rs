@@ -11,7 +11,7 @@ mod sphere;
 mod test_shape;
 
 pub use plane::Plane;
-pub use sphere::Sphere;
+pub use sphere::{custom_glass_sphere, Sphere};
 pub use test_shape::TestShape;
 
 use self::internal::PrivateObject;
@@ -38,6 +38,8 @@ pub trait Object: Debug + PrivateObject {
 
     fn material(&self) -> &Rc<Material>;
 
+    fn props(&self) -> &ObjectProps;
+
     fn intersections(self: Rc<Self>, ray: &Ray) -> Intersections {
         let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
         self.local_intersect(&local_ray)
@@ -50,6 +52,12 @@ pub trait Object: Debug + PrivateObject {
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
 
         world_normal.normalize()
+    }
+}
+
+impl PartialEq for dyn Object {
+    fn eq(&self, other: &Self) -> bool {
+        self.props() == other.props()
     }
 }
 
@@ -68,7 +76,7 @@ mod internal {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ObjectProps {
     transform: Transform,
     material: Rc<Material>,

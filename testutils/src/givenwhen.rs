@@ -8,7 +8,7 @@ use ray_tracer_challenge_rs::{
     camera::Camera,
     canvas::Canvas,
     color::{Color, BLACK, WHITE},
-    intersection::Intersection,
+    intersection::{Intersection, Intersections},
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{Object, Plane, Sphere, TestShape},
@@ -551,7 +551,11 @@ fn when_ray_intersects_world(world: &mut RayTracerWorld, ints: String, w: String
 fn when_precomputing(world: &mut RayTracerWorld, pc: String, i: String, r: String) {
     let int = world.get_optional_int(&i).unwrap();
     let ray = world.get_ray_or_panic(&r);
-    world.precomps.insert(pc, int.precompute_with(ray));
+    world.precomps.insert(
+        pc,
+        int.clone()
+            .precompute_with(ray, Rc::new(Intersections::new(vec![int.clone()]))),
+    );
 }
 
 #[given(expr = r"{word} ← shade_hit\({word}, {word}\)")]

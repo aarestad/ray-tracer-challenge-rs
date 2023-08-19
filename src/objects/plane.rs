@@ -11,7 +11,7 @@ use crate::{
 
 use super::{Object, ObjectProps, PrivateObject};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Plane(ObjectProps);
 
 impl Default for Plane {
@@ -49,6 +49,10 @@ impl Object for Plane {
 
     fn as_plane(&self) -> &Plane {
         self
+    }
+
+    fn props(&self) -> &ObjectProps {
+        &self.0
     }
 
     fn transform(&self) -> &Transform {

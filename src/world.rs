@@ -85,8 +85,8 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: &Precompute, remaining: usize) -> Color {
-        let surface = comps.intersection.object.material().lighting(
-            comps.intersection.object.as_ref(),
+        let surface = comps.object.material().lighting(
+            comps.object.as_ref(),
             self.light_source,
             comps.point,
             comps.eyev,
@@ -99,15 +99,17 @@ impl World {
     }
 
     pub fn color_at(&self, ray: &Ray, remaining: usize) -> Color {
-        if let Some(hit) = self.intersects_with(ray).hit() {
-            self.shade_hit(&hit.precompute_with(ray), remaining)
+        let xs = self.intersects_with(ray);
+
+        if let Some(hit) = xs.clone().hit() {
+            self.shade_hit(&hit.precompute_with(ray, xs.clone()), remaining)
         } else {
             BLACK
         }
     }
 
     pub fn reflected_color_at(&self, comps: &Precompute, remaining: usize) -> Color {
-        let reflective = comps.intersection.object.material().reflective;
+        let reflective = comps.object.material().reflective;
 
         if reflective == 0. || remaining == 0 {
             return BLACK;
@@ -129,14 +131,14 @@ impl World {
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
     use std::{f64::consts::SQRT_2, rc::Rc};
 
     use approx::assert_abs_diff_eq;
 
     use crate::{
         color::{Color, BLACK, WHITE},
-        intersection::Intersection,
+        intersection::{Intersection, Intersections},
         light::PointLight,
         material::MaterialBuilder,
         objects::{Object, Plane, Sphere},
@@ -169,7 +171,9 @@ mod tests {
         let i = Rc::new(Intersection::new(1., w.objects()[1].clone()));
 
         let r = Ray::new(Point::point(0., 0., 0.), Vector::vector(0., 0., 1.));
-        let comps = i.precompute_with(&r);
+        let comps = i
+            .clone()
+            .precompute_with(&r, Rc::new(Intersections::new(vec![i])));
         let color = w.reflected_color_at(&comps, 1);
         assert_eq!(color, BLACK);
     }
@@ -191,7 +195,9 @@ mod tests {
         );
 
         let i = Rc::new(Intersection::new(SQRT_2, s.clone()));
-        let comps = i.precompute_with(&r);
+        let comps = i
+            .clone()
+            .precompute_with(&r, Rc::new(Intersections::new(vec![i])));
         let color = w.reflected_color_at(&comps, 1);
         assert_abs_diff_eq!(color, Color::new(0.19032, 0.2379, 0.14274));
     }
@@ -213,7 +219,9 @@ mod tests {
         );
 
         let i = Rc::new(Intersection::new(SQRT_2, s.clone()));
-        let comps = i.precompute_with(&r);
+        let comps = i
+            .clone()
+            .precompute_with(&r, Rc::new(Intersections::new(vec![i])));
         let color = w.shade_hit(&comps, 1);
         assert_abs_diff_eq!(color, Color::new(0.87677, 0.92436, 0.82918));
     }
@@ -238,7 +246,7 @@ mod tests {
 
         let r = Ray::new(Point::point(0., 0., 0.), Vector::vector(0., 1., 0.));
 
-        // this should terminate at some point...
+        // this should terminate
         let c = w.color_at(&r, 1);
         println!("{:?}", c);
     }
@@ -259,7 +267,9 @@ mod tests {
         );
 
         let i = Rc::new(Intersection::new(SQRT_2, p.clone()));
-        let comps = i.precompute_with(&r);
+        let comps = i
+            .clone()
+            .precompute_with(&r, Rc::new(Intersections::new(vec![i])));
         let color = w.reflected_color_at(&comps, 0);
         assert_abs_diff_eq!(color, BLACK);
     }

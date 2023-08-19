@@ -78,6 +78,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
                     identity(),
                 )))
                 .specular(0.)
+                .reflective(0.5)
                 .build(),
         ),
     );
@@ -93,6 +94,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
                 )))
                 .diffuse(0.7)
                 .specular(0.3)
+                .reflective(0.8)
                 .build(),
         ),
     );
@@ -108,6 +110,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
                 )))
                 .diffuse(0.7)
                 .specular(0.3)
+                .reflective(1.)
                 .build(),
         ),
     );

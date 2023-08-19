@@ -10,7 +10,7 @@ use crate::{
 
 use super::{Object, ObjectProps, PrivateObject};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct TestShape(ObjectProps);
 
 impl PrivateObject for TestShape {
@@ -29,6 +29,10 @@ impl Object for TestShape {
             transform,
             material,
         })
+    }
+
+    fn props(&self) -> &ObjectProps {
+        &self.0
     }
 
     fn as_test_shape(&self) -> &TestShape {
