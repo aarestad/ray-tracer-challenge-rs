@@ -98,7 +98,14 @@ impl World {
         let reflected = self.reflected_color_at(comps, remaining);
         let refracted = self.refracted_color_at(comps, remaining);
 
-        surface + reflected + refracted
+        let mat = comps.object.material();
+
+        if mat.reflective > 0. && mat.transparency > 0. {
+            let reflectance = comps.schlick();
+            surface + (reflected * reflectance) + (refracted * (1.0 - reflectance))
+        } else {
+            surface + reflected + refracted
+        }
     }
 
     pub fn color_at(&self, ray: &Ray, remaining: usize) -> Color {
@@ -283,6 +290,47 @@ mod test {
         assert_abs_diff_eq!(
             w.shade_hit(&comps, 5),
             Color::new(0.93642, 0.68642, 0.68642)
+        );
+    }
+
+    #[test]
+    fn shade_hit_transparent_and_reflective_mat() {
+        let mut w = World::default_world();
+
+        let floor = Rc::new(Plane::new(
+            translation(0., -1., 0.),
+            Rc::new(
+                MaterialBuilder::default()
+                    .reflective(0.5)
+                    .transparency(0.5)
+                    .refractive(1.5)
+                    .build(),
+            ),
+        ));
+
+        let ball = Rc::new(Sphere::new(
+            translation(0., -3.5, -0.5),
+            Rc::new(
+                MaterialBuilder::default()
+                    .color(Color::new(1.0, 0.0, 0.0))
+                    .ambient(0.5)
+                    .build(),
+            ),
+        ));
+
+        w.objects.push(floor.clone());
+        w.objects.push(ball);
+
+        let r = Ray::new(
+            Point::point(0., 0., -3.),
+            Vector::vector(0., -SQRT_2 / 2., SQRT_2 / 2.),
+        );
+
+        let xs = Intersections::new(vec![Intersection::new(SQRT_2, floor).into()]);
+        let comps = xs.ints()[0].clone().precompute_with(&r, xs.into());
+        assert_abs_diff_eq!(
+            w.shade_hit(&comps, 5),
+            Color::new(0.93391, 0.69643, 0.69243)
         );
     }
 
