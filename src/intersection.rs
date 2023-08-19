@@ -87,8 +87,6 @@ impl Intersection {
             let is_hit = self.as_ref() == i.as_ref();
 
             if is_hit {
-                println!("hit found at t={}", i.t);
-
                 if containers.is_empty() {
                     n1 = 1.0;
                 } else {
@@ -97,14 +95,10 @@ impl Intersection {
             }
 
             if containers.contains(&i.object) {
-                println!("removing object at t={}", &i.t);
                 containers.retain(|o| o.as_ref() != i.object.as_ref());
             } else {
-                println!("adding object at t={}", &i.t);
                 containers.push(i.object.clone());
             }
-
-            println!("containers={:?}", containers);
 
             if is_hit {
                 if containers.is_empty() {
