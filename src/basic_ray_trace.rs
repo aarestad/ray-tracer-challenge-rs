@@ -35,8 +35,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
             .color(Color::new(1., 0.2, 1.))
             .diffuse(0.9)
             .specular(0.9)
-            .build()
-            .into(),
+            .build(),
     ));
 
     for y in 0..canvas_pixels {
@@ -75,7 +74,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
 
     let floor = Object::Plane(
         identity(),
-        MaterialBuilder::default().pattern(gradient).build().into(),
+        MaterialBuilder::default().pattern(gradient).build(),
     );
 
     let middle_sphere = Object::Sphere(
@@ -92,8 +91,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
             .diffuse(0.7)
             .specular(0.3)
             .reflective(0.8)
-            .build()
-            .into(),
+            .build(),
     );
 
     let right_sphere = Object::Sphere(
@@ -103,8 +101,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
             .diffuse(0.7)
             .specular(0.3)
             .reflective(1.)
-            .build()
-            .into(),
+            .build(),
     );
 
     let left_sphere = Object::Sphere(
@@ -113,8 +110,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
             .color(Color::new(1., 0.8, 0.1))
             .diffuse(0.7)
             .specular(0.3)
-            .build()
-            .into(),
+            .build(),
     );
 
     let light = PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.));

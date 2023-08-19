@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::{
     color::{Color, BLACK},
     light::PointLight,

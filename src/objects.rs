@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Object {
-    TestShape(Transform, Material),
+    Test(Transform, Material),
     Plane(Transform, Material),
     Sphere(Transform, Material),
     Cube(Transform, Material),
@@ -18,16 +18,16 @@ pub enum Object {
 impl Object {
     pub fn transform(&self) -> &Transform {
         match self {
-            Object::TestShape(t, _) => &t,
-            Object::Plane(t, _) => &t,
-            Object::Sphere(t, _) => &t,
-            Object::Cube(t, _) => &t,
+            Object::Test(t, _) => t,
+            Object::Plane(t, _) => t,
+            Object::Sphere(t, _) => t,
+            Object::Cube(t, _) => t,
         }
     }
 
     pub fn material(&self) -> &Material {
         match self {
-            Object::TestShape(_, m) => m,
+            Object::Test(_, m) => m,
             Object::Plane(_, m) => m,
             Object::Sphere(_, m) => m,
             Object::Cube(_, m) => m,
@@ -38,7 +38,7 @@ impl Object {
         let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
 
         match self.as_ref() {
-            Object::TestShape(_, _) => Intersections::empty(),
+            Object::Test(_, _) => Intersections::empty(),
             Object::Plane(_, _) => {
                 if local_ray.direction.y().abs() < EPSILON {
                     return Intersections::empty();
@@ -74,7 +74,7 @@ impl Object {
         let local_point = p.transform(inverse);
 
         let local_normal = match self {
-            Object::TestShape(_, _) => local_point.to_vector(),
+            Object::Test(_, _) => local_point.to_vector(),
             Object::Plane(_, _) => Vector::vector(0., 1., 0.),
             Object::Sphere(_, _) => local_point - Point::origin(),
             Object::Cube(_, _) => todo!(),
@@ -88,15 +88,15 @@ impl Object {
 
 // TODO cfg(test)
 pub fn default_test_shape() -> Object {
-    Object::TestShape(identity(), Material::default().into())
+    Object::Test(identity(), Material::default())
 }
 
 pub fn default_sphere() -> Object {
-    Object::Sphere(identity(), Material::default().into())
+    Object::Sphere(identity(), Material::default())
 }
 
 pub fn default_plane() -> Object {
-    Object::Plane(identity(), Material::default().into())
+    Object::Plane(identity(), Material::default())
 }
 
 pub fn glass_sphere() -> Object {
@@ -109,8 +109,7 @@ pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> 
         MaterialBuilder::default()
             .transparency(1.0)
             .refractive(refractive)
-            .build()
-            .into(),
+            .build(),
     )
 }
 

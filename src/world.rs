@@ -35,11 +35,10 @@ impl World {
                         .color(Color::new(0.8, 1., 0.6))
                         .diffuse(0.7)
                         .specular(0.2)
-                        .build()
-                        .into(),
+                        .build(),
                 )
                 .into(),
-                Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default().into()).into(),
+                Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default()).into(),
             ],
             PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )

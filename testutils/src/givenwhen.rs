@@ -623,7 +623,7 @@ fn given_a_test_shape_translation(
 ) {
     world.objects.insert(
         s,
-        Rc::new(Object::TestShape(translation(x, y, z), Material::default())),
+        Rc::new(Object::Test(translation(x, y, z), Material::default())),
     );
 }
 
@@ -637,7 +637,7 @@ fn given_a_test_shape_scaling(
 ) {
     world.objects.insert(
         s,
-        Rc::new(Object::TestShape(scaling(x, y, z), Material::default())),
+        Rc::new(Object::Test(scaling(x, y, z), Material::default())),
     );
 }
 
@@ -645,7 +645,7 @@ fn given_a_test_shape_scaling(
 fn given_arbitrary_test_shape(world: &mut RayTracerWorld) {
     world.objects.insert(
         "s".to_string(),
-        Rc::new(Object::TestShape(
+        Rc::new(Object::Test(
             scaling(1., 0.5, 1.) * rotation(RotationAxis::Z, 0.628318),
             Material::default(),
         )),
@@ -658,7 +658,7 @@ fn given_a_test_shape_named_mat(world: &mut RayTracerWorld, s: String, m: String
 
     world
         .objects
-        .insert(s, Rc::new(Object::TestShape(identity(), material.clone())));
+        .insert(s, Rc::new(Object::Test(identity(), material.clone())));
 }
 
 #[given(expr = r"{word} ← plane\(\)")]

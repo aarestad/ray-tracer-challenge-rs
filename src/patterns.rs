@@ -9,7 +9,7 @@ use crate::{
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Pattern {
-    TestPattern(Transform),
+    Test(Transform),
     Stripe {
         transform: Transform,
         even: Color,
@@ -36,7 +36,7 @@ pub enum Pattern {
 impl Pattern {
     fn transform(&self) -> Option<&Transform> {
         match self {
-            Pattern::TestPattern(t) => Some(t),
+            Pattern::Test(t) => Some(t),
             Pattern::Stripe { transform, .. } => Some(transform),
             Pattern::Ring { transform, .. } => Some(transform),
             Pattern::Gradient { transform, .. } => Some(transform),
@@ -57,7 +57,7 @@ impl Pattern {
         );
 
         match self {
-            Pattern::TestPattern(_) =>
+            Pattern::Test(_) =>
             // to test that the transformation is being applied
             {
                 Color::new(p.x(), p.y(), p.z())
@@ -111,7 +111,7 @@ impl Pattern {
 
 #[cfg(test)]
 pub fn default_test_pattern() -> Pattern {
-    Pattern::TestPattern(identity())
+    Pattern::Test(identity())
 }
 
 #[cfg(test)]
@@ -130,7 +130,7 @@ mod test {
 
     #[test]
     fn pattern_with_object_transform() {
-        let p = Pattern::TestPattern(identity());
+        let p = Pattern::Test(identity());
 
         let s = Object::Sphere(
             scaling(2., 2., 2.),
@@ -144,7 +144,7 @@ mod test {
 
     #[test]
     fn pattern_with_pattern_transform() {
-        let p = Pattern::TestPattern(scaling(2., 2., 2.));
+        let p = Pattern::Test(scaling(2., 2., 2.));
 
         let s = Object::Sphere(identity(), MaterialBuilder::default().pattern(p).build());
 
@@ -155,7 +155,7 @@ mod test {
 
     #[test]
     fn pattern_with_object_and_pattern_transform() {
-        let p = Pattern::TestPattern(translation(0.5, 1., 1.5));
+        let p = Pattern::Test(translation(0.5, 1., 1.5));
 
         let s = Object::Sphere(
             scaling(2., 2., 2.),

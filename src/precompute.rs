@@ -23,6 +23,7 @@ pub struct Precompute {
 }
 
 impl Precompute {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         i: Rc<Intersection>,
         point: Point,
