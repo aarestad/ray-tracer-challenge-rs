@@ -10,7 +10,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Precompute {
     pub t: RayTracerFloat,
-    pub object: Rc<dyn Object>,
+    pub object: Rc<Object>,
     pub point: Point,
     pub eyev: Vector,
     pub normalv: Vector,

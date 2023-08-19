@@ -43,7 +43,7 @@ mod test {
     use crate::{
         color::Color,
         material::MaterialBuilder,
-        objects::{Object, Sphere},
+        objects::Object,
         transforms::{identity, scaling, translation},
         tuple::Point,
     };
@@ -54,7 +54,7 @@ mod test {
     fn pattern_with_object_transform() {
         let p = TestPattern::new(identity());
 
-        let s = Sphere::new(
+        let s = Object::Sphere(
             scaling(2., 2., 2.),
             Rc::new(MaterialBuilder::default().pattern(Rc::new(p)).build()),
         );
@@ -68,7 +68,7 @@ mod test {
     fn pattern_with_pattern_transform() {
         let p = TestPattern::new(scaling(2., 2., 2.));
 
-        let s = Sphere::new(
+        let s = Object::Sphere(
             identity(),
             Rc::new(MaterialBuilder::default().pattern(Rc::new(p)).build()),
         );
@@ -82,7 +82,7 @@ mod test {
     fn pattern_with_object_and_pattern_transform() {
         let p = TestPattern::new(translation(0.5, 1., 1.5));
 
-        let s = Sphere::new(
+        let s = Object::Sphere(
             scaling(2., 2., 2.),
             Rc::new(MaterialBuilder::default().pattern(Rc::new(p)).build()),
         );

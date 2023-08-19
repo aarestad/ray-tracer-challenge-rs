@@ -24,7 +24,7 @@ pub struct RayTracerWorld {
     pub canvases: HashMap<String, Canvas>,
     pub colors: HashMap<String, Color>,
     pub ppms: HashMap<String, Ppm>,
-    pub objects: HashMap<String, Rc<dyn Object>>,
+    pub objects: HashMap<String, Rc<Object>>,
     pub intersections: HashMap<String, Rc<Intersection>>,
     // lol
     pub intersectionses: HashMap<String, Rc<Intersections>>,
@@ -66,7 +66,7 @@ impl RayTracerWorld {
             .unwrap_or_else(|| panic!("missing PPM named {}", ppm_name))
     }
 
-    pub fn get_object_or_panic(&self, object_name: &String) -> &Rc<dyn Object> {
+    pub fn get_object_or_panic(&self, object_name: &String) -> &Rc<Object> {
         self.objects
             .get(object_name)
             .unwrap_or_else(|| panic!("missing object named {}", object_name))

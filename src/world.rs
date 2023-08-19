@@ -5,7 +5,7 @@ use crate::{
     intersection::{Intersection, Intersections},
     light::PointLight,
     material::{Material, MaterialBuilder},
-    objects::{Object, Sphere},
+    objects::Object,
     precompute::Precompute,
     ray::Ray,
     transforms::{identity, scaling},
@@ -14,12 +14,12 @@ use crate::{
 
 #[derive(Debug, Default)]
 pub struct World {
-    pub objects: Vec<Rc<dyn Object>>,
+    pub objects: Vec<Rc<Object>>,
     pub light_source: PointLight,
 }
 
 impl World {
-    pub fn new(objects: Vec<Rc<dyn Object>>, light_source: PointLight) -> Self {
+    pub fn new(objects: Vec<Rc<Object>>, light_source: PointLight) -> Self {
         Self {
             objects,
             light_source,
@@ -29,26 +29,23 @@ impl World {
     pub fn default_world() -> Self {
         World::new(
             vec![
-                Rc::new(Sphere::new(
+                Object::Sphere(
                     identity(),
-                    Rc::new(
-                        MaterialBuilder::default()
-                            .color(Color::new(0.8, 1., 0.6))
-                            .diffuse(0.7)
-                            .specular(0.2)
-                            .build(),
-                    ),
-                )),
-                Rc::new(Sphere::new(
-                    scaling(0.5, 0.5, 0.5),
-                    Rc::new(Material::default()),
-                )),
+                    MaterialBuilder::default()
+                        .color(Color::new(0.8, 1., 0.6))
+                        .diffuse(0.7)
+                        .specular(0.2)
+                        .build()
+                        .into(),
+                )
+                .into(),
+                Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default().into()).into(),
             ],
             PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )
     }
 
-    pub fn default_world_with_objects(objects: Vec<Rc<dyn Object>>) -> Self {
+    pub fn default_world_with_objects(objects: Vec<Rc<Object>>) -> Self {
         let mut w = Self::default_world();
         w.objects = objects;
         w
@@ -151,7 +148,7 @@ impl World {
     }
 
     #[cfg(test)]
-    fn objects(&mut self) -> &mut Vec<Rc<dyn Object>> {
+    fn objects(&mut self) -> &mut Vec<Rc<Object>> {
         &mut self.objects
     }
 }
@@ -167,7 +164,7 @@ mod test {
         intersection::{Intersection, Intersections},
         light::PointLight,
         material::{Material, MaterialBuilder},
-        objects::{Object, Plane, Sphere},
+        objects::Object,
         patterns::TestPattern,
         ray::Ray,
         transforms::{identity, scaling, translation},
@@ -179,7 +176,7 @@ mod test {
     #[test]
     fn reflected_color_nonreflective_mat() {
         let mut w = World::default_world_with_objects(vec![
-            Rc::new(Sphere::new(
+            Rc::new(Object::Sphere(
                 identity(),
                 Rc::new(
                     MaterialBuilder::default()
@@ -189,7 +186,7 @@ mod test {
                         .build(),
                 ),
             )),
-            Rc::new(Sphere::new(
+            Rc::new(Object::Sphere(
                 scaling(0.5, 0.5, 0.5),
                 Rc::new(MaterialBuilder::default().ambient(1.).build()),
             )),
@@ -209,7 +206,7 @@ mod test {
     fn reflected_color_reflective_mat() {
         let mut w = World::default_world();
 
-        let s = Rc::new(Plane::new(
+        let s = Rc::new(Object::Plane(
             translation(0., -1., 0.),
             Rc::new(MaterialBuilder::default().reflective(0.5).build()),
         ));
@@ -233,7 +230,7 @@ mod test {
     fn shade_hit_reflective_mat() {
         let mut w = World::default_world();
 
-        let s = Rc::new(Plane::new(
+        let s = Rc::new(Object::Plane(
             translation(0., -1., 0.),
             Rc::new(MaterialBuilder::default().reflective(0.5).build()),
         ));
@@ -257,7 +254,7 @@ mod test {
     fn shade_hit_transparent_mat() {
         let mut w = World::default_world();
 
-        let floor = Rc::new(Plane::new(
+        let floor = Rc::new(Object::Plane(
             translation(0., -1., 0.),
             Rc::new(
                 MaterialBuilder::default()
@@ -267,7 +264,7 @@ mod test {
             ),
         ));
 
-        let ball = Rc::new(Sphere::new(
+        let ball = Rc::new(Object::Sphere(
             translation(0., -3.5, -0.5),
             Rc::new(
                 MaterialBuilder::default()
@@ -297,7 +294,7 @@ mod test {
     fn shade_hit_transparent_and_reflective_mat() {
         let mut w = World::default_world();
 
-        let floor = Rc::new(Plane::new(
+        let floor = Rc::new(Object::Plane(
             translation(0., -1., 0.),
             Rc::new(
                 MaterialBuilder::default()
@@ -308,7 +305,7 @@ mod test {
             ),
         ));
 
-        let ball = Rc::new(Sphere::new(
+        let ball = Rc::new(Object::Sphere(
             translation(0., -3.5, -0.5),
             Rc::new(
                 MaterialBuilder::default()
@@ -339,12 +336,12 @@ mod test {
         let mut w = World::default_world();
         w.light_source = PointLight::new(Point::point(0., 0., 0.), WHITE);
 
-        let lower = Rc::new(Plane::new(
+        let lower = Rc::new(Object::Plane(
             translation(0., -1., 0.),
             Rc::new(MaterialBuilder::default().reflective(1.).build()),
         ));
 
-        let upper = Rc::new(Plane::new(
+        let upper = Rc::new(Object::Plane(
             translation(0., 1., 0.),
             Rc::new(MaterialBuilder::default().reflective(1.).build()),
         ));
@@ -363,7 +360,7 @@ mod test {
     fn reflected_color_max_recursion() {
         let mut w = World::default_world();
 
-        let p = Rc::new(Plane::new(
+        let p = Rc::new(Object::Plane(
             translation(0., -1., 0.),
             Rc::new(MaterialBuilder::default().reflective(0.5).build()),
         ));
@@ -398,7 +395,7 @@ mod test {
 
     #[test]
     fn refracted_color_max_recursion() {
-        let shape = Rc::new(Sphere::new(
+        let shape = Rc::new(Object::Sphere(
             identity(),
             Rc::new(
                 MaterialBuilder::default()
@@ -411,9 +408,9 @@ mod test {
             ),
         ));
 
-        let shapes: Vec<Rc<dyn Object>> = vec![
+        let shapes: Vec<Rc<Object>> = vec![
             shape.clone(),
-            Rc::new(Sphere::new(
+            Rc::new(Object::Sphere(
                 scaling(0.5, 0.5, 0.5),
                 Rc::new(Material::default()),
             )),
@@ -434,7 +431,7 @@ mod test {
 
     #[test]
     fn refracted_color_total_internal_refraction() {
-        let shape = Rc::new(Sphere::new(
+        let shape = Rc::new(Object::Sphere(
             identity(),
             Rc::new(
                 MaterialBuilder::default()
@@ -447,9 +444,9 @@ mod test {
             ),
         ));
 
-        let shapes: Vec<Rc<dyn Object>> = vec![
+        let shapes: Vec<Rc<Object>> = vec![
             shape.clone(),
-            Rc::new(Sphere::new(
+            Rc::new(Object::Sphere(
                 scaling(0.5, 0.5, 0.5),
                 Rc::new(Material::default()),
             )),
@@ -473,7 +470,7 @@ mod test {
 
     #[test]
     fn refracted_color_refracted_ray() {
-        let shape_a = Rc::new(Sphere::new(
+        let shape_a = Rc::new(Object::Sphere(
             identity(),
             Rc::new(
                 MaterialBuilder::default()
@@ -486,7 +483,7 @@ mod test {
             ),
         ));
 
-        let shape_b = Rc::new(Sphere::new(
+        let shape_b = Rc::new(Object::Sphere(
             scaling(0.5, 0.5, 0.5),
             Rc::new(
                 MaterialBuilder::default()
@@ -496,7 +493,7 @@ mod test {
             ),
         ));
 
-        let shapes: Vec<Rc<dyn Object>> = vec![shape_a.clone(), shape_b.clone()];
+        let shapes: Vec<Rc<Object>> = vec![shape_a.clone(), shape_b.clone()];
 
         let w = World::default_world_with_objects(shapes);
         let r = Ray::new(Point::point(0., 0., 0.1), Vector::vector(0., 1., 0.));

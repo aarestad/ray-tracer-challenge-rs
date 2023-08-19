@@ -148,7 +148,7 @@ impl Material {
 
     pub fn lighting(
         &self,
-        object: &dyn Object,
+        object: &Object,
         light: PointLight,
         point: Point,
         eyev: Vector,

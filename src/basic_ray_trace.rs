@@ -9,7 +9,7 @@ use crate::canvas::Canvas;
 use crate::color::{Color, WHITE};
 use crate::light::PointLight;
 use crate::material::MaterialBuilder;
-use crate::objects::{Object, Plane, Sphere};
+use crate::objects::Object;
 use crate::patterns::{Gradient, Stripe};
 use crate::ray::Ray;
 use crate::transforms::{identity, scaling, translation, Transform};
@@ -29,15 +29,14 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
 
-    let sphere = Rc::new(Sphere::new(
+    let sphere = Rc::new(Object::Sphere(
         transform,
-        Rc::new(
-            MaterialBuilder::default()
-                .color(Color::new(1., 0.2, 1.))
-                .diffuse(0.9)
-                .specular(0.9)
-                .build(),
-        ),
+        MaterialBuilder::default()
+            .color(Color::new(1., 0.2, 1.))
+            .diffuse(0.9)
+            .specular(0.9)
+            .build()
+            .into(),
     ));
 
     for y in 0..canvas_pixels {
@@ -68,7 +67,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
 }
 
 pub fn chapter_7_scene(filename: &Path) -> Result<()> {
-    let floor = Plane::new(
+    let floor = Object::Plane(
         identity(),
         Rc::new(
             MaterialBuilder::default()
@@ -83,47 +82,44 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
         ),
     );
 
-    let middle_sphere = Sphere::new(
+    let middle_sphere = Object::Sphere(
         translation(-0.5, 1., 0.5),
-        Rc::new(
-            MaterialBuilder::default()
-                .pattern(Rc::new(Stripe::new(
-                    Color::new(1., 0., 0.),
-                    WHITE,
-                    identity(),
-                )))
-                .diffuse(0.7)
-                .specular(0.3)
-                .reflective(0.8)
-                .build(),
-        ),
+        MaterialBuilder::default()
+            .pattern(Rc::new(Stripe::new(
+                Color::new(1., 0., 0.),
+                WHITE,
+                identity(),
+            )))
+            .diffuse(0.7)
+            .specular(0.3)
+            .reflective(0.8)
+            .build()
+            .into(),
     );
 
-    let right_sphere = Sphere::new(
+    let right_sphere = Object::Sphere(
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
-        Rc::new(
-            MaterialBuilder::default()
-                .pattern(Rc::new(Gradient::new(
-                    Color::new(1., 0., 0.),
-                    WHITE,
-                    identity(),
-                )))
-                .diffuse(0.7)
-                .specular(0.3)
-                .reflective(1.)
-                .build(),
-        ),
+        MaterialBuilder::default()
+            .pattern(Rc::new(Gradient::new(
+                Color::new(1., 0., 0.),
+                WHITE,
+                identity(),
+            )))
+            .diffuse(0.7)
+            .specular(0.3)
+            .reflective(1.)
+            .build()
+            .into(),
     );
 
-    let left_sphere = Sphere::new(
+    let left_sphere = Object::Sphere(
         translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
-        Rc::new(
-            MaterialBuilder::default()
-                .color(Color::new(1., 0.8, 0.1))
-                .diffuse(0.7)
-                .specular(0.3)
-                .build(),
-        ),
+        MaterialBuilder::default()
+            .color(Color::new(1., 0.8, 0.1))
+            .diffuse(0.7)
+            .specular(0.3)
+            .build()
+            .into(),
     );
 
     let light = PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.));

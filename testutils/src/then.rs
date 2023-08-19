@@ -2,7 +2,8 @@ use crate::{step::get_4x4_matrix_from_step, world::RayTracerWorld, RayTracerFloa
 use cucumber::{gherkin::Step, then};
 use ray_tracer_challenge_rs::{
     color::Color,
-    objects::Sphere,
+    material::Material,
+    objects::default_sphere,
     transforms::{identity, scaling, translation},
     tuple::{Point, Vector},
 };
@@ -52,7 +53,7 @@ fn assert_vector_normalized(world: &mut RayTracerWorld, lhs_name: String, rhs_na
 #[then(regex = r"^(\w+) = material\(\)")]
 fn assert_default_material(world: &mut RayTracerWorld, mat_name: String) {
     let m = world.get_material_or_panic(&mat_name);
-    // assert_abs_diff_eq!(*m, Material::default());
+    assert_eq!(m.as_ref(), &Material::default());
 }
 
 #[then(regex = r"^(\w+) = color\((.+), (.+), (.+)\)")]
@@ -115,12 +116,9 @@ fn assert_world_light(world: &mut RayTracerWorld) {
 #[then(expr = r"{word} contains {word}")]
 fn assert_world_contains_sphere(world: &mut RayTracerWorld, w: String, s: String) {
     let render_world = world.get_world_or_panic(&w);
-    let sphere = world.get_object_or_panic(&s).as_sphere();
+    let sphere = world.get_object_or_panic(&s);
 
-    // assert!(render_world
-    //     .objects
-    //     .iter()
-    //     .any(|o| { o.as_sphere() == sphere }));
+    assert!(render_world.objects.iter().any(|o| { o == sphere }));
 }
 
 #[then(regex = r"^(\w+)\.count = (\d+)$")]
@@ -143,7 +141,7 @@ fn assert_precompute_property(world: &mut RayTracerWorld, prop_name: String, pro
         "object" => {
             let i_name = prop_expr.split('.').next().unwrap();
             let i = world.get_optional_int(&i_name.to_string()).unwrap();
-            // assert_eq!(pc.intersection.object.as_sphere(), i.object.as_sphere());
+            assert_eq!(pc.object, i.object);
         }
         "point" => {
             let p = Point::from_str(prop_expr.as_str()).unwrap();
@@ -171,7 +169,7 @@ fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
     let color = world.get_color_or_panic(&c);
     let sphere = world.get_object_or_panic(&s);
 
-    // assert_abs_diff_eq!(Solid::new(*color), &sphere.material().pattern);
+    // assert_abs_diff_eq!(Solid::new(*color), *sphere.material().pattern.as_ref());
 }
 
 #[then(regex = r"^(\w+) = identity_matrix$")]
@@ -337,14 +335,14 @@ fn assert_object_transform_translation(
 #[then(regex = r"^s\.material = material\(\)")]
 fn assert_object_default_material(world: &mut RayTracerWorld) {
     let object = world.get_object_or_panic(&"s".to_string());
-    // assert_eq!(*object.material(), Material::default());
+    assert_eq!(object.material().as_ref(), &Material::default());
 }
 
 #[then(regex = r"^s\.material = (\w+)$")]
 fn assert_object_named_material(world: &mut RayTracerWorld, m: String) {
     let object = world.get_object_or_panic(&"s".to_string());
     let material = world.get_material_or_panic(&m);
-    // assert_eq!(object.material(), material);
+    assert_eq!(object.material(), material);
 }
 
 #[then(expr = r"{word} is empty")]
@@ -390,10 +388,10 @@ fn assert_nth_intersection_object(
 ) {
     let ints = world.get_ints_or_panic(&int_name);
 
-    let actual = ints.ints()[nth].object.as_plane();
-    let expected = world.get_object_or_panic(&o).as_plane();
+    let actual = &ints.ints()[nth].object;
+    let expected = world.get_object_or_panic(&o);
 
-    // assert_eq!(actual, expected);
+    assert_eq!(actual, expected);
 }
 
 #[then(expr = r"stripe_at\({word}, point\({float}, {float}, {float}\)\) = {word}")]
@@ -408,5 +406,5 @@ fn assert_stripe_color_at_point(
     let pattern = world.get_pattern_or_panic(&p);
     let point = Point::point(x, y, z);
     let color = world.get_color_or_panic(&c);
-    assert_eq!(&pattern.color_at(&Sphere::default(), &point), color);
+    assert_eq!(&pattern.color_at(&default_sphere(), &point), color);
 }

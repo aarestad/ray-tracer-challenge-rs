@@ -9,7 +9,7 @@ use std::{fmt::Debug, rc::Rc};
 #[derive(Debug)]
 pub struct Intersection {
     pub t: RayTracerFloat,
-    pub object: Rc<dyn Object>,
+    pub object: Rc<Object>,
 }
 
 impl PartialEq for Intersection {
@@ -25,7 +25,7 @@ impl PartialOrd for Intersection {
 }
 
 impl Intersection {
-    pub fn new(t: RayTracerFloat, object: Rc<dyn Object>) -> Self {
+    pub fn new(t: RayTracerFloat, object: Rc<Object>) -> Self {
         Self { t, object }
     }
 
@@ -38,7 +38,7 @@ impl Intersection {
         let under_point = world_point - (if inside { -normalv } else { normalv }) * EPSILON;
         let reflectv = r.direction.reflect(&normalv);
 
-        let mut containers: Vec<Rc<dyn Object>> = vec![];
+        let mut containers: Vec<Rc<Object>> = vec![];
 
         let mut n1 = 1.0;
         let mut n2 = 1.0;
@@ -125,7 +125,7 @@ mod test {
 
     use crate::{
         objects::custom_glass_sphere,
-        objects::Plane,
+        objects::default_plane,
         ray::Ray,
         transforms::{scaling, translation},
         tuple::{Point, Vector},
@@ -136,7 +136,7 @@ mod test {
 
     #[test]
     fn precompute_reflectv() {
-        let o = Plane::default();
+        let o = default_plane();
         let r = Ray::new(
             Point::point(0., 1., -1.),
             Vector::vector(0., -SQRT_2 / 2., SQRT_2 / 2.),
