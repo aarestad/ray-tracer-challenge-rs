@@ -6,10 +6,12 @@ use crate::tuple::{Point, Vector};
 use std::fmt::Debug;
 use std::rc::Rc;
 
+mod cube;
 mod plane;
 mod sphere;
 mod test_shape;
 
+pub use cube::Cube;
 pub use plane::Plane;
 pub use sphere::{custom_glass_sphere, glass_sphere, Sphere};
 pub use test_shape::TestShape;
