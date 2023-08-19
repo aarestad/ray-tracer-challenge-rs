@@ -7,6 +7,7 @@ pub mod light;
 pub mod material;
 pub mod objects;
 pub mod patterns;
+pub mod precompute;
 pub mod ray;
 pub mod transforms;
 pub mod tuple;

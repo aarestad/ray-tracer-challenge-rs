@@ -1,54 +1,10 @@
 use crate::{
     objects::Object,
+    precompute::Precompute,
     ray::Ray,
-    tuple::{Point, Vector},
     util::{RayTracerFloat, EPSILON},
 };
 use std::{fmt::Debug, rc::Rc};
-
-#[derive(Debug)]
-pub struct Precompute {
-    pub t: RayTracerFloat,
-    pub object: Rc<dyn Object>,
-    pub point: Point,
-    pub eyev: Vector,
-    pub normalv: Vector,
-    pub reflectv: Vector,
-    pub inside: bool,
-    pub over_point: Point,
-    pub under_point: Point,
-    pub n1: RayTracerFloat,
-    pub n2: RayTracerFloat,
-}
-
-impl Precompute {
-    pub fn new(
-        i: Rc<Intersection>,
-        point: Point,
-        eyev: Vector,
-        normalv: Vector,
-        reflectv: Vector,
-        inside: bool,
-        over_point: Point,
-        under_point: Point,
-        n1: RayTracerFloat,
-        n2: RayTracerFloat,
-    ) -> Self {
-        Self {
-            t: i.t,
-            object: i.object.clone(),
-            point,
-            eyev,
-            normalv,
-            reflectv,
-            inside,
-            over_point,
-            under_point,
-            n1,
-            n2,
-        }
-    }
-}
 
 #[derive(Debug)]
 pub struct Intersection {

@@ -2,10 +2,11 @@ use std::rc::Rc;
 
 use crate::{
     color::{Color, BLACK, WHITE},
-    intersection::{Intersection, Intersections, Precompute},
+    intersection::{Intersection, Intersections},
     light::PointLight,
     material::{Material, MaterialBuilder},
     objects::{Object, Sphere},
+    precompute::Precompute,
     ray::Ray,
     transforms::{identity, scaling},
     tuple::Point,

@@ -1,11 +1,12 @@
 use ray_tracer_challenge_rs::camera::Camera;
 use ray_tracer_challenge_rs::canvas::{Canvas, Ppm};
 use ray_tracer_challenge_rs::color::Color;
-use ray_tracer_challenge_rs::intersection::{Intersection, Intersections, Precompute};
+use ray_tracer_challenge_rs::intersection::{Intersection, Intersections};
 use ray_tracer_challenge_rs::light::PointLight;
 use ray_tracer_challenge_rs::material::Material;
 use ray_tracer_challenge_rs::objects::Object;
 use ray_tracer_challenge_rs::patterns::Pattern;
+use ray_tracer_challenge_rs::precompute::Precompute;
 use ray_tracer_challenge_rs::ray::Ray;
 use ray_tracer_challenge_rs::transforms::Transform;
 use ray_tracer_challenge_rs::tuple::{Point, Tuple, Vector};

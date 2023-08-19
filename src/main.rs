@@ -10,6 +10,7 @@ mod light;
 mod material;
 mod objects;
 mod patterns;
+mod precompute;
 mod ray;
 mod transforms;
 mod tuple;

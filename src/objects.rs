@@ -11,7 +11,7 @@ mod sphere;
 mod test_shape;
 
 pub use plane::Plane;
-pub use sphere::{custom_glass_sphere, Sphere};
+pub use sphere::{custom_glass_sphere, glass_sphere, Sphere};
 pub use test_shape::TestShape;
 
 use self::internal::PrivateObject;
