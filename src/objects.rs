@@ -18,19 +18,19 @@ pub enum Object {
 impl Object {
     pub fn transform(&self) -> &Transform {
         match self {
-            Object::Test(t, _) => t,
-            Object::Plane(t, _) => t,
-            Object::Sphere(t, _) => t,
-            Object::Cube(t, _) => t,
+            Object::Test(t, _)
+            | Object::Plane(t, _)
+            | Object::Sphere(t, _)
+            | Object::Cube(t, _) => t,
         }
     }
 
     pub fn material(&self) -> &Material {
         match self {
-            Object::Test(_, m) => m,
-            Object::Plane(_, m) => m,
-            Object::Sphere(_, m) => m,
-            Object::Cube(_, m) => m,
+            Object::Test(_, m)
+            | Object::Plane(_, m)
+            | Object::Sphere(_, m)
+            | Object::Cube(_, m) => m,
         }
     }
 

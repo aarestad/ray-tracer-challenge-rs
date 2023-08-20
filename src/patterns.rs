@@ -37,10 +37,10 @@ impl Pattern {
     fn transform(&self) -> Option<&Transform> {
         match self {
             Pattern::Test(t) => Some(t),
-            Pattern::Stripe { transform, .. } => Some(transform),
-            Pattern::Ring { transform, .. } => Some(transform),
-            Pattern::Gradient { transform, .. } => Some(transform),
-            Pattern::Checker { transform, .. } => Some(transform),
+            Pattern::Stripe { transform, .. }
+            | Pattern::Ring { transform, .. }
+            | Pattern::Gradient { transform, .. }
+            | Pattern::Checker { transform, .. } => Some(transform),
             _ => None,
         }
     }
