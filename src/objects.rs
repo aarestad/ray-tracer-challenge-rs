@@ -162,7 +162,7 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
-            Object::Cylinder(_, _) => todo!(),
+            Object::Cylinder(_, _) => Vector::vector(local_point.x(), 0.0, local_point.z()),
         };
 
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
@@ -377,6 +377,23 @@ mod test {
             assert_eq!(xs.ints().len(), 2);
             assert_abs_diff_eq!(xs.ints()[0].t, t0, epsilon = EPSILON);
             assert_abs_diff_eq!(xs.ints()[1].t, t1, epsilon = EPSILON);
+        }
+    }
+
+    #[test]
+    fn cylinder_norm() {
+        // (point, normal)
+        let examples = vec![
+            (Point::point(1.0, 0.0, 0.0), Vector::vector(1., 0., 0.)),
+            (Point::point(0.0, 5.0, -1.0), Vector::vector(0., 0., -1.)),
+            (Point::point(0.0, -2.0, 1.0), Vector::vector(0., 0., 1.)),
+            (Point::point(-1.0, 1.0, 0.0), Vector::vector(-1., 0., 0.)),
+        ];
+
+        let cyl = Rc::new(default_cylinder());
+
+        for (point, normal) in examples {
+            assert_abs_diff_eq!(cyl.normal_at(point), normal);
         }
     }
 }
