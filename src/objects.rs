@@ -191,7 +191,17 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
-            Object::Cylinder(..) => Vector::vector(local_point.x(), 0.0, local_point.z()),
+            Object::Cylinder(.., min_y, max_y, _) => {
+                let dist = local_point.x().powi(2) + local_point.z().powi(2);
+
+                if dist < 1.0 && local_point.y() > max_y - EPSILON {
+                    Vector::vector(0., 1., 0.)
+                } else if dist < 1.0 && local_point.y() < min_y + EPSILON {
+                    Vector::vector(0., -1., 0.)
+                } else {
+                    Vector::vector(local_point.x(), 0.0, local_point.z())
+                }
+            }
         };
 
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
@@ -487,6 +497,31 @@ mod test {
                 "case {} failed",
                 idx
             );
+        }
+    }
+
+    #[test]
+    fn cylinder_cap_norm() {
+        // (point, normal)
+        let examples = vec![
+            (Point::point(0.0, 1.0, 0.0), Vector::vector(0., -1., 0.)),
+            (Point::point(0.5, 1.0, 0.0), Vector::vector(0., -1., 0.)),
+            (Point::point(0.0, 1.0, 0.5), Vector::vector(0., -1., 0.)),
+            (Point::point(0.0, 2.0, 0.0), Vector::vector(0., 1., 0.)),
+            (Point::point(0.0, 2.0, 0.0), Vector::vector(0., 1., 0.)),
+            (Point::point(0.0, 2.0, 0.5), Vector::vector(0., 1., 0.)),
+        ];
+
+        let cyl = Rc::new(Object::Cylinder(
+            identity(),
+            Material::default(),
+            1.0,
+            2.0,
+            true,
+        ));
+
+        for (point, normal) in examples {
+            assert_abs_diff_eq!(cyl.normal_at(point), normal);
         }
     }
 }
