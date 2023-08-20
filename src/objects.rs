@@ -1,5 +1,3 @@
-use nalgebra::ComplexField;
-
 use crate::intersection::{Intersection, Intersections};
 use crate::material::{Material, MaterialBuilder};
 use crate::ray::Ray;
@@ -16,7 +14,8 @@ pub enum Object {
     Plane(Transform, Material),
     Sphere(Transform, Material),
     Cube(Transform, Material),
-    Cylinder(Transform, Material),
+    // ... min_y, max_y (both exclusive)
+    Cylinder(Transform, Material, RayTracerFloat, RayTracerFloat),
 }
 
 impl Object {
@@ -26,7 +25,7 @@ impl Object {
             | Object::Plane(t, _)
             | Object::Sphere(t, _)
             | Object::Cube(t, _)
-            | Object::Cylinder(t, _) => t,
+            | Object::Cylinder(t, _, _, _) => t,
         }
     }
 
@@ -36,7 +35,7 @@ impl Object {
             | Object::Plane(_, m)
             | Object::Sphere(_, m)
             | Object::Cube(_, m)
-            | Object::Cylinder(_, m) => m,
+            | Object::Cylinder(_, m, _, _) => m,
         }
     }
 
@@ -117,7 +116,7 @@ impl Object {
                     ])
                 }
             }
-            Object::Cylinder(_, _) => {
+            Object::Cylinder(_, _, min_y, max_y) => {
                 let a = local_ray.direction.x().powi(2) + local_ray.direction.z().powi(2);
 
                 if a.abs() < EPSILON {
@@ -133,10 +132,23 @@ impl Object {
                     return Intersections::empty();
                 }
 
-                Intersections::new(vec![
-                    Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self.clone()).into(),
-                    Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self).into(),
-                ])
+                let t0 = (-b - discriminant.sqrt()) / (2.0 * a);
+                let t1 = (-b + discriminant.sqrt()) / (2.0 * a);
+
+                let mut intersections: Vec<Rc<Intersection>> = vec![];
+
+                let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
+                let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
+
+                if *min_y < y0 && y0 < *max_y {
+                    intersections.push(Intersection::new(t0, self.clone()).into());
+                }
+
+                if *min_y < y1 && y1 < *max_y {
+                    intersections.push(Intersection::new(t1, self).into());
+                }
+
+                Intersections::new(intersections)
             }
         }
     }
@@ -162,7 +174,7 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
-            Object::Cylinder(_, _) => Vector::vector(local_point.x(), 0.0, local_point.z()),
+            Object::Cylinder(_, _, _, _) => Vector::vector(local_point.x(), 0.0, local_point.z()),
         };
 
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
@@ -205,7 +217,7 @@ mod test {
         ray::Ray,
         transforms::identity,
         tuple::{Point, Vector},
-        util::{test::glass_sphere, EPSILON},
+        util::{test::glass_sphere, RayTracerFloat, EPSILON},
     };
 
     use super::Object;
@@ -215,7 +227,12 @@ mod test {
     }
 
     fn default_cylinder() -> Object {
-        Object::Cylinder(identity(), Material::default())
+        Object::Cylinder(
+            identity(),
+            Material::default(),
+            -RayTracerFloat::INFINITY,
+            RayTracerFloat::INFINITY,
+        )
     }
 
     #[test]
@@ -394,6 +411,27 @@ mod test {
 
         for (point, normal) in examples {
             assert_abs_diff_eq!(cyl.normal_at(point), normal);
+        }
+    }
+
+    #[test]
+    fn constrained_cylinder_intersection() {
+        // (point, direction, count)
+        let examples = vec![
+            (Point::point(0.0, 1.5, 0.0), Vector::vector(0.1, 1., 0.), 0),
+            (Point::point(0.0, 3.0, -5.0), Vector::vector(0., 0., 1.), 0),
+            (Point::point(0.0, 0.0, -5.0), Vector::vector(0., 0., 1.), 0),
+            (Point::point(0.0, 2.0, -5.0), Vector::vector(0., 0., 1.), 0),
+            (Point::point(0.0, 1.0, -5.0), Vector::vector(0., 0., 1.), 0),
+            (Point::point(0.0, 1.5, -2.0), Vector::vector(0., 0., 1.), 2),
+        ];
+
+        let cyl = Rc::new(Object::Cylinder(identity(), Material::default(), 1.0, 2.0));
+
+        for (point, direction, count) in examples {
+            let norm_dir = direction.normalize();
+            let r = Ray::new(point, norm_dir);
+            assert_eq!(cyl.clone().intersections(&r).ints().len(), count);
         }
     }
 }
