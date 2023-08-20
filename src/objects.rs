@@ -123,7 +123,19 @@ impl Object {
             Object::Test(_, _) => local_point.to_vector(),
             Object::Plane(_, _) => Vector::vector(0., 1., 0.),
             Object::Sphere(_, _) => local_point - Point::origin(),
-            Object::Cube(_, _) => todo!(),
+            Object::Cube(_, _) => {
+                let x = local_point.x().abs();
+                let y = local_point.y().abs();
+                let z = local_point.z().abs();
+                let maxc = x.max(y.max(z));
+
+                match maxc {
+                    _ if maxc == x => Vector::vector(local_point.x(), 0.0, 0.0),
+                    _ if maxc == y => Vector::vector(0.0, local_point.y(), 0.0),
+                    _ if maxc == z => Vector::vector(0.0, 0.0, local_point.z()),
+                    _ => unreachable!(),
+                }
+            }
         };
 
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
@@ -145,12 +157,12 @@ pub fn default_plane() -> Object {
     Object::Plane(identity(), Material::default())
 }
 
-pub fn glass_sphere() -> Object {
-    custom_glass_sphere(identity(), 1.5)
-}
-
 pub fn default_cube() -> Object {
     Object::Cube(identity(), Material::default())
+}
+
+pub fn glass_sphere() -> Object {
+    custom_glass_sphere(identity(), 1.5)
 }
 
 pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> Object {
@@ -166,6 +178,8 @@ pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> 
 #[cfg(test)]
 mod test {
     use std::rc::Rc;
+
+    use approx::assert_abs_diff_eq;
 
     use crate::{
         ray::Ray,
@@ -257,6 +271,28 @@ mod test {
         for r in examples {
             let xs = c.clone().intersections(&r);
             assert_eq!(xs.ints().len(), 0);
+        }
+    }
+
+    #[test]
+    fn cub_surface_normal() {
+        // (point, normal)
+        let examples = vec![
+            (Point::point(1.0, 0.5, -0.8), Vector::vector(1., 0., 0.)),
+            (Point::point(-1., -0.2, 0.9), Vector::vector(-1., 0., 0.)),
+            (Point::point(-0.4, 1., -0.1), Vector::vector(0., 1., 0.)),
+            (Point::point(0.3, -1., -0.7), Vector::vector(0., -1., 0.)),
+            (Point::point(-0.6, 0.3, 1.), Vector::vector(0., 0., 1.)),
+            (Point::point(0.4, 0.4, -1.), Vector::vector(0., 0., -1.)),
+            (Point::point(1.0, 1.0, 1.0), Vector::vector(1., 0., 0.)),
+            (Point::point(-1., -1., -1.), Vector::vector(-1., 0., 0.)),
+        ];
+
+        let c = Rc::new(default_cube());
+
+        for (point, expected) in examples {
+            let normal = c.normal_at(point);
+            assert_abs_diff_eq!(normal, expected);
         }
     }
 }
