@@ -1,3 +1,5 @@
+use nalgebra::ComplexField;
+
 use crate::intersection::{Intersection, Intersections};
 use crate::material::{Material, MaterialBuilder};
 use crate::ray::Ray;
@@ -14,6 +16,7 @@ pub enum Object {
     Plane(Transform, Material),
     Sphere(Transform, Material),
     Cube(Transform, Material),
+    Cylinder(Transform, Material),
 }
 
 impl Object {
@@ -22,7 +25,8 @@ impl Object {
             Object::Test(t, _)
             | Object::Plane(t, _)
             | Object::Sphere(t, _)
-            | Object::Cube(t, _) => t,
+            | Object::Cube(t, _)
+            | Object::Cylinder(t, _) => t,
         }
     }
 
@@ -31,7 +35,8 @@ impl Object {
             Object::Test(_, m)
             | Object::Plane(_, m)
             | Object::Sphere(_, m)
-            | Object::Cube(_, m) => m,
+            | Object::Cube(_, m)
+            | Object::Cylinder(_, m) => m,
         }
     }
 
@@ -112,6 +117,25 @@ impl Object {
                     ])
                 }
             }
+            Object::Cylinder(_, _) => {
+                let a = local_ray.direction.x().powi(2) + local_ray.direction.z().powi(2);
+
+                if a.abs() < EPSILON {
+                    // ray is parallel to the y axis
+                    return Intersections::empty();
+                }
+                let b = 2.0 * local_ray.origin.x() * local_ray.direction.x()
+                    + 2.0 * local_ray.origin.z() * local_ray.direction.z();
+                let c = local_ray.origin.x().powi(2) + local_ray.origin.z().powi(2) - 1.0;
+                let disc = b.powi(2) - 4.0 * a * c;
+
+                if disc < 0.0 {
+                    // # ray does not intersect the cylinder
+                    return Intersections::empty();
+                }
+
+                todo!();
+            }
         }
     }
 
@@ -136,6 +160,7 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
+            Object::Cylinder(_, _) => todo!(),
         };
 
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
@@ -157,14 +182,6 @@ pub fn default_plane() -> Object {
     Object::Plane(identity(), Material::default())
 }
 
-pub fn default_cube() -> Object {
-    Object::Cube(identity(), Material::default())
-}
-
-pub fn glass_sphere() -> Object {
-    custom_glass_sphere(identity(), 1.5)
-}
-
 pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> Object {
     Object::Sphere(
         transform,
@@ -182,11 +199,22 @@ mod test {
     use approx::assert_abs_diff_eq;
 
     use crate::{
+        material::Material,
         ray::Ray,
+        transforms::identity,
         tuple::{Point, Vector},
+        util::test::glass_sphere,
     };
 
-    use super::{default_cube, glass_sphere};
+    use super::Object;
+
+    fn default_cube() -> Object {
+        Object::Cube(identity(), Material::default())
+    }
+
+    fn default_cylinder() -> Object {
+        Object::Cylinder(identity(), Material::default())
+    }
 
     #[test]
     fn glass_sphere_properties() {
@@ -293,6 +321,24 @@ mod test {
         for (point, expected) in examples {
             let normal = c.normal_at(point);
             assert_abs_diff_eq!(normal, expected);
+        }
+    }
+
+    #[test]
+    fn ray_misses_cylinder() {
+        // (origin, direction)
+        let examples = vec![
+            (Point::point(1.0, 0.0, 0.0), Vector::vector(0., 1., 0.)),
+            (Point::point(0.0, 0.0, 0.0), Vector::vector(0., 1., 0.)),
+            (Point::point(1.0, 0.0, -5.0), Vector::vector(1., 1., 1.)),
+        ];
+
+        let cyl = Rc::new(default_cylinder());
+
+        for (origin, direction) in examples {
+            let norm_direction = direction.normalize();
+            let r = Ray::new(origin, norm_direction);
+            assert_eq!(cyl.clone().intersections(&r).ints().len(), 0);
         }
     }
 }

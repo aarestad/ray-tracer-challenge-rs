@@ -94,11 +94,11 @@ impl Intersections {
         Intersections(intersections)
     }
 
-    pub fn empty() -> Intersections {
-        Self::default()
+    pub const fn empty() -> Intersections {
+        Intersections(vec![])
     }
 
-    pub fn ints(&self) -> &Vec<Rc<Intersection>> {
+    pub const fn ints(&self) -> &Vec<Rc<Intersection>> {
         &self.0
     }
 

@@ -11,3 +11,15 @@ pub fn get_sphere_uv(p: Point) -> (RayTracerFloat, RayTracerFloat) {
 
     (phi / TAU, theta / PI)
 }
+
+#[cfg(test)]
+pub mod test {
+    use crate::{
+        objects::{custom_glass_sphere, Object},
+        transforms::identity,
+    };
+
+    pub fn glass_sphere() -> Object {
+        custom_glass_sphere(identity(), 1.5)
+    }
+}

@@ -79,9 +79,9 @@ mod test {
 
     use crate::{
         intersection::{Intersection, Intersections},
-        objects::glass_sphere,
         ray::Ray,
         tuple::{Point, Vector},
+        util::test::glass_sphere,
         util::EPSILON,
     };
 
