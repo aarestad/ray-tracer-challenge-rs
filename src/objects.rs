@@ -7,7 +7,7 @@ use crate::util::{RayTracerFloat, EPSILON};
 use std::fmt::Debug;
 use std::rc::Rc;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq)]
 pub enum Object {
     Test(Transform, Material),
     Plane(Transform, Material),

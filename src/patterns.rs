@@ -57,6 +57,7 @@ impl Pattern {
         );
 
         match self {
+            Pattern::Solid(c) => *c,
             Pattern::Test(_) =>
             // to test that the transformation is being applied
             {
@@ -86,7 +87,6 @@ impl Pattern {
                     *odd
                 }
             }
-            Pattern::Solid(c) => *c,
             Pattern::Gradient {
                 transform: _,
                 start,
@@ -116,8 +116,6 @@ pub fn default_test_pattern() -> Pattern {
 
 #[cfg(test)]
 mod test {
-    use std::rc::Rc;
-
     use crate::{
         color::{Color, BLACK, WHITE},
         material::{Material, MaterialBuilder},
@@ -245,5 +243,26 @@ mod test {
             pattern.color_at(&s, &Point::point(0.75, 0., 0.)),
             Color::new(0.25, 0.25, 0.25)
         );
+    }
+
+    #[test]
+    fn checkers_should_repeat_in_each_dim() {
+        let p = Pattern::Checker {
+            even: WHITE,
+            odd: BLACK,
+            transform: identity(),
+        };
+
+        let s = default_sphere();
+
+        assert_eq!(p.color_at(&s, &Point::point(0., 0., 0.)), WHITE);
+        assert_eq!(p.color_at(&s, &Point::point(0.99, 0., 0.)), WHITE);
+        assert_eq!(p.color_at(&s, &Point::point(1.01, 0., 0.)), BLACK);
+
+        assert_eq!(p.color_at(&s, &Point::point(0., 0.99, 0.)), WHITE);
+        assert_eq!(p.color_at(&s, &Point::point(0., 1.01, 0.)), BLACK);
+
+        assert_eq!(p.color_at(&s, &Point::point(0., 0., 0.99)), WHITE);
+        assert_eq!(p.color_at(&s, &Point::point(0., 0., 1.01)), BLACK);
     }
 }

@@ -4,6 +4,7 @@ use ray_tracer_challenge_rs::{
     color::Color,
     material::Material,
     objects::default_sphere,
+    patterns::Pattern,
     transforms::{identity, scaling, translation},
     tuple::{Point, Vector},
 };
@@ -11,8 +12,6 @@ use ray_tracer_challenge_rs::{
 use std::str::FromStr;
 
 use approx::assert_abs_diff_eq;
-
-// TODO fix the commented-out assert_eqs
 
 #[then(regex = r"^(\w+) = vector\((-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?), (-?\d+(?:\.\d+)?)\)$")]
 fn assert_vector(
@@ -77,7 +76,7 @@ fn assert_mat_color(
     b: RayTracerFloat,
 ) {
     let m = world.get_material_or_panic(&mat_name);
-    // assert_abs_diff_eq!(m.pattern, Solid::new(Color::new(r, g, b)));
+    assert_eq!(m.pattern, Pattern::Solid(Color::new(r, g, b)));
 }
 
 #[then(expr = r"{word}.ambient = {float}")]
@@ -169,7 +168,7 @@ fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
     let color = world.get_color_or_panic(&c);
     let sphere = world.get_object_or_panic(&s);
 
-    // assert_abs_diff_eq!(Solid::new(*color), *sphere.material().pattern.as_ref());
+    assert_eq!(Pattern::Solid(*color), sphere.material().pattern);
 }
 
 #[then(regex = r"^(\w+) = identity_matrix$")]
