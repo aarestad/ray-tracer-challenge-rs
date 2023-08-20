@@ -36,6 +36,8 @@ impl Object {
     }
 
     pub fn intersections(self: Rc<Self>, ray: &Ray) -> Intersections {
+        // "un-transforms" the ray so it's relative to the origin-centered,
+        // unit-1-sized default for this Object
         let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
 
         match self.as_ref() {
@@ -81,7 +83,10 @@ impl Object {
                             tmax_numerator / direction_component,
                         )
                     } else {
-                        (-RayTracerFloat::INFINITY, RayTracerFloat::INFINITY)
+                        (
+                            tmin_numerator * RayTracerFloat::INFINITY,
+                            tmax_numerator * RayTracerFloat::INFINITY,
+                        )
                     };
 
                     if tmin > tmax {
@@ -98,10 +103,14 @@ impl Object {
                 let tmin = xtmin.max(ytmin.max(ztmin));
                 let tmax = xtmax.min(ytmax.min(ztmax));
 
-                Intersections::new(vec![
-                    Intersection::new(tmin, self.clone()).into(),
-                    Intersection::new(tmax, self).into(),
-                ])
+                if tmin > tmax {
+                    Intersections::empty()
+                } else {
+                    Intersections::new(vec![
+                        Intersection::new(tmin, self.clone()).into(),
+                        Intersection::new(tmax, self).into(),
+                    ])
+                }
             }
         }
     }
@@ -220,6 +229,34 @@ mod test {
             assert_eq!(xs.ints().len(), 2);
             assert_eq!(xs.ints()[0].t, t1);
             assert_eq!(xs.ints()[1].t, t2);
+        }
+    }
+
+    #[test]
+    fn ray_misses_cube() {
+        let examples = vec![
+            Ray::new(
+                Point::point(-2.0, 0.0, 0.0),
+                Vector::vector(0.2673, 0.5345, 0.8018),
+            ),
+            Ray::new(
+                Point::point(0.0, -2.0, 0.0),
+                Vector::vector(0.8018, 0.2673, 0.5345),
+            ),
+            Ray::new(
+                Point::point(0.0, 0.0, -2.0),
+                Vector::vector(0.5345, 0.8018, 0.2673),
+            ),
+            Ray::new(Point::point(2.0, 0.0, 2.0), Vector::vector(0.0, 0.0, -1.0)),
+            Ray::new(Point::point(0.0, 2.0, 2.0), Vector::vector(0.0, -1.0, 0.0)),
+            Ray::new(Point::point(2.0, 2.0, 0.0), Vector::vector(-1.0, 0.0, 0.0)),
+        ];
+
+        let c = Rc::new(default_cube());
+
+        for r in examples {
+            let xs = c.clone().intersections(&r);
+            assert_eq!(xs.ints().len(), 0);
         }
     }
 }
