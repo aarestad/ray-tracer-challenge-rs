@@ -14,8 +14,8 @@ pub enum Object {
     Plane(Transform, Material),
     Sphere(Transform, Material),
     Cube(Transform, Material),
-    // ... min_y, max_y (both exclusive)
-    Cylinder(Transform, Material, RayTracerFloat, RayTracerFloat),
+    // ... min_y, max_y (both exclusive), closed
+    Cylinder(Transform, Material, RayTracerFloat, RayTracerFloat, bool),
 }
 
 impl Object {
@@ -25,7 +25,7 @@ impl Object {
             | Object::Plane(t, _)
             | Object::Sphere(t, _)
             | Object::Cube(t, _)
-            | Object::Cylinder(t, _, _, _) => t,
+            | Object::Cylinder(t, ..) => t,
         }
     }
 
@@ -35,7 +35,7 @@ impl Object {
             | Object::Plane(_, m)
             | Object::Sphere(_, m)
             | Object::Cube(_, m)
-            | Object::Cylinder(_, m, _, _) => m,
+            | Object::Cylinder(_, m, ..) => m,
         }
     }
 
@@ -45,8 +45,8 @@ impl Object {
         let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
 
         match self.as_ref() {
-            Object::Test(_, _) => Intersections::empty(),
-            Object::Plane(_, _) => {
+            Object::Test(..) => Intersections::empty(),
+            Object::Plane(..) => {
                 if local_ray.direction.y().abs() < EPSILON {
                     return Intersections::empty();
                 }
@@ -55,7 +55,7 @@ impl Object {
 
                 Intersections::new(vec![Intersection::new(t, self).into()])
             }
-            Object::Sphere(_, _) => {
+            Object::Sphere(..) => {
                 let sphere_to_ray = local_ray.origin - Point::origin();
                 let a = local_ray.direction.dot(&local_ray.direction);
                 let b = 2. * local_ray.direction.dot(&sphere_to_ray);
@@ -72,7 +72,7 @@ impl Object {
                     Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self).into(),
                 ])
             }
-            Object::Cube(_, _) => {
+            Object::Cube(..) => {
                 /// Returns tmin, tmax for a particular axis's origin/direction components
                 fn check_axis(
                     origin_component: RayTracerFloat,
@@ -116,36 +116,53 @@ impl Object {
                     ])
                 }
             }
-            Object::Cylinder(_, _, min_y, max_y) => {
+            Object::Cylinder(.., min_y, max_y, closed) => {
                 let a = local_ray.direction.x().powi(2) + local_ray.direction.z().powi(2);
-
-                if a.abs() < EPSILON {
-                    // ray is parallel to the y axis
-                    return Intersections::empty();
-                }
-                let b = 2.0 * local_ray.origin.x() * local_ray.direction.x()
-                    + 2.0 * local_ray.origin.z() * local_ray.direction.z();
-                let c = local_ray.origin.x().powi(2) + local_ray.origin.z().powi(2) - 1.0;
-                let discriminant = b.powi(2) - 4.0 * a * c;
-
-                if discriminant < 0.0 {
-                    return Intersections::empty();
-                }
-
-                let t0 = (-b - discriminant.sqrt()) / (2.0 * a);
-                let t1 = (-b + discriminant.sqrt()) / (2.0 * a);
-
                 let mut intersections: Vec<Rc<Intersection>> = vec![];
 
-                let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
-                let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
+                if a.abs() >= EPSILON {
+                    // ray is not parallel to the y axis
+                    let b = 2.0 * local_ray.origin.x() * local_ray.direction.x()
+                        + 2.0 * local_ray.origin.z() * local_ray.direction.z();
+                    let c = local_ray.origin.x().powi(2) + local_ray.origin.z().powi(2) - 1.0;
+                    let discriminant = b.powi(2) - 4.0 * a * c;
 
-                if *min_y < y0 && y0 < *max_y {
-                    intersections.push(Intersection::new(t0, self.clone()).into());
+                    if discriminant < 0.0 {
+                        return Intersections::empty();
+                    }
+
+                    let t0 = (-b - discriminant.sqrt()) / (2.0 * a);
+                    let t1 = (-b + discriminant.sqrt()) / (2.0 * a);
+
+                    let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
+                    let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
+
+                    if *min_y < y0 && y0 < *max_y {
+                        intersections.push(Intersection::new(t0, self.clone()).into());
+                    }
+
+                    if *min_y < y1 && y1 < *max_y {
+                        intersections.push(Intersection::new(t1, self.clone()).into());
+                    }
                 }
 
-                if *min_y < y1 && y1 < *max_y {
-                    intersections.push(Intersection::new(t1, self).into());
+                fn ray_within_cylinder_at_t(ray: &Ray, t: RayTracerFloat) -> bool {
+                    let x = ray.origin.x() + t * ray.direction.x();
+                    let z = ray.origin.z() + t * ray.direction.z();
+                    x.powi(2) + z.powi(2) <= 1.0
+                }
+
+                if *closed && local_ray.direction.y().abs() >= EPSILON {
+                    let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
+                    let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
+
+                    if ray_within_cylinder_at_t(&local_ray, tmin) {
+                        intersections.push(Intersection::new(tmin, self.clone()).into());
+                    }
+
+                    if ray_within_cylinder_at_t(&local_ray, tmax) {
+                        intersections.push(Intersection::new(tmax, self.clone()).into());
+                    }
                 }
 
                 Intersections::new(intersections)
@@ -158,10 +175,10 @@ impl Object {
         let local_point = p.transform(inverse);
 
         let local_normal = match self {
-            Object::Test(_, _) => local_point.to_vector(),
-            Object::Plane(_, _) => Vector::vector(0., 1., 0.),
-            Object::Sphere(_, _) => local_point - Point::origin(),
-            Object::Cube(_, _) => {
+            Object::Test(..) => local_point.to_vector(),
+            Object::Plane(..) => Vector::vector(0., 1., 0.),
+            Object::Sphere(..) => local_point - Point::origin(),
+            Object::Cube(..) => {
                 let x = local_point.x().abs();
                 let y = local_point.y().abs();
                 let z = local_point.z().abs();
@@ -174,7 +191,7 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
-            Object::Cylinder(_, _, _, _) => Vector::vector(local_point.x(), 0.0, local_point.z()),
+            Object::Cylinder(..) => Vector::vector(local_point.x(), 0.0, local_point.z()),
         };
 
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
@@ -232,6 +249,7 @@ mod test {
             Material::default(),
             -RayTracerFloat::INFINITY,
             RayTracerFloat::INFINITY,
+            false,
         )
     }
 
@@ -426,12 +444,49 @@ mod test {
             (Point::point(0.0, 1.5, -2.0), Vector::vector(0., 0., 1.), 2),
         ];
 
-        let cyl = Rc::new(Object::Cylinder(identity(), Material::default(), 1.0, 2.0));
+        let cyl = Rc::new(Object::Cylinder(
+            identity(),
+            Material::default(),
+            1.0,
+            2.0,
+            false,
+        ));
 
         for (point, direction, count) in examples {
             let norm_dir = direction.normalize();
             let r = Ray::new(point, norm_dir);
             assert_eq!(cyl.clone().intersections(&r).ints().len(), count);
+        }
+    }
+
+    #[test]
+    fn intersecting_closed_cyl_caps() {
+        // (point, direction, count)
+        let examples = vec![
+            (Point::point(0.0, 3.0, 0.0), Vector::vector(0., -1., 0.), 2),
+            (Point::point(0.0, 3.0, -2.0), Vector::vector(0., -1., 2.), 2),
+            (Point::point(0.0, 4.0, -2.0), Vector::vector(0., -1., 1.), 2),
+            (Point::point(0.0, 0.0, -2.0), Vector::vector(0., 1., 2.), 2),
+            (Point::point(0.0, -1.0, -2.0), Vector::vector(0., 1., 1.), 2),
+        ];
+
+        let cyl = Rc::new(Object::Cylinder(
+            identity(),
+            Material::default(),
+            1.0,
+            2.0,
+            true,
+        ));
+
+        for (idx, (point, direction, count)) in examples.into_iter().enumerate() {
+            let norm_dir = direction.normalize();
+            let r = Ray::new(point, norm_dir);
+            assert_eq!(
+                cyl.clone().intersections(&r).ints().len(),
+                count,
+                "case {} failed",
+                idx
+            );
         }
     }
 }
