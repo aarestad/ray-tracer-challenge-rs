@@ -5,6 +5,7 @@ use crate::transforms::{identity, Transform};
 use crate::tuple::{Point, Vector};
 use crate::util::{RayTracerFloat, EPSILON};
 use std::fmt::Debug;
+use std::mem::swap;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
@@ -65,7 +66,43 @@ impl Object {
                     Intersection::new((-b + discriminant.sqrt()) / (2. * a), self).into(),
                 ])
             }
-            Object::Cube(_, _) => todo!(),
+            Object::Cube(_, _) => {
+                /// Returns tmin, tmax for a particular axis's origin/direction components
+                fn check_axis(
+                    origin_component: RayTracerFloat,
+                    direction_component: RayTracerFloat,
+                ) -> (RayTracerFloat, RayTracerFloat) {
+                    let tmin_numerator = -1.0 - origin_component;
+                    let tmax_numerator = 1.0 - origin_component;
+
+                    let (mut tmin, mut tmax) = if direction_component.abs() >= EPSILON {
+                        (
+                            tmin_numerator / direction_component,
+                            tmax_numerator / direction_component,
+                        )
+                    } else {
+                        (-RayTracerFloat::INFINITY, RayTracerFloat::INFINITY)
+                    };
+
+                    if tmin > tmax {
+                        swap(&mut tmin, &mut tmax)
+                    }
+
+                    (tmin, tmax)
+                }
+
+                let (xtmin, xtmax) = check_axis(ray.origin.x(), ray.direction.x());
+                let (ytmin, ytmax) = check_axis(ray.origin.y(), ray.direction.y());
+                let (ztmin, ztmax) = check_axis(ray.origin.z(), ray.direction.z());
+
+                let tmin = xtmin.max(ytmin.max(ztmin));
+                let tmax = xtmax.min(ytmax.min(ztmax));
+
+                Intersections::new(vec![
+                    Intersection::new(tmin, self.clone()).into(),
+                    Intersection::new(tmax, self).into(),
+                ])
+            }
         }
     }
 
@@ -103,6 +140,10 @@ pub fn glass_sphere() -> Object {
     custom_glass_sphere(identity(), 1.5)
 }
 
+pub fn default_cube() -> Object {
+    Object::Cube(identity(), Material::default())
+}
+
 pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> Object {
     Object::Sphere(
         transform,
@@ -115,12 +156,70 @@ pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> 
 
 #[cfg(test)]
 mod test {
-    use super::glass_sphere;
+    use std::rc::Rc;
+
+    use crate::{
+        ray::Ray,
+        tuple::{Point, Vector},
+    };
+
+    use super::{default_cube, glass_sphere};
 
     #[test]
     fn glass_sphere_properties() {
         let gs = glass_sphere();
         assert_eq!(gs.material().transparency, 1.0);
         assert_eq!(gs.material().refractive, 1.5);
+    }
+
+    #[test]
+    fn ray_intersects_cube() {
+        // (ray, t1, t2)
+        let examples = vec![
+            (
+                Ray::new(Point::point(5.0, 0.5, 0.0), Vector::vector(-1.0, 0.0, 0.0)),
+                4.0,
+                6.0,
+            ),
+            (
+                Ray::new(Point::point(-5.0, 0.5, 0.0), Vector::vector(1.0, 0.0, 0.0)),
+                4.0,
+                6.0,
+            ),
+            (
+                Ray::new(Point::point(0.5, 5.0, 0.0), Vector::vector(0.0, -1.0, 0.0)),
+                4.0,
+                6.0,
+            ),
+            (
+                Ray::new(Point::point(0.5, -5.0, 0.0), Vector::vector(0.0, 1.0, 0.0)),
+                4.0,
+                6.0,
+            ),
+            (
+                Ray::new(Point::point(0.5, 0.0, 5.0), Vector::vector(0.0, 0.0, -1.0)),
+                4.0,
+                6.0,
+            ),
+            (
+                Ray::new(Point::point(0.5, 0.0, -5.0), Vector::vector(0.0, 0.0, 1.0)),
+                4.0,
+                6.0,
+            ),
+            (
+                Ray::new(Point::point(0.0, 0.5, 0.0), Vector::vector(0.0, 0.0, 1.0)),
+                -1.0,
+                1.0,
+            ),
+        ];
+
+        let c = Rc::new(default_cube());
+
+        for (r, t1, t2) in examples {
+            let xs = c.clone().intersections(&r);
+            assert_eq!(xs.ints().len(), 2);
+            assert_eq!(xs.ints()[0].t, t1);
+            assert_eq!(xs.ints()[1].t, t2);
+        }
     }
 }

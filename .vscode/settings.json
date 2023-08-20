@@ -9,6 +9,13 @@
     "normalv",
     "reflectv",
     "schlick",
-    "testutils"
+    "testutils",
+    "tmin",
+    "xtmax",
+    "xtmin",
+    "ytmax",
+    "ytmin",
+    "ztmax",
+    "ztmin"
   ]
 }
