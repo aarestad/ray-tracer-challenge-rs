@@ -64,13 +64,13 @@ impl Object {
 
                 let discriminant = b.powi(2) - 4. * a * c;
 
-                if discriminant < 0. {
+                if discriminant < 0.0 {
                     return Intersections::empty();
                 }
 
                 Intersections::new(vec![
-                    Intersection::new((-b - discriminant.sqrt()) / (2. * a), self.clone()).into(),
-                    Intersection::new((-b + discriminant.sqrt()) / (2. * a), self).into(),
+                    Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self.clone()).into(),
+                    Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self).into(),
                 ])
             }
             Object::Cube(_, _) => {
@@ -127,14 +127,16 @@ impl Object {
                 let b = 2.0 * local_ray.origin.x() * local_ray.direction.x()
                     + 2.0 * local_ray.origin.z() * local_ray.direction.z();
                 let c = local_ray.origin.x().powi(2) + local_ray.origin.z().powi(2) - 1.0;
-                let disc = b.powi(2) - 4.0 * a * c;
+                let discriminant = b.powi(2) - 4.0 * a * c;
 
-                if disc < 0.0 {
-                    // # ray does not intersect the cylinder
+                if discriminant < 0.0 {
                     return Intersections::empty();
                 }
 
-                todo!();
+                Intersections::new(vec![
+                    Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self.clone()).into(),
+                    Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self).into(),
+                ])
             }
         }
     }
@@ -203,7 +205,7 @@ mod test {
         ray::Ray,
         transforms::identity,
         tuple::{Point, Vector},
-        util::test::glass_sphere,
+        util::{test::glass_sphere, EPSILON},
     };
 
     use super::Object;
@@ -339,6 +341,42 @@ mod test {
             let norm_direction = direction.normalize();
             let r = Ray::new(origin, norm_direction);
             assert_eq!(cyl.clone().intersections(&r).ints().len(), 0);
+        }
+    }
+
+    #[test]
+    fn ray_hits_cylinder() {
+        // (origin, direction, t0, t1)
+        let examples = vec![
+            (
+                Point::point(1.0, 0.0, -5.0),
+                Vector::vector(0., 0., 1.),
+                5.0,
+                5.0,
+            ),
+            (
+                Point::point(0.0, 0.0, -5.0),
+                Vector::vector(0., 0., 1.),
+                4.0,
+                6.0,
+            ),
+            (
+                Point::point(0.5, 0.0, -5.0),
+                Vector::vector(0.1, 1., 1.),
+                6.80798,
+                7.08872,
+            ),
+        ];
+
+        let cyl = Rc::new(default_cylinder());
+
+        for (origin, direction, t0, t1) in examples {
+            let norm_direction = direction.normalize();
+            let r = Ray::new(origin, norm_direction);
+            let xs = cyl.clone().intersections(&r);
+            assert_eq!(xs.ints().len(), 2);
+            assert_abs_diff_eq!(xs.ints()[0].t, t0, epsilon = EPSILON);
+            assert_abs_diff_eq!(xs.ints()[1].t, t1, epsilon = EPSILON);
         }
     }
 }
