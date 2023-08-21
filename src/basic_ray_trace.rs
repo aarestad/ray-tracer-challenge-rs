@@ -86,7 +86,6 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
                     even: Color::new(1., 0., 0.),
                     odd: WHITE,
                 }
-                .into(),
             )
             .diffuse(0.7)
             .specular(0.3)
