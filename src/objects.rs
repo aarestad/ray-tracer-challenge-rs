@@ -2,7 +2,7 @@ use crate::intersection::{Intersection, Intersections};
 use crate::material::{Material, MaterialBuilder};
 use crate::ray::Ray;
 use crate::transforms::{identity, Transform};
-use crate::tuple::{Point, Vector};
+use crate::tuple::{Point, Tuple, Vector};
 use crate::util::{RayTracerFloat, EPSILON};
 use std::fmt::Debug;
 use std::mem::swap;
@@ -16,26 +16,29 @@ pub enum Object {
     Cube(Transform, Material),
     // ... min_y, max_y (both exclusive), closed
     Cylinder(Transform, Material, RayTracerFloat, RayTracerFloat, bool),
+    DoubleNappedCone(Transform, Material, RayTracerFloat, RayTracerFloat, bool),
 }
 
 impl Object {
     pub fn transform(&self) -> &Transform {
         match self {
-            Object::Test(t, _)
-            | Object::Plane(t, _)
-            | Object::Sphere(t, _)
-            | Object::Cube(t, _)
-            | Object::Cylinder(t, ..) => t,
+            Self::Test(t, _)
+            | Self::Plane(t, _)
+            | Self::Sphere(t, _)
+            | Self::Cube(t, _)
+            | Self::Cylinder(t, ..)
+            | Self::DoubleNappedCone(t, ..) => t,
         }
     }
 
     pub fn material(&self) -> &Material {
         match self {
-            Object::Test(_, m)
-            | Object::Plane(_, m)
-            | Object::Sphere(_, m)
-            | Object::Cube(_, m)
-            | Object::Cylinder(_, m, ..) => m,
+            Self::Test(_, m)
+            | Self::Plane(_, m)
+            | Self::Sphere(_, m)
+            | Self::Cube(_, m)
+            | Self::Cylinder(_, m, ..)
+            | Self::DoubleNappedCone(_, m, ..) => m,
         }
     }
 
@@ -45,8 +48,8 @@ impl Object {
         let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
 
         match self.as_ref() {
-            Object::Test(..) => Intersections::empty(),
-            Object::Plane(..) => {
+            Self::Test(..) => Intersections::empty(),
+            Self::Plane(..) => {
                 if local_ray.direction.y().abs() < EPSILON {
                     return Intersections::empty();
                 }
@@ -55,7 +58,7 @@ impl Object {
 
                 Intersections::new(vec![Intersection::new(t, self).into()])
             }
-            Object::Sphere(..) => {
+            Self::Sphere(..) => {
                 let sphere_to_ray = local_ray.origin - Point::origin();
                 let a = local_ray.direction.dot(&local_ray.direction);
                 let b = 2. * local_ray.direction.dot(&sphere_to_ray);
@@ -72,7 +75,7 @@ impl Object {
                     Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self).into(),
                 ])
             }
-            Object::Cube(..) => {
+            Self::Cube(..) => {
                 /// Returns tmin, tmax for a particular axis's origin/direction components
                 fn check_axis(
                     origin_component: RayTracerFloat,
@@ -116,7 +119,7 @@ impl Object {
                     ])
                 }
             }
-            Object::Cylinder(.., min_y, max_y, closed) => {
+            Self::Cylinder(.., min_y, max_y, closed) => {
                 let a = local_ray.direction.x().powi(2) + local_ray.direction.z().powi(2);
                 let mut intersections: Vec<Rc<Intersection>> = vec![];
 
@@ -167,6 +170,69 @@ impl Object {
 
                 Intersections::new(intersections)
             }
+            Self::DoubleNappedCone(.., min_y, max_y, closed) => {
+                let a = local_ray.direction.x().powi(2) - local_ray.direction.y().powi(2)
+                    + local_ray.direction.z().powi(2);
+
+                let b = 2.0 * local_ray.origin.x() * local_ray.direction.x()
+                    - 2.0 * local_ray.origin.y() * local_ray.direction.y()
+                    + 2.0 * local_ray.origin.z() * local_ray.direction.z();
+
+                let c = local_ray.origin.x().powi(2) - local_ray.origin.y().powi(2)
+                    + local_ray.origin.z().powi(2);
+
+                let mut intersections: Vec<Rc<Intersection>> = vec![];
+
+                if a.abs() < EPSILON {
+                    if b.abs() >= EPSILON {
+                        // ray is parallel to the "pointy part" of the cone
+                        let t = -c / (2.0 * b);
+                        intersections.push(Intersection::new(t, self.clone()).into());
+                    }
+                } else {
+                    // ray intersects cone "normally"
+                    let discriminant = b.powi(2) - 4.0 * a * c;
+
+                    if discriminant < 0.0 {
+                        return Intersections::empty();
+                    }
+
+                    let t0 = (-b - discriminant.sqrt()) / (2.0 * a);
+                    let t1 = (-b + discriminant.sqrt()) / (2.0 * a);
+
+                    let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
+                    let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
+
+                    if *min_y < y0 && y0 < *max_y {
+                        intersections.push(Intersection::new(t0, self.clone()).into());
+                    }
+
+                    if *min_y < y1 && y1 < *max_y {
+                        intersections.push(Intersection::new(t1, self.clone()).into());
+                    }
+                }
+
+                fn ray_within_cone_at_t(ray: &Ray, t: &RayTracerFloat, y: &RayTracerFloat) -> bool {
+                    let x = ray.origin.x() + t * ray.direction.x();
+                    let z = ray.origin.z() + t * ray.direction.z();
+                    x.powi(2) + z.powi(2) <= y.abs()
+                }
+
+                if *closed && local_ray.direction.y().abs() >= EPSILON {
+                    let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
+                    let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
+
+                    if ray_within_cone_at_t(&local_ray, &tmin, min_y) {
+                        intersections.push(Intersection::new(tmin, self.clone()).into());
+                    }
+
+                    if ray_within_cone_at_t(&local_ray, &tmax, max_y) {
+                        intersections.push(Intersection::new(tmax, self.clone()).into());
+                    }
+                }
+
+                Intersections::new(intersections)
+            }
         }
     }
 
@@ -175,10 +241,10 @@ impl Object {
         let local_point = p.transform(inverse);
 
         let local_normal = match self {
-            Object::Test(..) => local_point.to_vector(),
-            Object::Plane(..) => Vector::vector(0., 1., 0.),
-            Object::Sphere(..) => local_point - Point::origin(),
-            Object::Cube(..) => {
+            Self::Test(..) => local_point.to_vector(),
+            Self::Plane(..) => Vector::vector(0., 1., 0.),
+            Self::Sphere(..) => local_point - Point::origin(),
+            Self::Cube(..) => {
                 let x = local_point.x().abs();
                 let y = local_point.y().abs();
                 let z = local_point.z().abs();
@@ -191,7 +257,7 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
-            Object::Cylinder(.., min_y, max_y, _) => {
+            Self::Cylinder(.., min_y, max_y, _) => {
                 let dist = local_point.x().powi(2) + local_point.z().powi(2);
 
                 if dist < 1.0 && local_point.y() > max_y - EPSILON {
@@ -202,11 +268,33 @@ impl Object {
                     Vector::vector(local_point.x(), 0.0, local_point.z())
                 }
             }
+            Self::DoubleNappedCone(.., min_y, max_y, _) => {
+                let dist = local_point.x().powi(2) + local_point.z().powi(2);
+
+                if dist < 1.0 && local_point.y() > max_y - EPSILON {
+                    Vector::vector(0., 1., 0.)
+                } else if dist < 1.0 && local_point.y() < min_y + EPSILON {
+                    Vector::vector(0., -1., 0.)
+                } else {
+                    let y = if local_point.y() > 0.0 {
+                        -(local_point.x().powi(2) + local_point.z().powi(2)).sqrt()
+                    } else {
+                        (local_point.x().powi(2) + local_point.z().powi(2)).sqrt()
+                    };
+
+                    Vector::vector(local_point.x(), y, local_point.z())
+                }
+            }
         };
 
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
 
-        world_normal.normalize()
+        // (0,0,0).norm() == (0/0, 0/0, 0/0) == (NaN, NaN, NaN), so don't try to norm it
+        if world_normal != Tuple::origin().to_vector() {
+            world_normal.normalize()
+        } else {
+            world_normal
+        }
     }
 }
 
@@ -235,7 +323,10 @@ pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> 
 
 #[cfg(test)]
 mod test {
-    use std::rc::Rc;
+    use std::{
+        f64::consts::{FRAC_1_SQRT_2, SQRT_2},
+        rc::Rc,
+    };
 
     use approx::assert_abs_diff_eq;
 
@@ -255,6 +346,16 @@ mod test {
 
     fn default_cylinder() -> Object {
         Object::Cylinder(
+            identity(),
+            Material::default(),
+            -RayTracerFloat::INFINITY,
+            RayTracerFloat::INFINITY,
+            false,
+        )
+    }
+
+    fn default_cone() -> Object {
+        Object::DoubleNappedCone(
             identity(),
             Material::default(),
             -RayTracerFloat::INFINITY,
@@ -522,6 +623,106 @@ mod test {
 
         for (point, normal) in examples {
             assert_abs_diff_eq!(cyl.normal_at(point), normal);
+        }
+    }
+
+    #[test]
+    fn cone_intersection() {
+        // (origin, direction, t0, t1)
+        let examples = vec![
+            (
+                Point::point(0.0, 0.0, -5.0),
+                Vector::vector(0., 0., 1.),
+                5.0,
+                5.0,
+            ),
+            (
+                Point::point(0.0, 0.0, -5.0),
+                Vector::vector(1.0, 1.0, 1.0),
+                8.66025,
+                8.66025,
+            ),
+            (
+                Point::point(1.0, 1.0, -5.0),
+                Vector::vector(-0.5, -1., 1.),
+                4.55006,
+                49.44994,
+            ),
+        ];
+
+        let cone = Rc::new(default_cone());
+
+        for (origin, direction, t0, t1) in examples {
+            let norm_direction = direction.normalize();
+            let r = Ray::new(origin, norm_direction);
+            let xs = cone.clone().intersections(&r);
+            assert_eq!(xs.ints().len(), 2);
+            assert_abs_diff_eq!(xs.ints()[0].t, t0, epsilon = EPSILON);
+            assert_abs_diff_eq!(xs.ints()[1].t, t1, epsilon = EPSILON);
+        }
+    }
+
+    #[test]
+    fn cone_intersection_ray_parallel() {
+        let cone = Rc::new(default_cone());
+        let r = Ray::new(
+            Point::point(0., 0., -1.0),
+            Vector::vector(0., 1., 1.).normalize(),
+        );
+        let xs = cone.intersections(&r);
+        assert_eq!(xs.ints().len(), 1);
+        assert_abs_diff_eq!(xs.ints()[0].t, 0.35355, epsilon = EPSILON);
+    }
+
+    #[test]
+    fn intersecting_closed_cone_caps() {
+        // (point, direction, count)
+        let examples = vec![
+            (Point::point(0.0, 0.0, -5.0), Vector::vector(0., 1., 0.), 0),
+            (Point::point(0.0, 0.0, -0.25), Vector::vector(0., 1., 1.), 2),
+            (Point::point(0.0, 0.0, -0.25), Vector::vector(0., 1., 0.), 4),
+        ];
+
+        let cone = Rc::new(Object::DoubleNappedCone(
+            identity(),
+            Material::default(),
+            -0.5,
+            0.5,
+            true,
+        ));
+
+        for (idx, (point, direction, count)) in examples.into_iter().enumerate() {
+            let norm_dir = direction.normalize();
+            let r = Ray::new(point, norm_dir);
+            assert_eq!(
+                cone.clone().intersections(&r).ints().len(),
+                count,
+                "case {} failed",
+                idx
+            );
+        }
+    }
+
+    #[test]
+    fn cone_normal() {
+        // (point, normal)
+        let examples = vec![
+            // the normal at the point in the middle
+            (Point::point(0.0, 1.0, 0.0), Vector::vector(0., 0., 0.)),
+            (
+                Point::point(1.0, 1.0, 1.0),
+                Vector::vector(0.5, SQRT_2 / 2.0, 0.5),
+            ),
+            (
+                Point::point(-1.0, -1.0, 0.0),
+                Vector::vector(-FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0.),
+            ),
+        ];
+
+        let cone = default_cone();
+
+        for (point, normal) in examples {
+            assert_abs_diff_eq!(cone.normal_at(point), normal);
         }
     }
 }
