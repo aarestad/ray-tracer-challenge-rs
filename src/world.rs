@@ -5,7 +5,7 @@ use crate::{
     intersection::{Intersection, Intersections},
     light::PointLight,
     material::{Material, MaterialBuilder},
-    objects::{Object, ObjectType},
+    objects::Object,
     precompute::Precompute,
     ray::Ray,
     transforms::{identity, scaling},
@@ -29,18 +29,16 @@ impl World {
     pub fn default_world() -> Self {
         World::new(
             vec![
-                Object{
-                    transform: identity(),
-                    material: MaterialBuilder::default()
+                Object::Sphere(
+                    identity(),
+                    MaterialBuilder::default()
                         .color(Color::new(0.8, 1., 0.6))
                         .diffuse(0.7)
                         .specular(0.2)
                         .build(),
-                        obj_type: ObjectType::Sphere,
-                }
+                )
                 .into(),
-                Object{ transform: scaling(0.5, 0.5, 0.5), material: Material::default(),
-                    obj_type: ObjectType::Sphere}.into()
+                Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default()).into(),
             ],
             PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )
@@ -84,7 +82,7 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: &Precompute, remaining: usize) -> Color {
-        let surface = comps.object.material.lighting(
+        let surface = comps.object.material().lighting(
             comps.object.as_ref(),
             self.light_source,
             comps.point,
@@ -96,7 +94,7 @@ impl World {
         let reflected = self.reflected_color_at(comps, remaining);
         let refracted = self.refracted_color_at(comps, remaining);
 
-        let mat = comps.object.material;
+        let mat = comps.object.material();
 
         if mat.reflective > 0. && mat.transparency > 0. {
             let reflectance = comps.schlick();
@@ -117,7 +115,7 @@ impl World {
     }
 
     pub fn reflected_color_at(&self, comps: &Precompute, remaining: usize) -> Color {
-        let reflective = comps.object.material.reflective;
+        let reflective = comps.object.material().reflective;
 
         if reflective == 0. || remaining == 0 {
             return BLACK;
@@ -137,7 +135,7 @@ impl World {
         let cos_i = comps.eyev.dot(&comps.normalv);
         let sin2_t = n12.powi(2) * (1. - cos_i.powi(2));
 
-        if remaining == 0 || sin2_t > 1. || comps.object.material.transparency == 0. {
+        if remaining == 0 || sin2_t > 1. || comps.object.material().transparency == 0. {
             return BLACK;
         }
 
@@ -145,7 +143,7 @@ impl World {
         let direction = comps.normalv * (n12 * cos_i - cos_t) - comps.eyev * n12;
         let refract_ray = Ray::new(comps.under_point, direction);
 
-        self.color_at(&refract_ray, remaining - 1) * comps.object.material.transparency
+        self.color_at(&refract_ray, remaining - 1) * comps.object.material().transparency
     }
 
     #[cfg(test)]

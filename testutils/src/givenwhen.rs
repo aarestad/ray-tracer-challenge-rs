@@ -158,7 +158,7 @@ fn given_a_sphere(world: &mut RayTracerWorld, step: &Step, sphere_name: String) 
 
     world.objects.insert(
         sphere_name,
-        Rc::new(Object::sphere(transform, material_builder.build())),
+        Rc::new(Object::Sphere(transform, material_builder.build())),
     );
 }
 
@@ -171,7 +171,7 @@ fn given_a_sphere_with_transform(
     let trans = world.get_transform_or_panic(&transform_name);
     world.objects.insert(
         sphere_name,
-        Rc::new(Object::sphere(*trans, Material::default().into())),
+        Rc::new(Object::Sphere(*trans, Material::default().into())),
     );
 }
 
@@ -182,7 +182,7 @@ fn given_a_sphere_with_default_transform_and_material(
 ) {
     world.objects.insert(
         sphere_name,
-        Rc::new(Object::sphere(identity(), Default::default())),
+        Rc::new(Object::Sphere(identity(), Default::default())),
     );
 }
 
@@ -283,10 +283,10 @@ fn given_nth_sphere_in_world(world: &mut RayTracerWorld, name: String, nth: Stri
 #[given(regex = r"^(\w+)\.material\.ambient ← (.+)")]
 fn given_sphere_ambient_val(world: &mut RayTracerWorld, s: String, ambient: RayTracerFloat) {
     let sphere = world.get_object_or_panic(&s);
-    let mut mat = Material::from(&sphere.material);
+    let mut mat = Material::from(sphere.material());
     mat.ambient = ambient;
 
-    let new_sphere = Object::sphere(sphere.as_ref().transform, mat);
+    let new_sphere = Object::Sphere(*sphere.as_ref().transform(), mat);
     world.objects.insert(s, Rc::new(new_sphere));
 }
 
@@ -430,7 +430,7 @@ fn when_light_created(
 #[when(expr = r"{word} ← {word}.material")]
 fn when_material_from_sphere(world: &mut RayTracerWorld, mat_name: String, sphere_name: String) {
     let s = world.get_object_or_panic(&sphere_name);
-    world.materials.insert(mat_name, s.material);
+    world.materials.insert(mat_name, *s.material());
 }
 
 #[when(expr = r"{word} ← lighting\({word}, {word}, {word}, {word}, {word}\)")]
@@ -623,7 +623,7 @@ fn given_a_test_shape_translation(
 ) {
     world.objects.insert(
         s,
-        Rc::new(Object::test(translation(x, y, z), Material::default())),
+        Rc::new(Object::Test(translation(x, y, z), Material::default())),
     );
 }
 
@@ -637,7 +637,7 @@ fn given_a_test_shape_scaling(
 ) {
     world.objects.insert(
         s,
-        Rc::new(Object::test(scaling(x, y, z), Material::default())),
+        Rc::new(Object::Test(scaling(x, y, z), Material::default())),
     );
 }
 
@@ -645,7 +645,7 @@ fn given_a_test_shape_scaling(
 fn given_arbitrary_test_shape(world: &mut RayTracerWorld) {
     world.objects.insert(
         "s".to_string(),
-        Rc::new(Object::test(
+        Rc::new(Object::Test(
             scaling(1., 0.5, 1.) * rotation(RotationAxis::Z, 0.628318),
             Material::default(),
         )),
@@ -658,7 +658,7 @@ fn given_a_test_shape_named_mat(world: &mut RayTracerWorld, s: String, m: String
 
     world
         .objects
-        .insert(s, Rc::new(Object::test(identity(), material.clone())));
+        .insert(s, Rc::new(Object::Test(identity(), material.clone())));
 }
 
 #[given(expr = r"{word} ← plane\(\)")]
@@ -688,7 +688,7 @@ fn given_sphere_with_transform(w: &mut RayTracerWorld, s: String, t: String) {
 
     w.objects.insert(
         s,
-        Rc::new(Object::sphere(transform, sphere.material)),
+        Rc::new(Object::Sphere(transform, sphere.material().clone())),
     );
 }
 
