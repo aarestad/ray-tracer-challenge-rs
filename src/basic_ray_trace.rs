@@ -9,7 +9,7 @@ use crate::canvas::Canvas;
 use crate::color::{Color, WHITE};
 use crate::light::PointLight;
 use crate::material::MaterialBuilder;
-use crate::objects::Object;
+use crate::objects::{Object, ObjectType};
 use crate::patterns::Pattern;
 use crate::ray::Ray;
 use crate::transforms::{identity, scaling, translation, Transform};
@@ -29,14 +29,15 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
 
-    let sphere = Rc::new(Object::Sphere(
+    let sphere = Rc::new(Object{
         transform,
-        MaterialBuilder::default()
+       material:  MaterialBuilder::default()
             .color(Color::new(1., 0.2, 1.))
             .diffuse(0.9)
             .specular(0.9)
             .build(),
-    ));
+            obj_type: ObjectType::Sphere,
+});
 
     for y in 0..canvas_pixels {
         let world_y = half - pixel_size * (y as RayTracerFloat);
@@ -53,7 +54,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
                 let e = -ray.direction;
                 let c = hit
                     .object
-                    .material()
+                    .material
                     .lighting(hit.object.as_ref(), light, p, e, n, false);
 
                 canvas.write(x, y, c);
@@ -72,14 +73,15 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
         end: WHITE,
     };
 
-    let floor = Object::Plane(
-        identity(),
-        MaterialBuilder::default().pattern(gradient).build(),
-    );
+    let floor = Object{
+        transform: identity(),
+        material: MaterialBuilder::default().pattern(gradient).build(),
+        obj_type: ObjectType::Plane
+    };
 
-    let middle_sphere = Object::Sphere(
-        translation(-0.5, 1., 0.5),
-        MaterialBuilder::default()
+    let middle_sphere = Object{
+        transform: translation(-0.5, 1., 0.5),
+        material: MaterialBuilder::default()
             .pattern(
                 Pattern::Stripe {
                     transform: identity(),
@@ -91,26 +93,29 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
             .specular(0.3)
             .reflective(0.8)
             .build(),
-    );
+            obj_type: ObjectType::Sphere,
+        };
 
-    let right_sphere = Object::Sphere(
-        translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
-        MaterialBuilder::default()
+    let right_sphere = Object{
+        transform: translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
+      material:  MaterialBuilder::default()
             .pattern(gradient)
             .diffuse(0.7)
             .specular(0.3)
             .reflective(1.)
             .build(),
-    );
+            obj_type: ObjectType::Sphere,
+    };
 
-    let left_sphere = Object::Sphere(
-        translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
-        MaterialBuilder::default()
+    let left_sphere = Object{
+        transform: translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
+       material: MaterialBuilder::default()
             .color(Color::new(1., 0.8, 0.1))
             .diffuse(0.7)
             .specular(0.3)
             .build(),
-    );
+            obj_type: ObjectType::Sphere,
+    };
 
     let light = PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.));
 

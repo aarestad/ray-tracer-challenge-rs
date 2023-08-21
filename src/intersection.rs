@@ -50,7 +50,7 @@ impl Intersection {
                 if containers.is_empty() {
                     n1 = 1.0;
                 } else {
-                    n1 = containers.last().unwrap().material().refractive;
+                    n1 = containers.last().unwrap().material.refractive;
                 }
             }
 
@@ -64,7 +64,7 @@ impl Intersection {
                 if containers.is_empty() {
                     n2 = 1.0;
                 } else {
-                    n2 = containers.last().unwrap().material().refractive;
+                    n2 = containers.last().unwrap().material.refractive;
                 }
 
                 break;
