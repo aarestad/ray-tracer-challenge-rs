@@ -276,11 +276,8 @@ impl Object {
                 } else if dist < 1.0 && local_point.y() < min_y + EPSILON {
                     Vector::vector(0., -1., 0.)
                 } else {
-                    let y = if local_point.y() > 0.0 {
-                        -(local_point.x().powi(2) + local_point.z().powi(2)).sqrt()
-                    } else {
-                        (local_point.x().powi(2) + local_point.z().powi(2)).sqrt()
-                    };
+                    let y_abs = (local_point.x().powi(2) + local_point.z().powi(2)).sqrt();
+                    let y = if local_point.y() > 0.0 { -y_abs } else { y_abs };
 
                     Vector::vector(local_point.x(), y, local_point.z())
                 }
@@ -711,7 +708,7 @@ mod test {
             (Point::point(0.0, 1.0, 0.0), Vector::vector(0., 0., 0.)),
             (
                 Point::point(1.0, 1.0, 1.0),
-                Vector::vector(0.5, SQRT_2 / 2.0, 0.5),
+                Vector::vector(0.5, -SQRT_2 / 2.0, 0.5),
             ),
             (
                 Point::point(-1.0, -1.0, 0.0),
