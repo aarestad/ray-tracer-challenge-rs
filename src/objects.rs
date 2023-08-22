@@ -15,6 +15,7 @@ pub enum ObjectType {
     Plane,
     Sphere,
     Cube,
+    Group(Vec<Rc<Object>>),
     // min_y, max_y (both exclusive), closed
     Cylinder(RayTracerFloat, RayTracerFloat, bool),
     DoubleNappedCone(RayTracerFloat, RayTracerFloat, bool),
@@ -25,6 +26,7 @@ pub struct Object {
     pub transform: Transform,
     pub material: Material,
     obj_type: ObjectType,
+    parent: Option<Rc<Object>>,
 }
 
 impl Object {
@@ -33,6 +35,7 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Test,
+            parent: None,
         }
     }
 
@@ -41,6 +44,8 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Plane,
+            parent: None,
+
         }
     }
 
@@ -49,6 +54,8 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Sphere,
+            parent: None,
+
         }
     }
 
@@ -57,7 +64,32 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Cube,
+            parent: None,
+
         }
+    }
+
+    pub fn group(transform: Transform, mut children: Vec<Object>) -> Rc<Self> {
+        let mut obj_type = ObjectType::Group(vec![]);
+
+        let new_group = Rc::new(Self {
+            transform,
+            material: Material::default(),
+            obj_type,
+            parent: None,
+        });
+
+        for c in children.iter_mut() {
+            c.parent = Some(new_group.clone());
+
+            match &mut new_group.obj_type {
+                ObjectType::Group(children) => children.push(Rc::new(*c)),
+                _ => unreachable!()
+            }
+
+        }
+
+        new_group
     }
 
     pub fn cylinder(
@@ -71,6 +103,8 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Cylinder(min_y, max_y, closed),
+            parent: None,
+
         }
     }
 
@@ -85,6 +119,15 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::DoubleNappedCone(min_y, max_y, closed),
+            parent: None,
+
+        }
+    }
+
+     fn set_parent(&mut self, parent: Rc<Object>) {
+        match parent.obj_type {
+            ObjectType::Group(_) => self.parent = Some(parent.clone()),
+            _ => panic!("parent is not a group"),
         }
     }
 
@@ -279,6 +322,7 @@ impl Object {
 
                 Intersections::new(intersections)
             }
+            ObjectType::Group(..) => todo!(),
         }
     }
 
@@ -328,6 +372,7 @@ impl Object {
                     Vector::vector(local_point.x(), y, local_point.z())
                 }
             }
+            ObjectType::Group(..) => todo!(),
         };
 
         let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
