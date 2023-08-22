@@ -84,7 +84,8 @@ impl Object {
             parent: Weak::new(),
         });
 
-        // SAFETY: Only called during single-threaded initialization
+        // SAFETY: Only called during single-threaded initialization; in particular, the children
+        // may have other referents, but they will not be dereferenced during this block
         for child in children.iter_mut() {
             unsafe {
                 // Required because the child may itself be a group with its own child-referents
