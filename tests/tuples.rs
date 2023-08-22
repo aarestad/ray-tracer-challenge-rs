@@ -138,7 +138,11 @@ fn assert_neg(world: &mut RayTracerWorld, tuple_name: String, expected: Tuple) {
 }
 
 #[then(expr = r"magnitude\({word}\) = {float}")]
-fn assert_magnitude_with_float(world: &mut RayTracerWorld, tuple_name: String, expected: RayTracerFloat) {
+fn assert_magnitude_with_float(
+    world: &mut RayTracerWorld,
+    tuple_name: String,
+    expected: RayTracerFloat,
+) {
     let tuple = world.get_tuple_or_panic(&tuple_name);
     let actual = tuple.magnitude();
 

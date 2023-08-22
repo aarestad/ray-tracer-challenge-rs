@@ -24,7 +24,13 @@ fn when_canvas_to_ppm(world: &mut RayTracerWorld, ppm_name: String, canvas_name:
 }
 
 #[when(expr = r"every pixel of {word} is set to color\({float}, {float}, {float}\)")]
-fn when_every_pixel_set(world: &mut RayTracerWorld, canvas_name: String, r: RayTracerFloat, g: RayTracerFloat, b: RayTracerFloat) {
+fn when_every_pixel_set(
+    world: &mut RayTracerWorld,
+    canvas_name: String,
+    r: RayTracerFloat,
+    g: RayTracerFloat,
+    b: RayTracerFloat,
+) {
     let canvas = world.get_mut_canvas_or_panic(&canvas_name);
 
     for y in 0..canvas.height() {

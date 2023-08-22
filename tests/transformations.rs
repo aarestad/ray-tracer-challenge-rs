@@ -36,7 +36,12 @@ fn given_an_inverse(world: &mut RayTracerWorld, inverted_matrix_name: String, ma
 }
 
 #[given(expr = r"{word} ← rotation_{axis}\({float}\)")]
-fn given_a_rotation(world: &mut RayTracerWorld, matrix_name: String, axis: Axis, r: RayTracerFloat) {
+fn given_a_rotation(
+    world: &mut RayTracerWorld,
+    matrix_name: String,
+    axis: Axis,
+    r: RayTracerFloat,
+) {
     let matrix = rotation(axis.val(), r);
     world.transforms.insert(matrix_name, matrix);
 }
@@ -87,7 +92,13 @@ fn assert_point_transform_specified(
 }
 
 #[then(expr = r"{word} = point\({float}, {float}, {float}\)")]
-fn assert_point_value(world: &mut RayTracerWorld, point_name: String, x: RayTracerFloat, y: RayTracerFloat, z: RayTracerFloat) {
+fn assert_point_value(
+    world: &mut RayTracerWorld,
+    point_name: String,
+    x: RayTracerFloat,
+    y: RayTracerFloat,
+    z: RayTracerFloat,
+) {
     let expected = Tuple::point(x, y, z);
     let actual = world.get_point_or_panic(&point_name);
 

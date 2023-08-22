@@ -12,7 +12,7 @@ use crate::material::MaterialBuilder;
 use crate::objects::Object;
 use crate::patterns::Pattern;
 use crate::ray::Ray;
-use crate::transforms::{identity, scaling, translation, Transform};
+use crate::transforms::{identity, rotation, scaling, translation, RotationAxis, Transform};
 use crate::tuple::{Point, Vector};
 use crate::util::RayTracerFloat;
 use crate::world::World;
@@ -80,13 +80,11 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
     let middle_sphere = Object::sphere(
         translation(-0.5, 1., 0.5),
         MaterialBuilder::default()
-            .pattern(
-                Pattern::Stripe {
-                    transform: identity(),
-                    even: Color::new(1., 0., 0.),
-                    odd: WHITE,
-                }
-            )
+            .pattern(Pattern::Stripe {
+                transform: identity(),
+                even: Color::new(1., 0., 0.),
+                odd: WHITE,
+            })
             .diffuse(0.7)
             .specular(0.3)
             .reflective(0.8)
@@ -112,14 +110,52 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
             .build(),
     );
 
+    let cube = Object::cube(
+         translation(-2., 0., 0.) * scaling(0.3, 0.3, 0.3),
+        // translation(1.3, 0.33, -0.75) * scaling(0.2, 0.2, 0.2),
+        MaterialBuilder::default()
+            .color(Color::new(3., 0.8, 0.1))
+            .diffuse(1.0)
+            .specular(1.0)
+            .build(),
+    );
+
+    let cyl = Object::cylinder(
+        // rotation(RotationAxis::X, PI / 4.0) * scaling(0.3, 0.3, 0.3),
+        identity(),
+        MaterialBuilder::default()
+            .color(Color::new(1., 0.3, 0.1))
+            .diffuse(0.7)
+            .specular(0.3)
+            .build(),
+        1.0,
+        3.0,
+        true,
+    );
+
+    let cone = Object::cone(
+        rotation(RotationAxis::X, PI / 8.0) * translation(2., 1., 0.) * scaling(0.5, 0.5, 0.5),
+        MaterialBuilder::default()
+            .color(Color::new(1., 0.8, 0.3))
+            .diffuse(0.7)
+            .specular(0.3)
+            .build(),
+        -1.0,
+        0.0,
+        true,
+    );
+
     let light = PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.));
 
     let world = World::new(
         vec![
-            Rc::new(floor),
-            Rc::new(middle_sphere),
-            Rc::new(right_sphere),
-            Rc::new(left_sphere),
+            // floor.into(),
+            // middle_sphere.into(),
+            // right_sphere.into(),
+            // left_sphere.into(),
+            cube.into(),
+            // cyl.into(),
+            // cone.into(),
         ],
         light,
     );

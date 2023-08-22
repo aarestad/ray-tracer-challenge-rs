@@ -29,14 +29,18 @@ pub struct Object {
 
 impl Object {
     pub fn test(transform: Transform, material: Material) -> Self {
-        Self {transform ,material, obj_type: ObjectType::Test}
+        Self {
+            transform,
+            material,
+            obj_type: ObjectType::Test,
+        }
     }
 
     pub fn plane(transform: Transform, material: Material) -> Self {
         Self {
             transform,
             material,
-            obj_type: ObjectType::Plane
+            obj_type: ObjectType::Plane,
         }
     }
 
@@ -44,7 +48,7 @@ impl Object {
         Self {
             transform,
             material,
-            obj_type: ObjectType::Sphere
+            obj_type: ObjectType::Sphere,
         }
     }
 
@@ -52,23 +56,35 @@ impl Object {
         Self {
             transform,
             material,
-            obj_type: ObjectType::Cube
+            obj_type: ObjectType::Cube,
         }
     }
 
-    pub fn cylinder(transform: Transform, material: Material, min_y: RayTracerFloat, max_y: RayTracerFloat, closed: bool) -> Self {
+    pub fn cylinder(
+        transform: Transform,
+        material: Material,
+        min_y: RayTracerFloat,
+        max_y: RayTracerFloat,
+        closed: bool,
+    ) -> Self {
         Self {
             transform,
             material,
-            obj_type: ObjectType::Cylinder(min_y, max_y, closed)
+            obj_type: ObjectType::Cylinder(min_y, max_y, closed),
         }
     }
 
-    pub fn cone(transform: Transform, material: Material, min_y: RayTracerFloat, max_y: RayTracerFloat, closed: bool) -> Self {
+    pub fn cone(
+        transform: Transform,
+        material: Material,
+        min_y: RayTracerFloat,
+        max_y: RayTracerFloat,
+        closed: bool,
+    ) -> Self {
         Self {
             transform,
             material,
-            obj_type: ObjectType::DoubleNappedCone(min_y, max_y, closed)
+            obj_type: ObjectType::DoubleNappedCone(min_y, max_y, closed),
         }
     }
 
@@ -149,7 +165,7 @@ impl Object {
                     ])
                 }
             }
-            ObjectType::Cylinder( min_y, max_y, closed) => {
+            ObjectType::Cylinder(min_y, max_y, closed) => {
                 let a = local_ray.direction.x().powi(2) + local_ray.direction.z().powi(2);
                 let mut intersections: Vec<Rc<Intersection>> = vec![];
 
@@ -271,8 +287,8 @@ impl Object {
         let local_point = p.transform(inverse);
 
         let local_normal = match self.obj_type {
-            ObjectType::Test=> local_point.to_vector(),
-            ObjectType::Plane=> Vector::vector(0., 1., 0.),
+            ObjectType::Test => local_point.to_vector(),
+            ObjectType::Plane => Vector::vector(0., 1., 0.),
             ObjectType::Sphere => local_point - Point::origin(),
             ObjectType::Cube => {
                 let x = local_point.x().abs();
@@ -287,7 +303,7 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
-            ObjectType::Cylinder( min_y, max_y, _) => {
+            ObjectType::Cylinder(min_y, max_y, _) => {
                 let dist = local_point.x().powi(2) + local_point.z().powi(2);
 
                 if dist < 1.0 && local_point.y() > max_y - EPSILON {

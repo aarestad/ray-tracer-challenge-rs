@@ -38,7 +38,12 @@ fn given_mega_intersections(
     let int4 = world.get_optional_int(&int4_name).unwrap();
     world.intersectionses.insert(
         ints_name,
-        Rc::new(Intersections::new(vec![int1.clone(), int2.clone(), int3.clone(), int4.clone()])),
+        Rc::new(Intersections::new(vec![
+            int1.clone(),
+            int2.clone(),
+            int3.clone(),
+            int4.clone(),
+        ])),
     );
 }
 
