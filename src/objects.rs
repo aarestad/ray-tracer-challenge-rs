@@ -34,13 +34,16 @@ impl ObjectType {
 pub struct Object {
     pub transform: Transform,
     pub material: Material,
-    pub obj_type: ObjectType,
+    obj_type: ObjectType,
     parent: Weak<Object>,
 }
 
 impl PartialEq for Object {
     fn eq(&self, other: &Self) -> bool {
-        self.transform == other.transform && self.material == other.material && self.obj_type == other.obj_type
+        self.transform == other.transform && self.material == other.material
+        // the "parent" check below prevents this equality check from recursing infinitely
+        && self.obj_type == other.obj_type
+        // reference equality for parent to short circuit inifinite recursion
         && self.parent.clone().into_raw() == other.parent.clone().into_raw()
     }
 }
@@ -88,7 +91,7 @@ impl Object {
         let mut new_group = Rc::new(Self {
             transform,
             material: Material::default(),
-            obj_type: ObjectType::Group(vec![]), // the internal vec is replaced below
+            obj_type: ObjectType::Group(vec![]), // replaced below
             parent: Weak::new(),
         });
 
@@ -133,13 +136,6 @@ impl Object {
             material,
             obj_type: ObjectType::DoubleNappedCone(min_y, max_y, closed),
             parent: Weak::new(),
-        }
-    }
-
-    fn set_parent(&mut self, parent: Rc<Object>) {
-        match parent.obj_type {
-            ObjectType::Group(_) => self.parent = Rc::downgrade(&parent),
-            _ => panic!("parent is not a group"),
         }
     }
 
