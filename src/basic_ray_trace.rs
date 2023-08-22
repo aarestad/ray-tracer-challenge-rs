@@ -29,7 +29,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
 
-    let sphere = Rc::new(Object::Sphere(
+    let sphere = Rc::new(Object::sphere(
         transform,
         MaterialBuilder::default()
             .color(Color::new(1., 0.2, 1.))
@@ -53,7 +53,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
                 let e = -ray.direction;
                 let c = hit
                     .object
-                    .material()
+                    .material
                     .lighting(hit.object.as_ref(), light, p, e, n, false);
 
                 canvas.write(x, y, c);
@@ -72,12 +72,12 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
         end: WHITE,
     };
 
-    let floor = Object::Plane(
+    let floor = Object::plane(
         identity(),
         MaterialBuilder::default().pattern(gradient).build(),
     );
 
-    let middle_sphere = Object::Sphere(
+    let middle_sphere = Object::sphere(
         translation(-0.5, 1., 0.5),
         MaterialBuilder::default()
             .pattern(
@@ -93,7 +93,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
             .build(),
     );
 
-    let right_sphere = Object::Sphere(
+    let right_sphere = Object::sphere(
         translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5),
         MaterialBuilder::default()
             .pattern(gradient)
@@ -103,7 +103,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
             .build(),
     );
 
-    let left_sphere = Object::Sphere(
+    let left_sphere = Object::sphere(
         translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33),
         MaterialBuilder::default()
             .color(Color::new(1., 0.8, 0.1))

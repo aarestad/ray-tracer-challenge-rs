@@ -9,47 +9,77 @@ use std::mem::swap;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq)]
-pub enum Object {
-    Test(Transform, Material),
-    Plane(Transform, Material),
-    Sphere(Transform, Material),
-    Cube(Transform, Material),
-    // ... min_y, max_y (both exclusive), closed
-    Cylinder(Transform, Material, RayTracerFloat, RayTracerFloat, bool),
-    DoubleNappedCone(Transform, Material, RayTracerFloat, RayTracerFloat, bool),
+pub enum ObjectType {
+    // TODO cfg[test]
+    Test,
+    Plane,
+    Sphere,
+    Cube,
+    // min_y, max_y (both exclusive), closed
+    Cylinder(RayTracerFloat, RayTracerFloat, bool),
+    DoubleNappedCone(RayTracerFloat, RayTracerFloat, bool),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Object {
+    pub transform: Transform,
+    pub material: Material,
+    obj_type: ObjectType,
 }
 
 impl Object {
-    pub fn transform(&self) -> &Transform {
-        match self {
-            Self::Test(t, _)
-            | Self::Plane(t, _)
-            | Self::Sphere(t, _)
-            | Self::Cube(t, _)
-            | Self::Cylinder(t, ..)
-            | Self::DoubleNappedCone(t, ..) => t,
+    pub fn test(transform: Transform, material: Material) -> Self {
+        Self {transform ,material, obj_type: ObjectType::Test}
+    }
+
+    pub fn plane(transform: Transform, material: Material) -> Self {
+        Self {
+            transform,
+            material,
+            obj_type: ObjectType::Plane
         }
     }
 
-    pub fn material(&self) -> &Material {
-        match self {
-            Self::Test(_, m)
-            | Self::Plane(_, m)
-            | Self::Sphere(_, m)
-            | Self::Cube(_, m)
-            | Self::Cylinder(_, m, ..)
-            | Self::DoubleNappedCone(_, m, ..) => m,
+    pub fn sphere(transform: Transform, material: Material) -> Self {
+        Self {
+            transform,
+            material,
+            obj_type: ObjectType::Sphere
+        }
+    }
+
+    pub fn cube(transform: Transform, material: Material) -> Self {
+        Self {
+            transform,
+            material,
+            obj_type: ObjectType::Cube
+        }
+    }
+
+    pub fn cylinder(transform: Transform, material: Material, min_y: RayTracerFloat, max_y: RayTracerFloat, closed: bool) -> Self {
+        Self {
+            transform,
+            material,
+            obj_type: ObjectType::Cylinder(min_y, max_y, closed)
+        }
+    }
+
+    pub fn cone(transform: Transform, material: Material, min_y: RayTracerFloat, max_y: RayTracerFloat, closed: bool) -> Self {
+        Self {
+            transform,
+            material,
+            obj_type: ObjectType::DoubleNappedCone(min_y, max_y, closed)
         }
     }
 
     pub fn intersections(self: Rc<Self>, ray: &Ray) -> Intersections {
         // "un-transforms" the ray so it's relative to the origin-centered,
         // unit-1-sized default for this Object
-        let local_ray = ray.transform(&self.transform().try_inverse().unwrap());
+        let local_ray = ray.transform(&self.transform.try_inverse().unwrap());
 
-        match self.as_ref() {
-            Self::Test(..) => Intersections::empty(),
-            Self::Plane(..) => {
+        match self.obj_type {
+            ObjectType::Test => Intersections::empty(),
+            ObjectType::Plane => {
                 if local_ray.direction.y().abs() < EPSILON {
                     return Intersections::empty();
                 }
@@ -58,7 +88,7 @@ impl Object {
 
                 Intersections::new(vec![Intersection::new(t, self).into()])
             }
-            Self::Sphere(..) => {
+            ObjectType::Sphere => {
                 let sphere_to_ray = local_ray.origin - Point::origin();
                 let a = local_ray.direction.dot(&local_ray.direction);
                 let b = 2. * local_ray.direction.dot(&sphere_to_ray);
@@ -75,7 +105,7 @@ impl Object {
                     Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self).into(),
                 ])
             }
-            Self::Cube(..) => {
+            ObjectType::Cube => {
                 /// Returns tmin, tmax for a particular axis's origin/direction components
                 fn check_axis(
                     origin_component: RayTracerFloat,
@@ -119,7 +149,7 @@ impl Object {
                     ])
                 }
             }
-            Self::Cylinder(.., min_y, max_y, closed) => {
+            ObjectType::Cylinder( min_y, max_y, closed) => {
                 let a = local_ray.direction.x().powi(2) + local_ray.direction.z().powi(2);
                 let mut intersections: Vec<Rc<Intersection>> = vec![];
 
@@ -140,11 +170,11 @@ impl Object {
                     let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
                     let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
 
-                    if *min_y < y0 && y0 < *max_y {
+                    if min_y < y0 && y0 < max_y {
                         intersections.push(Intersection::new(t0, self.clone()).into());
                     }
 
-                    if *min_y < y1 && y1 < *max_y {
+                    if min_y < y1 && y1 < max_y {
                         intersections.push(Intersection::new(t1, self.clone()).into());
                     }
                 }
@@ -155,7 +185,7 @@ impl Object {
                     x.powi(2) + z.powi(2) <= 1.0
                 }
 
-                if *closed && local_ray.direction.y().abs() >= EPSILON {
+                if closed && local_ray.direction.y().abs() >= EPSILON {
                     let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
                     let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
 
@@ -170,7 +200,7 @@ impl Object {
 
                 Intersections::new(intersections)
             }
-            Self::DoubleNappedCone(.., min_y, max_y, closed) => {
+            ObjectType::DoubleNappedCone(min_y, max_y, closed) => {
                 let a = local_ray.direction.x().powi(2) - local_ray.direction.y().powi(2)
                     + local_ray.direction.z().powi(2);
 
@@ -203,30 +233,30 @@ impl Object {
                     let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
                     let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
 
-                    if *min_y < y0 && y0 < *max_y {
+                    if min_y < y0 && y0 < max_y {
                         intersections.push(Intersection::new(t0, self.clone()).into());
                     }
 
-                    if *min_y < y1 && y1 < *max_y {
+                    if min_y < y1 && y1 < max_y {
                         intersections.push(Intersection::new(t1, self.clone()).into());
                     }
                 }
 
-                fn ray_within_cone_at_t(ray: &Ray, t: &RayTracerFloat, y: &RayTracerFloat) -> bool {
+                fn ray_within_cone_at_t(ray: &Ray, t: RayTracerFloat, y: RayTracerFloat) -> bool {
                     let x = ray.origin.x() + t * ray.direction.x();
                     let z = ray.origin.z() + t * ray.direction.z();
                     x.powi(2) + z.powi(2) <= y.abs()
                 }
 
-                if *closed && local_ray.direction.y().abs() >= EPSILON {
+                if closed && local_ray.direction.y().abs() >= EPSILON {
                     let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
                     let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
 
-                    if ray_within_cone_at_t(&local_ray, &tmin, min_y) {
+                    if ray_within_cone_at_t(&local_ray, tmin, min_y) {
                         intersections.push(Intersection::new(tmin, self.clone()).into());
                     }
 
-                    if ray_within_cone_at_t(&local_ray, &tmax, max_y) {
+                    if ray_within_cone_at_t(&local_ray, tmax, max_y) {
                         intersections.push(Intersection::new(tmax, self.clone()).into());
                     }
                 }
@@ -237,14 +267,14 @@ impl Object {
     }
 
     pub fn normal_at(&self, p: Point) -> Vector {
-        let inverse = &self.transform().try_inverse().unwrap();
+        let inverse = &self.transform.try_inverse().unwrap();
         let local_point = p.transform(inverse);
 
-        let local_normal = match self {
-            Self::Test(..) => local_point.to_vector(),
-            Self::Plane(..) => Vector::vector(0., 1., 0.),
-            Self::Sphere(..) => local_point - Point::origin(),
-            Self::Cube(..) => {
+        let local_normal = match self.obj_type {
+            ObjectType::Test=> local_point.to_vector(),
+            ObjectType::Plane=> Vector::vector(0., 1., 0.),
+            ObjectType::Sphere => local_point - Point::origin(),
+            ObjectType::Cube => {
                 let x = local_point.x().abs();
                 let y = local_point.y().abs();
                 let z = local_point.z().abs();
@@ -257,7 +287,7 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
-            Self::Cylinder(.., min_y, max_y, _) => {
+            ObjectType::Cylinder( min_y, max_y, _) => {
                 let dist = local_point.x().powi(2) + local_point.z().powi(2);
 
                 if dist < 1.0 && local_point.y() > max_y - EPSILON {
@@ -268,7 +298,7 @@ impl Object {
                     Vector::vector(local_point.x(), 0.0, local_point.z())
                 }
             }
-            Self::DoubleNappedCone(.., min_y, max_y, _) => {
+            ObjectType::DoubleNappedCone(min_y, max_y, _) => {
                 let dist = local_point.x().powi(2) + local_point.z().powi(2);
 
                 if dist < 1.0 && local_point.y() > max_y - EPSILON {
@@ -297,19 +327,19 @@ impl Object {
 
 // TODO cfg(test)
 pub fn default_test_shape() -> Object {
-    Object::Test(identity(), Material::default())
+    Object::test(identity(), Material::default())
 }
 
 pub fn default_sphere() -> Object {
-    Object::Sphere(identity(), Material::default())
+    Object::sphere(identity(), Material::default())
 }
 
 pub fn default_plane() -> Object {
-    Object::Plane(identity(), Material::default())
+    Object::plane(identity(), Material::default())
 }
 
 pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> Object {
-    Object::Sphere(
+    Object::sphere(
         transform,
         MaterialBuilder::default()
             .transparency(1.0)
@@ -338,11 +368,11 @@ mod test {
     use super::Object;
 
     fn default_cube() -> Object {
-        Object::Cube(identity(), Material::default())
+        Object::cube(identity(), Material::default())
     }
 
     fn default_cylinder() -> Object {
-        Object::Cylinder(
+        Object::cylinder(
             identity(),
             Material::default(),
             -RayTracerFloat::INFINITY,
@@ -352,7 +382,7 @@ mod test {
     }
 
     fn default_cone() -> Object {
-        Object::DoubleNappedCone(
+        Object::cone(
             identity(),
             Material::default(),
             -RayTracerFloat::INFINITY,
@@ -364,8 +394,8 @@ mod test {
     #[test]
     fn glass_sphere_properties() {
         let gs = glass_sphere();
-        assert_eq!(gs.material().transparency, 1.0);
-        assert_eq!(gs.material().refractive, 1.5);
+        assert_eq!(gs.material.transparency, 1.0);
+        assert_eq!(gs.material.refractive, 1.5);
     }
 
     #[test]
@@ -552,7 +582,7 @@ mod test {
             (Point::point(0.0, 1.5, -2.0), Vector::vector(0., 0., 1.), 2),
         ];
 
-        let cyl = Rc::new(Object::Cylinder(
+        let cyl = Rc::new(Object::cylinder(
             identity(),
             Material::default(),
             1.0,
@@ -578,7 +608,7 @@ mod test {
             (Point::point(0.0, -1.0, -2.0), Vector::vector(0., 1., 1.), 2),
         ];
 
-        let cyl = Rc::new(Object::Cylinder(
+        let cyl = Rc::new(Object::cylinder(
             identity(),
             Material::default(),
             1.0,
@@ -610,7 +640,7 @@ mod test {
             (Point::point(0.0, 2.0, 0.5), Vector::vector(0., 1., 0.)),
         ];
 
-        let cyl = Rc::new(Object::Cylinder(
+        let cyl = Rc::new(Object::cylinder(
             identity(),
             Material::default(),
             1.0,
@@ -680,7 +710,7 @@ mod test {
             (Point::point(0.0, 0.0, -0.25), Vector::vector(0., 1., 0.), 4),
         ];
 
-        let cone = Rc::new(Object::DoubleNappedCone(
+        let cone = Rc::new(Object::cone(
             identity(),
             Material::default(),
             -0.5,

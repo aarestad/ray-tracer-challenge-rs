@@ -9,6 +9,7 @@ use crate::{
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Pattern {
+    // TODO cfg[test]
     Test(Transform),
     Stripe {
         transform: Transform,
@@ -46,7 +47,7 @@ impl Pattern {
     }
 
     pub fn color_at(&self, object: &Object, world_point: &Point) -> Color {
-        let object_point = world_point.transform(&object.transform().try_inverse().unwrap());
+        let object_point = world_point.transform(&object.transform.try_inverse().unwrap());
 
         let p = object_point.transform(
             &self
@@ -130,7 +131,7 @@ mod test {
     fn pattern_with_object_transform() {
         let p = Pattern::Test(identity());
 
-        let s = Object::Sphere(
+        let s = Object::sphere(
             scaling(2., 2., 2.),
             MaterialBuilder::default().pattern(p).build(),
         );
@@ -144,7 +145,7 @@ mod test {
     fn pattern_with_pattern_transform() {
         let p = Pattern::Test(scaling(2., 2., 2.));
 
-        let s = Object::Sphere(identity(), MaterialBuilder::default().pattern(p).build());
+        let s = Object::sphere(identity(), MaterialBuilder::default().pattern(p).build());
 
         let c = p.color_at(&s, &Point::point(2., 3., 4.));
 
@@ -155,7 +156,7 @@ mod test {
     fn pattern_with_object_and_pattern_transform() {
         let p = Pattern::Test(translation(0.5, 1., 1.5));
 
-        let s = Object::Sphere(
+        let s = Object::sphere(
             scaling(2., 2., 2.),
             MaterialBuilder::default().pattern(p).build(),
         );
@@ -172,7 +173,7 @@ mod test {
             odd: BLACK,
             transform: identity(),
         };
-        let s = Object::Sphere(scaling(2., 2., 2.), Material::default());
+        let s = Object::sphere(scaling(2., 2., 2.), Material::default());
         let point = Point::point(1.5, 0., 0.);
         let c = p.color_at(&s, &point);
         assert_eq!(c, WHITE);
@@ -185,7 +186,7 @@ mod test {
             odd: BLACK,
             transform: scaling(2., 2., 2.),
         };
-        let s = Object::Sphere(identity(), Material::default());
+        let s = Object::sphere(identity(), Material::default());
         let point = Point::point(1.5, 0., 0.);
         let c = p.color_at(&s, &point);
         assert_eq!(c, WHITE);
@@ -198,7 +199,7 @@ mod test {
             odd: BLACK,
             transform: translation(0.5, 0., 0.),
         };
-        let s = Object::Sphere(scaling(2., 2., 2.), Material::default());
+        let s = Object::sphere(scaling(2., 2., 2.), Material::default());
         let point = Point::point(2.5, 0., 0.);
         let c = p.color_at(&s, &point);
         assert_eq!(c, WHITE);

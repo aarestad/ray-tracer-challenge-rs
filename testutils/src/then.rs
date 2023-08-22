@@ -168,7 +168,7 @@ fn assert_sphere_color(world: &mut RayTracerWorld, c: String, s: String) {
     let color = world.get_color_or_panic(&c);
     let sphere = world.get_object_or_panic(&s);
 
-    assert_eq!(Pattern::Solid(*color), sphere.material().pattern);
+    assert_eq!(Pattern::Solid(*color), sphere.material.pattern);
 }
 
 #[then(regex = r"^(\w+) = identity_matrix$")]
@@ -312,7 +312,7 @@ fn assert_object_transform_name(world: &mut RayTracerWorld, trans_name: String) 
         *world.get_transform_or_panic(&trans_name)
     };
 
-    assert_eq!(o.transform(), &t)
+    assert_eq!(o.transform, t)
 }
 
 #[then(
@@ -328,20 +328,20 @@ fn assert_object_transform_translation(
 
     let t = translation(x, y, z);
 
-    assert_eq!(o.transform(), &t)
+    assert_eq!(o.transform, t)
 }
 
 #[then(regex = r"^s\.material = material\(\)")]
 fn assert_object_default_material(world: &mut RayTracerWorld) {
     let object = world.get_object_or_panic(&"s".to_string());
-    assert_eq!(object.material(), &Material::default());
+    assert_eq!(object.material, Material::default());
 }
 
 #[then(regex = r"^s\.material = (\w+)$")]
 fn assert_object_named_material(world: &mut RayTracerWorld, m: String) {
     let object = world.get_object_or_panic(&"s".to_string());
     let material = world.get_material_or_panic(&m);
-    assert_eq!(object.material(), material);
+    assert_eq!(object.material, *material);
 }
 
 #[then(expr = r"{word} is empty")]

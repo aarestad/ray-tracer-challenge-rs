@@ -29,7 +29,7 @@ impl World {
     pub fn default_world() -> Self {
         World::new(
             vec![
-                Object::Sphere(
+                Object::sphere(
                     identity(),
                     MaterialBuilder::default()
                         .color(Color::new(0.8, 1., 0.6))
@@ -38,7 +38,7 @@ impl World {
                         .build(),
                 )
                 .into(),
-                Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default()).into(),
+                Object::sphere(scaling(0.5, 0.5, 0.5), Material::default()).into(),
             ],
             PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.)),
         )
@@ -82,7 +82,7 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: &Precompute, remaining: usize) -> Color {
-        let surface = comps.object.material().lighting(
+        let surface = comps.object.material.lighting(
             comps.object.as_ref(),
             self.light_source,
             comps.point,
@@ -94,7 +94,7 @@ impl World {
         let reflected = self.reflected_color_at(comps, remaining);
         let refracted = self.refracted_color_at(comps, remaining);
 
-        let mat = comps.object.material();
+        let mat = comps.object.material;
 
         if mat.reflective > 0. && mat.transparency > 0. {
             let reflectance = comps.schlick();
@@ -115,7 +115,7 @@ impl World {
     }
 
     pub fn reflected_color_at(&self, comps: &Precompute, remaining: usize) -> Color {
-        let reflective = comps.object.material().reflective;
+        let reflective = comps.object.material.reflective;
 
         if reflective == 0. || remaining == 0 {
             return BLACK;
@@ -135,7 +135,7 @@ impl World {
         let cos_i = comps.eyev.dot(&comps.normalv);
         let sin2_t = n12.powi(2) * (1. - cos_i.powi(2));
 
-        if remaining == 0 || sin2_t > 1. || comps.object.material().transparency == 0. {
+        if remaining == 0 || sin2_t > 1. || comps.object.material.transparency == 0. {
             return BLACK;
         }
 
@@ -143,7 +143,7 @@ impl World {
         let direction = comps.normalv * (n12 * cos_i - cos_t) - comps.eyev * n12;
         let refract_ray = Ray::new(comps.under_point, direction);
 
-        self.color_at(&refract_ray, remaining - 1) * comps.object.material().transparency
+        self.color_at(&refract_ray, remaining - 1) * comps.object.material.transparency
     }
 
     #[cfg(test)]
@@ -175,7 +175,7 @@ mod test {
     #[test]
     fn reflected_color_nonreflective_mat() {
         let mut w = World::default_world_with_objects(vec![
-            Rc::new(Object::Sphere(
+            Rc::new(Object::sphere(
                 identity(),
                 MaterialBuilder::default()
                     .color(Color::new(0.8, 1., 0.6))
@@ -183,7 +183,7 @@ mod test {
                     .specular(0.2)
                     .build(),
             )),
-            Rc::new(Object::Sphere(
+            Rc::new(Object::sphere(
                 scaling(0.5, 0.5, 0.5),
                 MaterialBuilder::default().ambient(1.).build(),
             )),
@@ -203,7 +203,7 @@ mod test {
     fn reflected_color_reflective_mat() {
         let mut w = World::default_world();
 
-        let s = Rc::new(Object::Plane(
+        let s = Rc::new(Object::plane(
             translation(0., -1., 0.),
             MaterialBuilder::default().reflective(0.5).build(),
         ));
@@ -227,7 +227,7 @@ mod test {
     fn shade_hit_reflective_mat() {
         let mut w = World::default_world();
 
-        let s = Rc::new(Object::Plane(
+        let s = Rc::new(Object::plane(
             translation(0., -1., 0.),
             MaterialBuilder::default().reflective(0.5).build(),
         ));
@@ -251,7 +251,7 @@ mod test {
     fn shade_hit_transparent_mat() {
         let mut w = World::default_world();
 
-        let floor = Rc::new(Object::Plane(
+        let floor = Rc::new(Object::plane(
             translation(0., -1., 0.),
             MaterialBuilder::default()
                 .transparency(0.5)
@@ -259,7 +259,7 @@ mod test {
                 .build(),
         ));
 
-        let ball = Rc::new(Object::Sphere(
+        let ball = Rc::new(Object::sphere(
             translation(0., -3.5, -0.5),
             MaterialBuilder::default()
                 .color(Color::new(1.0, 0.0, 0.0))
@@ -287,7 +287,7 @@ mod test {
     fn shade_hit_transparent_and_reflective_mat() {
         let mut w = World::default_world();
 
-        let floor = Rc::new(Object::Plane(
+        let floor = Rc::new(Object::plane(
             translation(0., -1., 0.),
             MaterialBuilder::default()
                 .reflective(0.5)
@@ -296,7 +296,7 @@ mod test {
                 .build(),
         ));
 
-        let ball = Rc::new(Object::Sphere(
+        let ball = Rc::new(Object::sphere(
             translation(0., -3.5, -0.5),
             MaterialBuilder::default()
                 .color(Color::new(1.0, 0.0, 0.0))
@@ -325,12 +325,12 @@ mod test {
         let mut w = World::default_world();
         w.light_source = PointLight::new(Point::point(0., 0., 0.), WHITE);
 
-        let lower = Rc::new(Object::Plane(
+        let lower = Rc::new(Object::plane(
             translation(0., -1., 0.),
             MaterialBuilder::default().reflective(1.).build(),
         ));
 
-        let upper = Rc::new(Object::Plane(
+        let upper = Rc::new(Object::plane(
             translation(0., 1., 0.),
             MaterialBuilder::default().reflective(1.).build(),
         ));
@@ -349,7 +349,7 @@ mod test {
     fn reflected_color_max_recursion() {
         let mut w = World::default_world();
 
-        let p = Rc::new(Object::Plane(
+        let p = Rc::new(Object::plane(
             translation(0., -1., 0.),
             MaterialBuilder::default().reflective(0.5).build(),
         ));
@@ -384,7 +384,7 @@ mod test {
 
     #[test]
     fn refracted_color_max_recursion() {
-        let shape = Rc::new(Object::Sphere(
+        let shape = Rc::new(Object::sphere(
             identity(),
             MaterialBuilder::default()
                 .color(Color::new(0.8, 1., 0.6))
@@ -397,7 +397,7 @@ mod test {
 
         let shapes: Vec<Rc<Object>> = vec![
             shape.clone(),
-            Rc::new(Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default())),
+            Rc::new(Object::sphere(scaling(0.5, 0.5, 0.5), Material::default())),
         ];
 
         let w = World::default_world_with_objects(shapes);
@@ -415,7 +415,7 @@ mod test {
 
     #[test]
     fn refracted_color_total_internal_refraction() {
-        let shape = Rc::new(Object::Sphere(
+        let shape = Rc::new(Object::sphere(
             identity(),
             MaterialBuilder::default()
                 .color(Color::new(0.8, 1., 0.6))
@@ -428,7 +428,7 @@ mod test {
 
         let shapes: Vec<Rc<Object>> = vec![
             shape.clone(),
-            Rc::new(Object::Sphere(scaling(0.5, 0.5, 0.5), Material::default())),
+            Rc::new(Object::sphere(scaling(0.5, 0.5, 0.5), Material::default())),
         ];
 
         let w = World::default_world_with_objects(shapes);
@@ -449,7 +449,7 @@ mod test {
 
     #[test]
     fn refracted_color_refracted_ray() {
-        let shape_a = Rc::new(Object::Sphere(
+        let shape_a = Rc::new(Object::sphere(
             identity(),
             MaterialBuilder::default()
                 .color(Color::new(0.8, 1., 0.6))
@@ -460,7 +460,7 @@ mod test {
                 .build(),
         ));
 
-        let shape_b = Rc::new(Object::Sphere(
+        let shape_b = Rc::new(Object::sphere(
             scaling(0.5, 0.5, 0.5),
             MaterialBuilder::default()
                 .transparency(1.0)
