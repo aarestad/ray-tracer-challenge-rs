@@ -76,25 +76,25 @@ impl Object {
         }
     }
 
-    pub fn group(transform: Transform, children: Vec<Object>) -> Rc<Self> {
-        let mut obj_type_children: Vec<Rc<Object>> = vec![];
-
+    pub fn group(transform: Transform, mut children: Vec<Rc<Object>>) -> Rc<Self> {
         let mut new_group = Rc::new(Self {
             transform,
             material: Material::default(),
-            obj_type: ObjectType::Group(vec![]), // replaced below
+            obj_type: ObjectType::Group(vec![]),
             parent: Weak::new(),
         });
 
-        for c in children {
-            let mut child = c.clone();
-            child.parent = Rc::downgrade(&new_group);
-            obj_type_children.push(Rc::new(child));
-        }
+        for child in children.iter_mut() {
+            // There should be no other references to child at this point since this only gets called during initialization
+            Rc::get_mut(child).unwrap().parent = Rc::downgrade(&new_group);
 
-        // SAFETY: we're the only ones with access to new_group right now
-        unsafe {
-            Rc::get_mut_unchecked(&mut new_group).obj_type = ObjectType::Group(obj_type_children);
+            // SAFETY: we're the only ones with access to new_group right now
+            unsafe {
+                match &mut Rc::get_mut_unchecked(&mut new_group).obj_type {
+                    ObjectType::Group(children) => children.push(child.clone()),
+                    _ => unreachable!(),
+                }
+            }
         }
 
         new_group
@@ -828,7 +828,7 @@ mod test {
         let t1 = default_test_shape();
         let t2 = default_test_shape();
 
-        let g = Object::group(identity(), vec![t1.clone(), t2.clone()]);
+        let g = Object::group(identity(), vec![t1.into(), t2.into()]);
         assert!(g.obj_type.children().len() == 2);
         assert!(g.parent.upgrade().is_none());
 
