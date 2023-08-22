@@ -24,7 +24,7 @@ pub enum ObjectType {
 impl ObjectType {
     pub fn children(&self) -> &Vec<Rc<Object>> {
         match self {
-            Self::Group(children) => &children,
+            Self::Group(children) => children,
             _ => panic!("not a group"),
         }
     }
