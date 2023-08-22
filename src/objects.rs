@@ -494,7 +494,7 @@ mod test {
     }
 
     #[test]
-    fn cub_surface_normal() {
+    fn cube_surface_normal() {
         // (point, normal)
         let examples = vec![
             (Point::point(1.0, 0.5, -0.8), Vector::vector(1., 0., 0.)),
