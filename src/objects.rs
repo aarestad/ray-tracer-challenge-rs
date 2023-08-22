@@ -6,9 +6,9 @@ use crate::tuple::{Point, Tuple, Vector};
 use crate::util::{RayTracerFloat, EPSILON};
 use std::fmt::Debug;
 use std::mem::swap;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ObjectType {
     // TODO cfg[test]
     Test,
@@ -21,12 +21,28 @@ pub enum ObjectType {
     DoubleNappedCone(RayTracerFloat, RayTracerFloat, bool),
 }
 
-#[derive(Debug, PartialEq)]
+impl ObjectType {
+    pub fn children(&self) -> &Vec<Rc<Object>> {
+        match self {
+            Self::Group(children) => &children,
+            _ => panic!("not a group"),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Object {
     pub transform: Transform,
     pub material: Material,
-    obj_type: ObjectType,
-    parent: Option<Rc<Object>>,
+    pub obj_type: ObjectType,
+    parent: Weak<Object>,
+}
+
+impl PartialEq for Object {
+    fn eq(&self, other: &Self) -> bool {
+        self.transform == other.transform && self.material == other.material && self.obj_type == other.obj_type
+        && self.parent.clone().into_raw() == other.parent.clone().into_raw()
+    }
 }
 
 impl Object {
@@ -35,7 +51,7 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Test,
-            parent: None,
+            parent: Weak::new(),
         }
     }
 
@@ -44,8 +60,7 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Plane,
-            parent: None,
-
+            parent: Weak::new(),
         }
     }
 
@@ -54,8 +69,7 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Sphere,
-            parent: None,
-
+            parent: Weak::new(),
         }
     }
 
@@ -64,9 +78,32 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Cube,
-            parent: None,
-
+            parent: Weak::new(),
         }
+    }
+
+    pub fn group(transform: Transform, children: Vec<Object>) -> Rc<Self> {
+        let mut obj_type_children: Vec<Rc<Object>> = vec![];
+
+        let mut new_group = Rc::new(Self {
+            transform,
+            material: Material::default(),
+            obj_type: ObjectType::Group(vec![]), // the internal vec is replaced below
+            parent: Weak::new(),
+        });
+
+        for c in children {
+            let mut child = c.clone();
+            child.parent = Rc::downgrade(&new_group);
+            obj_type_children.push(Rc::new(child));
+        }
+
+        // SAFETY: we're the only ones with access to new_group right now
+        unsafe {
+            Rc::get_mut_unchecked(&mut new_group).obj_type = ObjectType::Group(obj_type_children);
+        }
+
+        new_group
     }
 
     pub fn cylinder(
@@ -80,8 +117,7 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::Cylinder(min_y, max_y, closed),
-            parent: None,
-
+            parent: Weak::new(),
         }
     }
 
@@ -96,14 +132,13 @@ impl Object {
             transform,
             material,
             obj_type: ObjectType::DoubleNappedCone(min_y, max_y, closed),
-            parent: None,
-
+            parent: Weak::new(),
         }
     }
 
-     fn set_parent(&mut self, parent: Rc<Object>) {
+    fn set_parent(&mut self, parent: Rc<Object>) {
         match parent.obj_type {
-            ObjectType::Group(_) => self.parent = Some(parent.clone()),
+            ObjectType::Group(_) => self.parent = Rc::downgrade(&parent),
             _ => panic!("parent is not a group"),
         }
     }
@@ -397,13 +432,14 @@ mod test {
 
     use crate::{
         material::Material,
+        objects::ObjectType,
         ray::Ray,
         transforms::identity,
         tuple::{Point, Vector},
         util::{test::glass_sphere, RayTracerFloat, EPSILON},
     };
 
-    use super::Object;
+    use super::{default_test_shape, Object};
 
     fn default_cube() -> Object {
         Object::cube(identity(), Material::default())
@@ -788,6 +824,21 @@ mod test {
 
         for (point, normal) in examples {
             assert_abs_diff_eq!(cone.normal_at(point), normal);
+        }
+    }
+
+    #[test]
+    fn add_shape_to_group() {
+        let t1 = default_test_shape();
+        let t2 = default_test_shape();
+
+        let g = Object::group(identity(), vec![t1.clone(), t2.clone()]);
+        assert!(g.obj_type.children().len() == 2);
+        assert!(g.parent.upgrade().is_none());
+
+        for c in g.obj_type.children() {
+            assert_eq!(c.obj_type, ObjectType::Test);
+            assert_eq!(c.parent.upgrade().unwrap(), g);
         }
     }
 }

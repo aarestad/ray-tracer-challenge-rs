@@ -65,6 +65,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
     write!(output, "{}", canvas.to_ppm().whole_file())
 }
 
+#[allow(unused_variables)]
 pub fn chapter_7_scene(filename: &Path) -> Result<()> {
     let gradient = Pattern::Gradient {
         transform: identity(),
@@ -111,7 +112,7 @@ pub fn chapter_7_scene(filename: &Path) -> Result<()> {
     );
 
     let cube = Object::cube(
-         translation(-2., 0., 0.) * scaling(0.3, 0.3, 0.3),
+        translation(-2., 0., 0.) * scaling(0.3, 0.3, 0.3),
         // translation(1.3, 0.33, -0.75) * scaling(0.2, 0.2, 0.2),
         MaterialBuilder::default()
             .color(Color::new(3., 0.8, 0.1))

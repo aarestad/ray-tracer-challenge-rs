@@ -1,3 +1,5 @@
+#![feature(get_mut_unchecked)]
+
 use std::io::Result;
 use std::path::Path;
 

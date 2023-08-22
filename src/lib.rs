@@ -1,3 +1,5 @@
+#![feature(get_mut_unchecked)]
+
 pub mod camera;
 pub mod canvas;
 pub mod color;
