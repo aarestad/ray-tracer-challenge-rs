@@ -21,15 +21,6 @@ pub enum ObjectType {
     DoubleNappedCone(RayTracerFloat, RayTracerFloat, bool),
 }
 
-impl ObjectType {
-    pub fn children(&self) -> &Vec<Rc<Object>> {
-        match self {
-            Self::Group(children) => children,
-            _ => panic!("not a group"),
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Object {
     pub transform: Transform,
@@ -436,6 +427,15 @@ mod test {
     };
 
     use super::{default_test_shape, Object};
+
+    impl ObjectType {
+        pub fn children(&self) -> &Vec<Rc<Object>> {
+            match self {
+                Self::Group(children) => children,
+                _ => panic!("not a group"),
+            }
+        }
+    }
 
     fn default_cube() -> Object {
         Object::cube(identity(), Material::default())
