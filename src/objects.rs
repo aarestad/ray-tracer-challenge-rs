@@ -35,7 +35,7 @@ impl PartialEq for Object {
         // the "parent" check below prevents this equality check from recursing infinitely
         && self.obj_type == other.obj_type
         // reference equality for parent to short circuit inifinite recursion
-        && self.parent.clone().into_raw() == other.parent.clone().into_raw()
+        && self.parent.ptr_eq(&other.parent)
     }
 }
 
