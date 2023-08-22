@@ -69,29 +69,6 @@ impl Object {
         }
     }
 
-    pub fn group(transform: Transform, mut children: Vec<Object>) -> Rc<Self> {
-        let mut obj_type = ObjectType::Group(vec![]);
-
-        let new_group = Rc::new(Self {
-            transform,
-            material: Material::default(),
-            obj_type,
-            parent: None,
-        });
-
-        for c in children.iter_mut() {
-            c.parent = Some(new_group.clone());
-
-            match &mut new_group.obj_type {
-                ObjectType::Group(children) => children.push(Rc::new(*c)),
-                _ => unreachable!()
-            }
-
-        }
-
-        new_group
-    }
-
     pub fn cylinder(
         transform: Transform,
         material: Material,
