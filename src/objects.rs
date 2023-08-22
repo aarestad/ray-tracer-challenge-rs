@@ -84,12 +84,13 @@ impl Object {
             parent: Weak::new(),
         });
 
+        // SAFETY: Only called during single-threaded initialization
         for child in children.iter_mut() {
-            // There should be no other references to child at this point since this only gets called during initialization
-            Rc::get_mut(child).unwrap().parent = Rc::downgrade(&new_group);
-
-            // SAFETY: we're the only ones with access to new_group right now
             unsafe {
+                // Required because the child may itself be a group with its own child-referents
+                Rc::get_mut_unchecked(child).parent = Rc::downgrade(&new_group);
+
+                // Required because there will always be >1 reference to new_group at this point
                 match &mut Rc::get_mut_unchecked(&mut new_group).obj_type {
                     ObjectType::Group(children) => children.push(child.clone()),
                     _ => unreachable!(),
