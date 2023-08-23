@@ -860,17 +860,6 @@ mod test {
         }
     }
 
-//     Scenario: Converting a point from world to object space
-//     Given g1 ← group()
-//     And set_transform(g1, rotation_y(π/2))
-//     And g2 ← group()
-//     And set_transform(g2, scaling(2, 2, 2))
-//     And add_child(g1, g2)
-//     And s ← sphere()
-//     And set_transform(s, translation(5, 0, 0))
-//     And add_child(g2, s)
-//     When p ← world_to_object(s, point(-2, 0, -10))
-//     Then p = point(0, 0, -1)
     #[test]
     fn world_point_to_local() {
         let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
@@ -884,17 +873,20 @@ mod test {
         assert_abs_diff_eq!(s.world_point_to_local(Point::point(-2.0, 0.0, -10.0)), Point::point(0.0, 0.0, -1.0));
     }
 
-//   Scenario: Converting a normal from object to world space
-//     Given g1 ← group()
-//     And set_transform(g1, rotation_y(π/2))
-//     And g2 ← group()
-//     And set_transform(g2, scaling(1, 2, 3))
-//     And add_child(g1, g2)
-//     And s ← sphere()
-//     And set_transform(s, translation(5, 0, 0))
-//     And add_child(g2, s)
-//     When n ← normal_to_world(s, vector(√3/3, √3/3, √3/3))
-//     Then n = vector(0.2857, 0.4286, -0.8571)
+    #[test]
+    fn local_normal_to_world() {
+        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+
+        let _group = Object::group(rotation(RotationAxis::Y, FRAC_PI_2), vec![
+            Object::group(scaling(1.0, 2.0, 3.0), vec![
+                s.clone(),
+            ]),
+        ]);
+
+        let frac_sqrt_3_3 = 3.0f64.sqrt() / 3.0;
+        assert_abs_diff_eq!(s.local_normal_to_world(Vector::vector(frac_sqrt_3_3, frac_sqrt_3_3, frac_sqrt_3_3)), Vector::vector(0.2857, 0.4286, -0.8571));
+
+    }
 
 //   Scenario: Finding the normal on a child object
 //     Given g1 ← group()
