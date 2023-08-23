@@ -49,13 +49,11 @@ impl Pattern {
     pub fn color_at(&self, object: &Object, world_point: &Point) -> Color {
         let object_point = object.world_point_to_local(*world_point);
 
-        let p = object_point.transform(
-            &self
-                .transform()
-                .unwrap_or(&identity())
-                .try_inverse()
-                .unwrap(),
-        );
+        let p = if let Some(t) = self.transform() {
+            object_point.transform(&t.try_inverse().unwrap())
+        } else {
+            object_point
+        };
 
         match self {
             Pattern::Solid(c) => *c,
