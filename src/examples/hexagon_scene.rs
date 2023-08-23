@@ -6,7 +6,7 @@ use std::{
 use crate::{
     material::Material,
     objects::Object,
-    transforms::{identity, rotation, scaling, translation, RotationAxis, Transform},
+    transforms::{rotation, scaling, translation, RotationAxis, Transform},
 };
 
 fn hexagon_corner() -> Object {

@@ -13,7 +13,7 @@ use crate::objects::Object;
 use crate::patterns::Pattern;
 use crate::ray::Ray;
 use crate::transforms::{identity, rotation, scaling, translation, RotationAxis, Transform};
-use crate::tuple::{Point, Vector};
+use crate::tuple::Point;
 use crate::util::RayTracerFloat;
 use crate::world::World;
 
@@ -65,6 +65,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
     write!(output, "{}", canvas.to_ppm().whole_file())
 }
 
+#[allow(unused_variables)]
 pub fn basic_scene() -> World {
     let gradient = Pattern::Gradient {
         transform: identity(),
@@ -161,7 +162,6 @@ pub fn basic_scene() -> World {
     )
 }
 
-#[allow(unused_variables)]
 pub fn render_scene_to_file(world: World, camera: Camera, filename: &Path) -> Result<()> {
     let mut output = File::create(filename)?;
     write!(
