@@ -346,7 +346,10 @@ impl Object {
         }
 
         let inverse_transpose = self.transform.try_inverse().unwrap().transpose();
-        let transformed_norm = local_normal.transform(&inverse_transpose).to_vector().normalize();
+        let transformed_norm = local_normal
+            .transform(&inverse_transpose)
+            .to_vector()
+            .normalize();
 
         if let Some(parent) = self.parent.upgrade() {
             parent.local_normal_to_world(transformed_norm)
@@ -354,7 +357,7 @@ impl Object {
             transformed_norm
         }
     }
-    
+
     pub fn normal_at(&self, p: Point) -> Vector {
         let local_point = self.world_point_to_local(p);
 
@@ -433,8 +436,8 @@ pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> 
 #[cfg(test)]
 mod test {
     use std::{
-        f64::consts::{FRAC_1_SQRT_2, SQRT_2, FRAC_PI_2},
-        rc::Rc, 
+        f64::consts::{FRAC_1_SQRT_2, FRAC_PI_2, SQRT_2},
+        rc::Rc,
     };
 
     use approx::assert_abs_diff_eq;
@@ -443,7 +446,7 @@ mod test {
         material::Material,
         objects::ObjectType,
         ray::Ray,
-        transforms::{identity, translation, scaling, rotation, RotationAxis},
+        transforms::{identity, rotation, scaling, translation, RotationAxis},
         tuple::{Point, Vector},
         util::{test::glass_sphere, RayTracerFloat, EPSILON},
     };
@@ -862,43 +865,58 @@ mod test {
 
     #[test]
     fn world_point_to_local() {
-        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+        let s = Rc::new(Object::sphere(
+            translation(5.0, 0.0, 0.0),
+            Material::default(),
+        ));
 
-        let _group = Object::group(rotation(RotationAxis::Y, FRAC_PI_2), vec![
-            Object::group(scaling(2.0, 2.0, 2.0), vec![
-                s.clone(),
-            ]),
-        ]);
+        let _group = Object::group(
+            rotation(RotationAxis::Y, FRAC_PI_2),
+            vec![Object::group(scaling(2.0, 2.0, 2.0), vec![s.clone()])],
+        );
 
-        assert_abs_diff_eq!(s.world_point_to_local(Point::point(-2.0, 0.0, -10.0)), Point::point(0.0, 0.0, -1.0));
+        assert_abs_diff_eq!(
+            s.world_point_to_local(Point::point(-2.0, 0.0, -10.0)),
+            Point::point(0.0, 0.0, -1.0)
+        );
     }
 
     #[test]
     fn local_normal_to_world() {
-        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+        let s = Rc::new(Object::sphere(
+            translation(5.0, 0.0, 0.0),
+            Material::default(),
+        ));
 
-        let _group = Object::group(rotation(RotationAxis::Y, FRAC_PI_2), vec![
-            Object::group(scaling(1.0, 2.0, 3.0), vec![
-                s.clone(),
-            ]),
-        ]);
+        let _group = Object::group(
+            rotation(RotationAxis::Y, FRAC_PI_2),
+            vec![Object::group(scaling(1.0, 2.0, 3.0), vec![s.clone()])],
+        );
 
         let frac_sqrt_3_3 = 3.0f64.sqrt() / 3.0;
         let local_normal = Vector::vector(frac_sqrt_3_3, frac_sqrt_3_3, frac_sqrt_3_3);
-        assert_abs_diff_eq!(s.local_normal_to_world(local_normal), Vector::vector(0.2857, 0.4286, -0.8571));
+        assert_abs_diff_eq!(
+            s.local_normal_to_world(local_normal),
+            Vector::vector(0.2857, 0.4286, -0.8571)
+        );
     }
 
     #[test]
     fn normal_for_child_object() {
-        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+        let s = Rc::new(Object::sphere(
+            translation(5.0, 0.0, 0.0),
+            Material::default(),
+        ));
 
-        let _group = Object::group(rotation(RotationAxis::Y, FRAC_PI_2), vec![
-            Object::group(scaling(1.0, 2.0, 3.0), vec![
-                s.clone(),
-            ]),
-        ]);
+        let _group = Object::group(
+            rotation(RotationAxis::Y, FRAC_PI_2),
+            vec![Object::group(scaling(1.0, 2.0, 3.0), vec![s.clone()])],
+        );
 
         let global_point = Point::point(1.7321, 1.1547, -5.5774);
-        assert_abs_diff_eq!(s.normal_at(global_point), Vector::vector(0.2857, 0.4286, -0.8571));
+        assert_abs_diff_eq!(
+            s.normal_at(global_point),
+            Vector::vector(0.2857, 0.4286, -0.8571)
+        );
     }
 }
