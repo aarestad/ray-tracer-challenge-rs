@@ -4,8 +4,8 @@ use crate::{
     ray::Ray,
     util::{RayTracerFloat, EPSILON},
 };
-use std::{fmt::Debug, rc::Rc};
 use itertools::Itertools;
+use std::{fmt::Debug, rc::Rc};
 
 #[derive(Debug)]
 pub struct Intersection {
@@ -92,7 +92,9 @@ pub struct Intersections(Vec<Rc<Intersection>>);
 
 impl Intersections {
     pub fn new(intersections: Vec<Rc<Intersection>>) -> Intersections {
-        let sorted = intersections.iter().sorted_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
+        let sorted = intersections
+            .iter()
+            .sorted_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
         Intersections(sorted.cloned().collect_vec())
     }
 

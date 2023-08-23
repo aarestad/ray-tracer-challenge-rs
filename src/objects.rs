@@ -335,7 +335,7 @@ impl Object {
                 }
 
                 Intersections::new(all_intersections)
-            },
+            }
         }
     }
 
@@ -455,7 +455,7 @@ mod test {
 
     use crate::{
         material::Material,
-        objects::{ObjectType, default_sphere},
+        objects::{default_sphere, ObjectType},
         ray::Ray,
         transforms::{identity, rotation, scaling, translation, RotationAxis},
         tuple::{Point, Vector},
@@ -884,8 +884,14 @@ mod test {
     #[test]
     fn intersect_with_nonempty_group() {
         let s1 = Rc::new(default_sphere());
-        let s2 = Rc::new(Object::sphere(translation(0.0, 0.0, -3.0), Material::default()));
-        let s3 = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+        let s2 = Rc::new(Object::sphere(
+            translation(0.0, 0.0, -3.0),
+            Material::default(),
+        ));
+        let s3 = Rc::new(Object::sphere(
+            translation(5.0, 0.0, 0.0),
+            Material::default(),
+        ));
 
         let g = Object::group(identity(), vec![s1.clone(), s2.clone(), s3.clone()]);
 
@@ -902,9 +908,15 @@ mod test {
 
     #[test]
     fn intersect_transformed_group() {
-        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+        let s = Rc::new(Object::sphere(
+            translation(5.0, 0.0, 0.0),
+            Material::default(),
+        ));
         let g = Object::group(scaling(2.0, 2.0, 2.0), vec![s]);
-        let r = Ray::new(Point::point(10.0, 0.0, -10.0), Vector::vector(0.0, 0.0, 1.0));
+        let r = Ray::new(
+            Point::point(10.0, 0.0, -10.0),
+            Vector::vector(0.0, 0.0, 1.0),
+        );
         let xs = g.intersections(&r);
         assert_eq!(xs.ints().len(), 2);
     }

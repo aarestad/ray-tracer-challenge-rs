@@ -45,7 +45,10 @@ fn main() -> Result<()> {
     )?;
 
     basic_ray_trace::render_scene_to_file(
-        World::new(vec![hexagon()], PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.))),
+        World::new(
+            vec![hexagon()],
+            PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.)),
+        ),
         Camera::new(
             600,
             300,
