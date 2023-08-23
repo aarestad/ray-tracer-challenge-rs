@@ -884,19 +884,21 @@ mod test {
         ]);
 
         let frac_sqrt_3_3 = 3.0f64.sqrt() / 3.0;
-        assert_abs_diff_eq!(s.local_normal_to_world(Vector::vector(frac_sqrt_3_3, frac_sqrt_3_3, frac_sqrt_3_3)), Vector::vector(0.2857, 0.4286, -0.8571));
-
+        let local_normal = Vector::vector(frac_sqrt_3_3, frac_sqrt_3_3, frac_sqrt_3_3);
+        assert_abs_diff_eq!(s.local_normal_to_world(local_normal), Vector::vector(0.2857, 0.4286, -0.8571));
     }
 
-//   Scenario: Finding the normal on a child object
-//     Given g1 ← group()
-//     And set_transform(g1, rotation_y(π/2))
-//     And g2 ← group()
-//     And set_transform(g2, scaling(1, 2, 3))
-//     And add_child(g1, g2)
-//     And s ← sphere()
-//     And set_transform(s, translation(5, 0, 0))
-//     And add_child(g2, s)
-//     When n ← normal_at(s, point(1.7321, 1.1547, -5.5774))
-//     Then n = vector(0.2857, 0.4286, -0.8571)
+    #[test]
+    fn normal_for_child_object() {
+        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+
+        let _group = Object::group(rotation(RotationAxis::Y, FRAC_PI_2), vec![
+            Object::group(scaling(1.0, 2.0, 3.0), vec![
+                s.clone(),
+            ]),
+        ]);
+
+        let global_point = Point::point(1.7321, 1.1547, -5.5774);
+        assert_abs_diff_eq!(s.normal_at(global_point), Vector::vector(0.2857, 0.4286, -0.8571));
+    }
 }
