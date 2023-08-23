@@ -16,9 +16,24 @@ pub enum ObjectType {
     Sphere,
     Cube,
     Group(Vec<Rc<Object>>),
-    // min_y, max_y (both exclusive), closed
-    Cylinder(RayTracerFloat, RayTracerFloat, bool),
-    DoubleNappedCone(RayTracerFloat, RayTracerFloat, bool),
+    Cylinder {
+        min_y: RayTracerFloat,
+        max_y: RayTracerFloat,
+        closed: bool,
+    },
+    DoubleNappedCone {
+        min_y: RayTracerFloat,
+        max_y: RayTracerFloat,
+        closed: bool,
+    },
+    Triangle {
+        p1: Point,
+        p2: Point,
+        p3: Point,
+        e1: Vector,
+        e2: Vector,
+        normal: Vector,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -112,7 +127,11 @@ impl Object {
         Self {
             transform,
             material,
-            obj_type: ObjectType::Cylinder(min_y, max_y, closed),
+            obj_type: ObjectType::Cylinder {
+                min_y,
+                max_y,
+                closed,
+            },
             parent: Weak::new(),
         }
     }
@@ -127,7 +146,37 @@ impl Object {
         Self {
             transform,
             material,
-            obj_type: ObjectType::DoubleNappedCone(min_y, max_y, closed),
+            obj_type: ObjectType::DoubleNappedCone {
+                min_y,
+                max_y,
+                closed,
+            },
+            parent: Weak::new(),
+        }
+    }
+
+    pub fn triangle(
+        transform: Transform,
+        material: Material,
+        p1: Point,
+        p2: Point,
+        p3: Point,
+    ) -> Self {
+        let e1 = p2 - p1;
+        let e2 = p3 - p1;
+        let normal = e2.cross(&e1).normalize();
+
+        Self {
+            transform,
+            material,
+            obj_type: ObjectType::Triangle {
+                p1,
+                p2,
+                p3,
+                e1,
+                e2,
+                normal,
+            },
             parent: Weak::new(),
         }
     }
@@ -209,7 +258,11 @@ impl Object {
                     ])
                 }
             }
-            ObjectType::Cylinder(min_y, max_y, closed) => {
+            ObjectType::Cylinder {
+                min_y,
+                max_y,
+                closed,
+            } => {
                 let a = local_ray.direction.x().powi(2) + local_ray.direction.z().powi(2);
                 let mut intersections: Vec<Rc<Intersection>> = vec![];
 
@@ -260,7 +313,11 @@ impl Object {
 
                 Intersections::new(intersections)
             }
-            ObjectType::DoubleNappedCone(min_y, max_y, closed) => {
+            ObjectType::DoubleNappedCone {
+                min_y,
+                max_y,
+                closed,
+            } => {
                 let a = local_ray.direction.x().powi(2) - local_ray.direction.y().powi(2)
                     + local_ray.direction.z().powi(2);
 
@@ -336,6 +393,7 @@ impl Object {
 
                 Intersections::new(all_intersections)
             }
+            ObjectType::Triangle { .. } => todo!(),
         }
     }
 
@@ -389,7 +447,7 @@ impl Object {
                     _ => unreachable!(),
                 }
             }
-            ObjectType::Cylinder(min_y, max_y, _) => {
+            ObjectType::Cylinder { min_y, max_y, .. } => {
                 let dist = local_point.x().powi(2) + local_point.z().powi(2);
 
                 if dist < 1.0 && local_point.y() > max_y - EPSILON {
@@ -400,7 +458,7 @@ impl Object {
                     Vector::vector(local_point.x(), 0.0, local_point.z())
                 }
             }
-            ObjectType::DoubleNappedCone(min_y, max_y, _) => {
+            ObjectType::DoubleNappedCone { min_y, max_y, .. } => {
                 let dist = local_point.x().powi(2) + local_point.z().powi(2);
 
                 if dist < 1.0 && local_point.y() > max_y - EPSILON {
@@ -415,6 +473,7 @@ impl Object {
                 }
             }
             ObjectType::Group(..) => unimplemented!(),
+            ObjectType::Triangle { .. } => todo!(),
         };
 
         self.local_normal_to_world(local_normal)
@@ -977,4 +1036,82 @@ mod test {
             Vector::vector(0.2857, 0.4286, -0.8571)
         );
     }
+
+    // Scenario: Constructing a triangle
+    // Given p1 ← point(0, 1, 0)
+    //     And p2 ← point(-1, 0, 0)
+    //     And p3 ← point(1, 0, 0)
+    //     And t ← triangle(p1, p2, p3)
+    // Then t.p1 = p1
+    //     And t.p2 = p2
+    //     And t.p3 = p3
+    //     And t.e1 = vector(-1, -1, 0)
+    //     And t.e2 = vector(1, -1, 0)
+    //     And t.normal = vector(0, 0, -1)
+    #[test]
+    fn construct_triangle() {
+        let p1 = Point::point(0., 1., 0.);
+        let p2 = Point::point(-1., 0., 0.);
+        let p3 = Point::point(1., 0., 0.);
+        let t = Object::triangle(identity(), Material::default(), p1, p2, p3);
+
+        match t.obj_type {
+            ObjectType::Triangle {
+                p1: tp1,
+                p2: tp2,
+                p3: tp3,
+                e1,
+                e2,
+                normal,
+            } => {
+                assert_eq!(tp1, p1);
+                assert_eq!(tp2, p2);
+                assert_eq!(tp3, p3);
+                assert_eq!(e1, Vector::vector(-1., -1., 0.));
+                assert_eq!(e2, Vector::vector(1., -1., 0.));
+                assert_eq!(normal, Vector::vector(0., 0., -1.));
+            }
+            _ => panic!("not a triangle"),
+        }
+    }
+
+    // Scenario: Intersecting a ray parallel to the triangle
+    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
+    //     And r ← ray(point(0, -1, -2), vector(0, 1, 0))
+    // When xs ← local_intersect(t, r)
+    // Then xs is empty
+
+    // Scenario: A ray misses the p1-p3 edge
+    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
+    //     And r ← ray(point(1, 1, -2), vector(0, 0, 1))
+    // When xs ← local_intersect(t, r)
+    // Then xs is empty
+
+    // Scenario: A ray misses the p1-p2 edge
+    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
+    //     And r ← ray(point(-1, 1, -2), vector(0, 0, 1))
+    // When xs ← local_intersect(t, r)
+    // Then xs is empty
+
+    // Scenario: A ray misses the p2-p3 edge
+    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
+    //     And r ← ray(point(0, -1, -2), vector(0, 0, 1))
+    // When xs ← local_intersect(t, r)
+    // Then xs is empty
+
+    // Scenario: A ray strikes a triangle
+    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
+    //     And r ← ray(point(0, 0.5, -2), vector(0, 0, 1))
+    // When xs ← local_intersect(t, r)
+    // Then xs.count = 1
+    //     And xs[0].t = 2
+
+    // Scenario: Finding the normal on a triangle
+    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
+    // When n1 ← local_normal_at(t, point(0, 0.5, 0))
+    //     And n2 ← local_normal_at(t, point(-0.5, 0.75, 0))
+    //     And n3 ← local_normal_at(t, point(0.5, 0.25, 0))
+    // Then n1 = t.normal
+    //     And n2 = t.normal
+    //     And n3 = t.normal
 }
