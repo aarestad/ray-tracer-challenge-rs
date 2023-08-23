@@ -137,7 +137,7 @@ impl Object {
         // unit-1-sized default for this Object
         let local_ray = ray.transform(&self.transform.try_inverse().unwrap());
 
-        match self.obj_type {
+        match &self.obj_type {
             ObjectType::Test => Intersections::empty(),
             ObjectType::Plane => {
                 if local_ray.direction.y().abs() < EPSILON {
@@ -230,11 +230,11 @@ impl Object {
                     let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
                     let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
 
-                    if min_y < y0 && y0 < max_y {
+                    if *min_y < y0 && y0 < *max_y {
                         intersections.push(Intersection::new(t0, self.clone()).into());
                     }
 
-                    if min_y < y1 && y1 < max_y {
+                    if *min_y < y1 && y1 < *max_y {
                         intersections.push(Intersection::new(t1, self.clone()).into());
                     }
                 }
@@ -245,7 +245,7 @@ impl Object {
                     x.powi(2) + z.powi(2) <= 1.0
                 }
 
-                if closed && local_ray.direction.y().abs() >= EPSILON {
+                if *closed && local_ray.direction.y().abs() >= EPSILON {
                     let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
                     let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
 
@@ -293,11 +293,11 @@ impl Object {
                     let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
                     let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
 
-                    if min_y < y0 && y0 < max_y {
+                    if *min_y < y0 && y0 < *max_y {
                         intersections.push(Intersection::new(t0, self.clone()).into());
                     }
 
-                    if min_y < y1 && y1 < max_y {
+                    if *min_y < y1 && y1 < *max_y {
                         intersections.push(Intersection::new(t1, self.clone()).into());
                     }
                 }
@@ -308,22 +308,34 @@ impl Object {
                     x.powi(2) + z.powi(2) <= y.abs()
                 }
 
-                if closed && local_ray.direction.y().abs() >= EPSILON {
+                if *closed && local_ray.direction.y().abs() >= EPSILON {
                     let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
                     let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
 
-                    if ray_within_cone_at_t(&local_ray, tmin, min_y) {
+                    if ray_within_cone_at_t(&local_ray, tmin, *min_y) {
                         intersections.push(Intersection::new(tmin, self.clone()).into());
                     }
 
-                    if ray_within_cone_at_t(&local_ray, tmax, max_y) {
+                    if ray_within_cone_at_t(&local_ray, tmax, *max_y) {
                         intersections.push(Intersection::new(tmax, self.clone()).into());
                     }
                 }
 
                 Intersections::new(intersections)
             }
-            ObjectType::Group(..) => todo!(),
+            ObjectType::Group(children) => {
+                let mut all_intersections: Vec<Rc<Intersection>> = vec![];
+
+                for c in children {
+                    let ints = c.clone().intersections(&local_ray);
+
+                    for c in ints.ints() {
+                        all_intersections.push(c.clone());
+                    }
+                }
+
+                Intersections::new(all_intersections)
+            },
         }
     }
 
@@ -402,7 +414,7 @@ impl Object {
                     Vector::vector(local_point.x(), y, local_point.z())
                 }
             }
-            ObjectType::Group(..) => todo!(),
+            ObjectType::Group(..) => unimplemented!(),
         };
 
         self.local_normal_to_world(local_normal)
@@ -443,7 +455,7 @@ mod test {
 
     use crate::{
         material::Material,
-        objects::ObjectType,
+        objects::{ObjectType, default_sphere},
         ray::Ray,
         transforms::{identity, rotation, scaling, translation, RotationAxis},
         tuple::{Point, Vector},
@@ -860,6 +872,41 @@ mod test {
             assert_eq!(c.obj_type, ObjectType::Test);
             assert_eq!(c.parent.upgrade().unwrap(), g);
         }
+    }
+
+    #[test]
+    fn intersec_with_empty_group() {
+        let g = Object::group(identity(), vec![]);
+        let r = Ray::new(Point::origin(), Vector::vector(0., 0., 1.));
+        assert!(g.intersections(&r).ints().is_empty());
+    }
+
+    #[test]
+    fn intersect_with_nonempty_group() {
+        let s1 = Rc::new(default_sphere());
+        let s2 = Rc::new(Object::sphere(translation(0.0, 0.0, -3.0), Material::default()));
+        let s3 = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+
+        let g = Object::group(identity(), vec![s1.clone(), s2.clone(), s3.clone()]);
+
+        let r = Ray::new(Point::point(0.0, 0.0, -5.0), Vector::vector(0.0, 0.0, 1.0));
+        let xs = g.intersections(&r);
+
+        let ints = xs.ints();
+        assert_eq!(ints.len(), 4);
+        assert_eq!(ints[0].object, s2, "ints[0]");
+        assert_eq!(ints[1].object, s2, "ints[1]");
+        assert_eq!(ints[2].object, s1, "ints[2]");
+        assert_eq!(ints[3].object, s1, "ints[3]");
+    }
+
+    #[test]
+    fn intersect_transformed_group() {
+        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+        let g = Object::group(scaling(2.0, 2.0, 2.0), vec![s]);
+        let r = Ray::new(Point::point(10.0, 0.0, -10.0), Vector::vector(0.0, 0.0, 1.0));
+        let xs = g.intersections(&r);
+        assert_eq!(xs.ints().len(), 2);
     }
 
     #[test]

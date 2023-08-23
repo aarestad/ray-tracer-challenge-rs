@@ -65,8 +65,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
     write!(output, "{}", canvas.to_ppm().whole_file())
 }
 
-#[allow(unused_variables)]
-pub fn render_scene_to_file(filename: &Path) -> Result<()> {
+pub fn basic_scene() -> World {
     let gradient = Pattern::Gradient {
         transform: identity(),
         start: Color::new(1., 0., 0.),
@@ -148,7 +147,7 @@ pub fn render_scene_to_file(filename: &Path) -> Result<()> {
 
     let light = PointLight::new(Point::point(-10., 10., -10.), Color::new(1., 1., 1.));
 
-    let world = World::new(
+    World::new(
         vec![
             // floor.into(),
             // middle_sphere.into(),
@@ -159,13 +158,11 @@ pub fn render_scene_to_file(filename: &Path) -> Result<()> {
             // cone.into(),
         ],
         light,
-    );
+    )
+}
 
-    let view = Point::point(0., 1.5, -5.)
-        .view_transform(&Point::point(0., 1., 0.), &Vector::vector(0., 1., 0.));
-
-    let camera = Camera::new(600, 300, PI / 3., view);
-
+#[allow(unused_variables)]
+pub fn render_scene_to_file(world: World, camera: Camera, filename: &Path) -> Result<()> {
     let mut output = File::create(filename)?;
     write!(
         output,
