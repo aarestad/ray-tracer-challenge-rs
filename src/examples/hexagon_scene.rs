@@ -26,5 +26,5 @@ pub fn hexagon() -> Rc<Object> {
         sides.push(hexagon_side(rotation(RotationAxis::Y, (n as f64) * FRAC_PI_3)));
     }
 
-    Object::group(identity(), sides)
+    Object::group(translation(0.0, 0.8, 0.0) * rotation(RotationAxis::X, -FRAC_PI_6), sides)
 }
