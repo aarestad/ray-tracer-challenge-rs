@@ -876,6 +876,7 @@ dependencies = [
  "clap",
  "cucumber",
  "futures-lite",
+ "itertools",
  "nalgebra",
  "nofmt",
  "regex",

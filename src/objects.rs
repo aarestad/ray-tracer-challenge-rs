@@ -137,7 +137,7 @@ impl Object {
         // unit-1-sized default for this Object
         let local_ray = ray.transform(&self.transform.try_inverse().unwrap());
 
-        match self.obj_type {
+        match &self.obj_type {
             ObjectType::Test => Intersections::empty(),
             ObjectType::Plane => {
                 if local_ray.direction.y().abs() < EPSILON {
@@ -230,11 +230,11 @@ impl Object {
                     let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
                     let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
 
-                    if min_y < y0 && y0 < max_y {
+                    if *min_y < y0 && y0 < *max_y {
                         intersections.push(Intersection::new(t0, self.clone()).into());
                     }
 
-                    if min_y < y1 && y1 < max_y {
+                    if *min_y < y1 && y1 < *max_y {
                         intersections.push(Intersection::new(t1, self.clone()).into());
                     }
                 }
@@ -245,7 +245,7 @@ impl Object {
                     x.powi(2) + z.powi(2) <= 1.0
                 }
 
-                if closed && local_ray.direction.y().abs() >= EPSILON {
+                if *closed && local_ray.direction.y().abs() >= EPSILON {
                     let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
                     let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
 
@@ -293,11 +293,11 @@ impl Object {
                     let y0 = local_ray.origin.y() + t0 * local_ray.direction.y();
                     let y1 = local_ray.origin.y() + t1 * local_ray.direction.y();
 
-                    if min_y < y0 && y0 < max_y {
+                    if *min_y < y0 && y0 < *max_y {
                         intersections.push(Intersection::new(t0, self.clone()).into());
                     }
 
-                    if min_y < y1 && y1 < max_y {
+                    if *min_y < y1 && y1 < *max_y {
                         intersections.push(Intersection::new(t1, self.clone()).into());
                     }
                 }
@@ -308,28 +308,48 @@ impl Object {
                     x.powi(2) + z.powi(2) <= y.abs()
                 }
 
-                if closed && local_ray.direction.y().abs() >= EPSILON {
+                if *closed && local_ray.direction.y().abs() >= EPSILON {
                     let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
                     let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
 
-                    if ray_within_cone_at_t(&local_ray, tmin, min_y) {
+                    if ray_within_cone_at_t(&local_ray, tmin, *min_y) {
                         intersections.push(Intersection::new(tmin, self.clone()).into());
                     }
 
-                    if ray_within_cone_at_t(&local_ray, tmax, max_y) {
+                    if ray_within_cone_at_t(&local_ray, tmax, *max_y) {
                         intersections.push(Intersection::new(tmax, self.clone()).into());
                     }
                 }
 
                 Intersections::new(intersections)
             }
-            ObjectType::Group(..) => todo!(),
+            ObjectType::Group(children) => {
+                let mut all_intersections: Vec<Rc<Intersection>> = vec![];
+
+                for c in children {
+                    let ints = c.clone().intersections(&local_ray);
+
+                    for c in ints.ints() {
+                        all_intersections.push(c.clone());
+                    }
+                }
+
+                Intersections::new(all_intersections)
+            },
         }
     }
 
     pub fn normal_at(&self, p: Point) -> Vector {
-        let inverse = &self.transform.try_inverse().unwrap();
-        let local_point = p.transform(inverse);
+        fn world_to_local(o: &Object, p: Point) -> Point {
+            if let Some(parent) = o.parent.upgrade() {
+                return world_to_local(&parent, p);
+            }
+
+            let inverse = o.transform.try_inverse().unwrap();
+            p.transform(&inverse)
+        }
+
+        let local_point = world_to_local(self, p);
 
         let local_normal = match self.obj_type {
             ObjectType::Test => local_point.to_vector(),
@@ -376,14 +396,29 @@ impl Object {
             ObjectType::Group(..) => todo!(),
         };
 
-        let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
-
         // (0,0,0).norm() == (0/0, 0/0, 0/0) == (NaN, NaN, NaN), so don't try to norm it
-        if world_normal != Tuple::origin().to_vector() {
-            world_normal.normalize()
-        } else {
-            world_normal
+        if local_normal == Tuple::origin().to_vector() {
+            return local_normal;
         }
+
+        // let normed_normal = if local_normal != Tuple::origin().to_vector() {
+        //     local_normal.normalize()
+        // } else {
+        //     local_normal
+        // };
+
+        fn local_to_world(o: &Object, normal: Vector) -> Vector {
+            let inverse = o.transform.try_inverse().unwrap();
+            let transformed_norm = normal.transform(&inverse).to_vector();
+
+            if let Some(parent) = o.parent.upgrade() {
+                local_to_world(&parent, transformed_norm)
+            } else {
+                transformed_norm
+            }
+        }
+
+        local_to_world(self, local_normal).normalize()
     }
 }
 
@@ -423,12 +458,12 @@ mod test {
         material::Material,
         objects::ObjectType,
         ray::Ray,
-        transforms::identity,
+        transforms::{identity, translation, scaling},
         tuple::{Point, Vector},
         util::{test::glass_sphere, RayTracerFloat, EPSILON},
     };
 
-    use super::{default_test_shape, Object};
+    use super::{default_test_shape, Object, default_sphere};
 
     impl ObjectType {
         pub fn children(&self) -> &Vec<Rc<Object>> {
@@ -839,4 +874,75 @@ mod test {
             assert_eq!(c.parent.upgrade().unwrap(), g);
         }
     }
+
+    #[test]
+    fn intersec_with_empty_group() {
+        let g = Object::group(identity(), vec![]);
+        let r = Ray::new(Point::origin(), Vector::vector(0., 0., 1.));
+        assert!(g.intersections(&r).ints().is_empty());
+    }
+
+    #[test]
+    fn intersect_with_nonempty_group() {
+        let s1 = Rc::new(default_sphere());
+        let s2 = Rc::new(Object::sphere(translation(0.0, 0.0, -3.0), Material::default()));
+        let s3 = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+
+        let g = Object::group(identity(), vec![s1.clone(), s2.clone(), s3.clone()]);
+
+        let r = Ray::new(Point::point(0.0, 0.0, -5.0), Vector::vector(0.0, 0.0, 1.0));
+        let xs = g.intersections(&r);
+
+        let ints = xs.ints();
+        assert_eq!(ints.len(), 4);
+        assert_eq!(ints[0].object, s2, "ints[0]");
+        assert_eq!(ints[1].object, s2, "ints[1]");
+        assert_eq!(ints[2].object, s1, "ints[2]");
+        assert_eq!(ints[3].object, s1, "ints[3]");
+    }
+
+    #[test]
+    fn intersect_transformed_group() {
+        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+        let g = Object::group(scaling(2.0, 2.0, 2.0), vec![s]);
+        let r = Ray::new(Point::point(10.0, 0.0, -10.0), Vector::vector(0.0, 0.0, 1.0));
+        let xs = g.intersections(&r);
+        assert_eq!(xs.ints().len(), 2);
+    }
+
+//     Scenario: Converting a point from world to object space
+//     Given g1 ← group()
+//     And set_transform(g1, rotation_y(π/2))
+//     And g2 ← group()
+//     And set_transform(g2, scaling(2, 2, 2))
+//     And add_child(g1, g2)
+//     And s ← sphere()
+//     And set_transform(s, translation(5, 0, 0))
+//     And add_child(g2, s)
+//     When p ← world_to_object(s, point(-2, 0, -10))
+//     Then p = point(0, 0, -1)
+
+//   Scenario: Converting a normal from object to world space
+//     Given g1 ← group()
+//     And set_transform(g1, rotation_y(π/2))
+//     And g2 ← group()
+//     And set_transform(g2, scaling(1, 2, 3))
+//     And add_child(g1, g2)
+//     And s ← sphere()
+//     And set_transform(s, translation(5, 0, 0))
+//     And add_child(g2, s)
+//     When n ← normal_to_world(s, vector(√3/3, √3/3, √3/3))
+//     Then n = vector(0.2857, 0.4286, -0.8571)
+
+//   Scenario: Finding the normal on a child object
+//     Given g1 ← group()
+//     And set_transform(g1, rotation_y(π/2))
+//     And g2 ← group()
+//     And set_transform(g2, scaling(1, 2, 3))
+//     And add_child(g1, g2)
+//     And s ← sphere()
+//     And set_transform(s, translation(5, 0, 0))
+//     And add_child(g2, s)
+//     When n ← normal_at(s, point(1.7321, 1.1547, -5.5774))
+//     Then n = vector(0.2857, 0.4286, -0.8571)
 }
