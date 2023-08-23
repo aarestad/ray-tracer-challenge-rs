@@ -5,7 +5,6 @@ use crate::{
     util::{RayTracerFloat, EPSILON},
 };
 use std::{fmt::Debug, rc::Rc};
-use itertools::Itertools;
 
 #[derive(Debug)]
 pub struct Intersection {
@@ -92,8 +91,7 @@ pub struct Intersections(Vec<Rc<Intersection>>);
 
 impl Intersections {
     pub fn new(intersections: Vec<Rc<Intersection>>) -> Intersections {
-        let sorted = intersections.iter().sorted_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
-        Intersections(sorted.cloned().collect_vec())
+        Intersections(intersections)
     }
 
     pub const fn empty() -> Intersections {
@@ -105,8 +103,16 @@ impl Intersections {
     }
 
     pub fn hit(self: Rc<Self>) -> Option<Rc<Intersection>> {
-        // Assuming intersections are sorted in new()
-        self.0.iter().find(|x| x.t >= 0.).cloned()
+        let mut nonnegative_t_ints: Vec<Rc<Intersection>> =
+            self.0.iter().filter(|i| i.t >= 0.).cloned().collect();
+
+        if nonnegative_t_ints.is_empty() {
+            return None;
+        }
+
+        nonnegative_t_ints.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
+
+        Some(nonnegative_t_ints.first().unwrap().clone())
     }
 }
 
