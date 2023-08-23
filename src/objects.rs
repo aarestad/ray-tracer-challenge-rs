@@ -328,8 +328,16 @@ impl Object {
     }
 
     pub fn normal_at(&self, p: Point) -> Vector {
-        let inverse = &self.transform.try_inverse().unwrap();
-        let local_point = p.transform(inverse);
+        fn world_point_to_local(o: &Object, world_point: Point) -> Point {
+            if let Some(parent) = o.parent.upgrade() {
+                return world_point_to_local(&parent, world_point);
+            }
+
+            let inverse = o.transform.try_inverse().unwrap();
+            world_point.transform(&inverse)
+        }
+
+        let local_point = world_point_to_local(self, p);
 
         let local_normal = match self.obj_type {
             ObjectType::Test => local_point.to_vector(),
@@ -376,14 +384,23 @@ impl Object {
             ObjectType::Group(..) => todo!(),
         };
 
-        let world_normal = local_normal.transform(&inverse.transpose()).to_vector();
+        fn local_normal_to_world(o: &Object, local_normal: Vector) -> Vector {
+            // (0,0,0).norm() == (0/0, 0/0, 0/0) == (NaN, NaN, NaN), so don't try to norm it
+            if local_normal == Tuple::origin().to_vector() {
+                return local_normal;
+            }
 
-        // (0,0,0).norm() == (0/0, 0/0, 0/0) == (NaN, NaN, NaN), so don't try to norm it
-        if world_normal != Tuple::origin().to_vector() {
-            world_normal.normalize()
-        } else {
-            world_normal
+            let inverse_transpose = o.transform.try_inverse().unwrap().transpose();
+            let transformed_norm = local_normal.transform(&inverse_transpose).to_vector().normalize();
+
+            if let Some(parent) = o.parent.upgrade() {
+                local_normal_to_world(&parent, transformed_norm)
+            } else {
+                transformed_norm
+            }
         }
+
+        local_normal_to_world(self, local_normal)
     }
 }
 
