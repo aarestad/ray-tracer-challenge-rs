@@ -164,7 +164,7 @@ mod test {
         light::PointLight,
         material::{Material, MaterialBuilder},
         objects::Object,
-        patterns::default_test_pattern,
+        patterns::test::default_test_pattern,
         ray::Ray,
         transforms::{identity, scaling, translation},
         tuple::{Point, Vector},

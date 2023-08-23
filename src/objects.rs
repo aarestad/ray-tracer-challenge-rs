@@ -335,8 +335,7 @@ impl Object {
         };
 
         let inverse = self.transform.try_inverse().unwrap();
-        let local = p.transform(&inverse);
-        local
+        p.transform(&inverse)
     }
 
     fn local_normal_to_world(&self, local_normal: Vector) -> Vector {

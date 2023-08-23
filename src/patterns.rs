@@ -1,11 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{
-    color::Color,
-    objects::Object,
-    transforms::{identity, Transform},
-    tuple::Point,
-};
+use crate::{color::Color, objects::Object, transforms::Transform, tuple::Point};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Pattern {
@@ -109,12 +104,7 @@ impl Pattern {
 }
 
 #[cfg(test)]
-pub fn default_test_pattern() -> Pattern {
-    Pattern::Test(identity())
-}
-
-#[cfg(test)]
-mod test {
+pub(crate) mod test {
     use crate::{
         color::{Color, BLACK, WHITE},
         material::{Material, MaterialBuilder},
@@ -124,6 +114,10 @@ mod test {
     };
 
     use super::Pattern;
+
+    pub fn default_test_pattern() -> Pattern {
+        Pattern::Test(identity())
+    }
 
     #[test]
     fn pattern_with_object_transform() {
