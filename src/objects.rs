@@ -327,17 +327,36 @@ impl Object {
         }
     }
 
-    pub fn normal_at(&self, p: Point) -> Vector {
-        fn world_point_to_local(o: &Object, world_point: Point) -> Point {
-            if let Some(parent) = o.parent.upgrade() {
-                return world_point_to_local(&parent, world_point);
-            }
+    fn world_point_to_local(&self, world_point: Point) -> Point {
+        let p = if let Some(parent) = self.parent.upgrade() {
+            parent.world_point_to_local(world_point)
+        } else {
+            world_point
+        };
 
-            let inverse = o.transform.try_inverse().unwrap();
-            world_point.transform(&inverse)
+        let inverse = self.transform.try_inverse().unwrap();
+        let local = p.transform(&inverse);
+        local
+    }
+
+    fn local_normal_to_world(&self, local_normal: Vector) -> Vector {
+        // (0,0,0).norm() == (0/0, 0/0, 0/0) == (NaN, NaN, NaN), so don't try to norm it
+        if local_normal == Tuple::origin().to_vector() {
+            return local_normal;
         }
 
-        let local_point = world_point_to_local(self, p);
+        let inverse_transpose = self.transform.try_inverse().unwrap().transpose();
+        let transformed_norm = local_normal.transform(&inverse_transpose).to_vector().normalize();
+
+        if let Some(parent) = self.parent.upgrade() {
+            parent.local_normal_to_world(transformed_norm)
+        } else {
+            transformed_norm
+        }
+    }
+    
+    pub fn normal_at(&self, p: Point) -> Vector {
+        let local_point = self.world_point_to_local(p);
 
         let local_normal = match self.obj_type {
             ObjectType::Test => local_point.to_vector(),
@@ -384,23 +403,7 @@ impl Object {
             ObjectType::Group(..) => todo!(),
         };
 
-        fn local_normal_to_world(o: &Object, local_normal: Vector) -> Vector {
-            // (0,0,0).norm() == (0/0, 0/0, 0/0) == (NaN, NaN, NaN), so don't try to norm it
-            if local_normal == Tuple::origin().to_vector() {
-                return local_normal;
-            }
-
-            let inverse_transpose = o.transform.try_inverse().unwrap().transpose();
-            let transformed_norm = local_normal.transform(&inverse_transpose).to_vector().normalize();
-
-            if let Some(parent) = o.parent.upgrade() {
-                local_normal_to_world(&parent, transformed_norm)
-            } else {
-                transformed_norm
-            }
-        }
-
-        local_normal_to_world(self, local_normal)
+        self.local_normal_to_world(local_normal)
     }
 }
 
@@ -430,8 +433,8 @@ pub fn custom_glass_sphere(transform: Transform, refractive: RayTracerFloat) -> 
 #[cfg(test)]
 mod test {
     use std::{
-        f64::consts::{FRAC_1_SQRT_2, SQRT_2},
-        rc::Rc,
+        f64::consts::{FRAC_1_SQRT_2, SQRT_2, FRAC_PI_2},
+        rc::Rc, 
     };
 
     use approx::assert_abs_diff_eq;
@@ -440,7 +443,7 @@ mod test {
         material::Material,
         objects::ObjectType,
         ray::Ray,
-        transforms::identity,
+        transforms::{identity, translation, scaling, rotation, RotationAxis},
         tuple::{Point, Vector},
         util::{test::glass_sphere, RayTracerFloat, EPSILON},
     };
@@ -856,4 +859,52 @@ mod test {
             assert_eq!(c.parent.upgrade().unwrap(), g);
         }
     }
+
+//     Scenario: Converting a point from world to object space
+//     Given g1 ← group()
+//     And set_transform(g1, rotation_y(π/2))
+//     And g2 ← group()
+//     And set_transform(g2, scaling(2, 2, 2))
+//     And add_child(g1, g2)
+//     And s ← sphere()
+//     And set_transform(s, translation(5, 0, 0))
+//     And add_child(g2, s)
+//     When p ← world_to_object(s, point(-2, 0, -10))
+//     Then p = point(0, 0, -1)
+    #[test]
+    fn world_point_to_local() {
+        let s = Rc::new(Object::sphere(translation(5.0, 0.0, 0.0), Material::default()));
+
+        let _group = Object::group(rotation(RotationAxis::Y, FRAC_PI_2), vec![
+            Object::group(scaling(2.0, 2.0, 2.0), vec![
+                s.clone(),
+            ]),
+        ]);
+
+        assert_abs_diff_eq!(s.world_point_to_local(Point::point(-2.0, 0.0, -10.0)), Point::point(0.0, 0.0, -1.0));
+    }
+
+//   Scenario: Converting a normal from object to world space
+//     Given g1 ← group()
+//     And set_transform(g1, rotation_y(π/2))
+//     And g2 ← group()
+//     And set_transform(g2, scaling(1, 2, 3))
+//     And add_child(g1, g2)
+//     And s ← sphere()
+//     And set_transform(s, translation(5, 0, 0))
+//     And add_child(g2, s)
+//     When n ← normal_to_world(s, vector(√3/3, √3/3, √3/3))
+//     Then n = vector(0.2857, 0.4286, -0.8571)
+
+//   Scenario: Finding the normal on a child object
+//     Given g1 ← group()
+//     And set_transform(g1, rotation_y(π/2))
+//     And g2 ← group()
+//     And set_transform(g2, scaling(1, 2, 3))
+//     And add_child(g1, g2)
+//     And s ← sphere()
+//     And set_transform(s, translation(5, 0, 0))
+//     And add_child(g2, s)
+//     When n ← normal_at(s, point(1.7321, 1.1547, -5.5774))
+//     Then n = vector(0.2857, 0.4286, -0.8571)
 }
