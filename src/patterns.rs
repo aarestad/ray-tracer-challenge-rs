@@ -47,7 +47,7 @@ impl Pattern {
     }
 
     pub fn color_at(&self, object: &Object, world_point: &Point) -> Color {
-        let object_point = world_point.transform(&object.transform.try_inverse().unwrap());
+        let object_point = object.world_point_to_local(*world_point);
 
         let p = object_point.transform(
             &self

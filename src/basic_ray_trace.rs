@@ -66,7 +66,7 @@ pub fn basic_ray_trace(filename: &Path, transform: Transform) -> Result<()> {
 }
 
 #[allow(unused_variables)]
-pub fn chapter_7_scene(filename: &Path) -> Result<()> {
+pub fn render_scene_to_file(filename: &Path) -> Result<()> {
     let gradient = Pattern::Gradient {
         transform: identity(),
         start: Color::new(1., 0., 0.),

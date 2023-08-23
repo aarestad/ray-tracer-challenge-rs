@@ -327,7 +327,7 @@ impl Object {
         }
     }
 
-    fn world_point_to_local(&self, world_point: Point) -> Point {
+    pub fn world_point_to_local(&self, world_point: Point) -> Point {
         let p = if let Some(parent) = self.parent.upgrade() {
             parent.world_point_to_local(world_point)
         } else {
