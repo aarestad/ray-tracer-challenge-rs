@@ -393,7 +393,33 @@ impl Object {
 
                 Intersections::new(all_intersections)
             }
-            ObjectType::Triangle { .. } => todo!(),
+            ObjectType::Triangle { p1, p2, p3, e1, e2,  .. } => {
+                let cross_e2 = local_ray.direction.cross(e2);
+                let determinant = e1.dot(&cross_e2);
+
+                if determinant.abs() < EPSILON {
+                    return Intersections::empty();
+                }
+
+                let f = 1.0 / determinant;
+                let p1_to_origin = ray.origin - *p1;
+                let u = f * p1_to_origin.dot(&cross_e2);
+
+                if u < 0.0 || u > 1.0 {
+                    return Intersections::empty();
+                }
+
+                let origin_cross_e1 = p1_to_origin.cross(e1);
+                let v = f * ray.direction.dot(&origin_cross_e1);
+
+                if v < 0.0 || (u + v) > 1.0 {
+                    return Intersections::empty();
+                }
+
+                let t = f * e2.dot(&origin_cross_e1);
+
+                Intersections::new(vec![Intersection::new(t, self.clone()).into()])
+            }
         }
     }
 
@@ -1064,36 +1090,46 @@ mod test {
         }
     }
 
-    // Scenario: Intersecting a ray parallel to the triangle
-    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
-    //     And r ← ray(point(0, -1, -2), vector(0, 1, 0))
-    // When xs ← local_intersect(t, r)
-    // Then xs is empty
+    fn basic_triangle(p1: Point, p2: Point, p3: Point) -> Object {
+        Object::triangle(identity(), Material::default(), p1, p2, p3)
+    }
 
-    // Scenario: A ray misses the p1-p3 edge
-    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
-    //     And r ← ray(point(1, 1, -2), vector(0, 0, 1))
-    // When xs ← local_intersect(t, r)
-    // Then xs is empty
+    #[test]
+    fn ray_parallel_to_triangle() {
+        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let r = Ray::new(Point::point(0., -1., -2.), Vector::vector(0., 1., 0.));
+        assert!(t.intersections(&r).ints().is_empty());
+    }
 
-    // Scenario: A ray misses the p1-p2 edge
-    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
-    //     And r ← ray(point(-1, 1, -2), vector(0, 0, 1))
-    // When xs ← local_intersect(t, r)
-    // Then xs is empty
+    #[test]
+    fn ray_misses_p1_p3_edge() {
+        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let r = Ray::new(Point::point(1., -1., -2.), Vector::vector(0., 0., 1.));
+        assert!(t.intersections(&r).ints().is_empty());
+    }
 
-    // Scenario: A ray misses the p2-p3 edge
-    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
-    //     And r ← ray(point(0, -1, -2), vector(0, 0, 1))
-    // When xs ← local_intersect(t, r)
-    // Then xs is empty
+    #[test]
+    fn ray_misses_p1_p2_edge() {
+        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let r = Ray::new(Point::point(-1., 1., -2.), Vector::vector(0., 0., 1.));
+        assert!(t.intersections(&r).ints().is_empty());
+    }
 
-    // Scenario: A ray strikes a triangle
-    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
-    //     And r ← ray(point(0, 0.5, -2), vector(0, 0, 1))
-    // When xs ← local_intersect(t, r)
-    // Then xs.count = 1
-    //     And xs[0].t = 2
+    #[test]
+    fn ray_misses_p2_p3_edge() {
+        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let r = Ray::new(Point::point(0., -1., -2.), Vector::vector(0., 0., 1.));
+        assert!(t.intersections(&r).ints().is_empty());
+    }
+
+    #[test]
+    fn ray_hits_triangle() {
+        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let r = Ray::new(Point::point(0., 0.5, -2.), Vector::vector(0., 0., 1.));
+        let xs = t.intersections(&r);
+        assert_eq!(xs.ints().len(), 1);
+        assert_eq!(xs.ints()[0].t, 2.0);
+    }
 
     // Scenario: Finding the normal on a triangle
     // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
