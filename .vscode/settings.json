@@ -6,8 +6,10 @@
   "rust-analyzer.showUnlinkedFileNotification": false,
   "cSpell.words": [
     "eyev",
+    "itertools",
     "maxc",
     "normalv",
+    "objfile",
     "reflectv",
     "schlick",
     "testutils",

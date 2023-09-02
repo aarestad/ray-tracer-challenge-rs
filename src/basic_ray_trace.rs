@@ -112,10 +112,10 @@ pub fn basic_scene() -> World {
     );
 
     let cube = Object::cube(
-        translation(-2., 0., 0.) * scaling(0.3, 0.3, 0.3),
+        translation(0., 0., 2.0) * scaling(1.0, 1.0, 1.0) * rotation(RotationAxis::X, PI / 4.0),
         // translation(1.3, 0.33, -0.75) * scaling(0.2, 0.2, 0.2),
         MaterialBuilder::default()
-            .color(Color::new(3., 0.8, 0.1))
+            .color(Color::new(1., 0., 0.))
             .diffuse(1.0)
             .specular(1.0)
             .build(),

@@ -47,10 +47,9 @@ pub struct Object {
 impl PartialEq for Object {
     fn eq(&self, other: &Self) -> bool {
         self.transform == other.transform && self.material == other.material
-        // the "parent" check below prevents this equality check from recursing infinitely
-        && self.obj_type == other.obj_type
-        // reference equality for parent to short circuit inifinite recursion
+        // reference equality for parent to prevent infinite recursion
         && self.parent.ptr_eq(&other.parent)
+        && self.obj_type == other.obj_type
     }
 }
 
@@ -249,7 +248,8 @@ impl Object {
                 let tmin = xtmin.max(ytmin.max(ztmin));
                 let tmax = xtmax.min(ytmax.min(ztmax));
 
-                if tmin > tmax {
+                // erratum: tmax < 0 => intersections in the _opposite_ direction
+                if tmax < 0.0 || tmin > tmax {
                     Intersections::empty()
                 } else {
                     Intersections::new(vec![
@@ -298,7 +298,7 @@ impl Object {
                     x.powi(2) + z.powi(2) <= 1.0
                 }
 
-                if *closed && local_ray.direction.y().abs() >= EPSILON {
+                if *closed {
                     let tmin = (min_y - local_ray.origin.y()) / local_ray.direction.y();
                     let tmax = (max_y - local_ray.origin.y()) / local_ray.direction.y();
 
@@ -393,7 +393,7 @@ impl Object {
 
                 Intersections::new(all_intersections)
             }
-            ObjectType::Triangle { p1, p2, p3, e1, e2,  .. } => {
+            ObjectType::Triangle { p1, e1, e2, .. } => {
                 let cross_e2 = local_ray.direction.cross(e2);
                 let determinant = e1.dot(&cross_e2);
 
@@ -499,7 +499,7 @@ impl Object {
                 }
             }
             ObjectType::Group(..) => unimplemented!(),
-            ObjectType::Triangle { .. } => todo!(),
+            ObjectType::Triangle { normal, .. } => normal,
         };
 
         self.local_normal_to_world(local_normal)
@@ -658,6 +658,8 @@ mod test {
             Ray::new(Point::point(2.0, 0.0, 2.0), Vector::vector(0.0, 0.0, -1.0)),
             Ray::new(Point::point(0.0, 2.0, 2.0), Vector::vector(0.0, -1.0, 0.0)),
             Ray::new(Point::point(2.0, 2.0, 0.0), Vector::vector(-1.0, 0.0, 0.0)),
+            // Erratum: ray is cast away from cube
+            Ray::new(Point::point(0.0, 0.0, 2.0), Vector::vector(0.0, 0.0, 1.0)),
         ];
 
         let c = Rc::new(default_cube());
@@ -960,7 +962,7 @@ mod test {
     }
 
     #[test]
-    fn intersec_with_empty_group() {
+    fn intersect_with_empty_group() {
         let g = Object::group(identity(), vec![]);
         let r = Ray::new(Point::origin(), Vector::vector(0., 0., 1.));
         assert!(g.intersections(&r).ints().is_empty());
@@ -1094,49 +1096,86 @@ mod test {
         Object::triangle(identity(), Material::default(), p1, p2, p3)
     }
 
+    impl Object {
+        fn triangle_normal(&self) -> &Vector {
+            match &self.obj_type {
+                ObjectType::Triangle { normal, .. } => normal,
+                _ => panic!("not a triangle"),
+            }
+        }
+    }
+
+    #[test]
+    fn normal_for_triangle() {
+        let t = Rc::new(basic_triangle(
+            Point::point(0., 1., 0.),
+            Point::point(-1., 0., 0.),
+            Point::point(1., 0., 0.),
+        ));
+
+        for p in vec![
+            Point::point(0.0, 0.5, 0.0),
+            Point::point(-0.5, -0.75, 0.0),
+            Point::point(0.5, 0.25, 0.0),
+        ] {
+            assert_abs_diff_eq!(t.triangle_normal(), &t.normal_at(p));
+        }
+    }
+
     #[test]
     fn ray_parallel_to_triangle() {
-        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let t = Rc::new(basic_triangle(
+            Point::point(0., 1., 0.),
+            Point::point(-1., 0., 0.),
+            Point::point(1., 0., 0.),
+        ));
         let r = Ray::new(Point::point(0., -1., -2.), Vector::vector(0., 1., 0.));
         assert!(t.intersections(&r).ints().is_empty());
     }
 
     #[test]
     fn ray_misses_p1_p3_edge() {
-        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let t = Rc::new(basic_triangle(
+            Point::point(0., 1., 0.),
+            Point::point(-1., 0., 0.),
+            Point::point(1., 0., 0.),
+        ));
         let r = Ray::new(Point::point(1., -1., -2.), Vector::vector(0., 0., 1.));
         assert!(t.intersections(&r).ints().is_empty());
     }
 
     #[test]
     fn ray_misses_p1_p2_edge() {
-        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let t = Rc::new(basic_triangle(
+            Point::point(0., 1., 0.),
+            Point::point(-1., 0., 0.),
+            Point::point(1., 0., 0.),
+        ));
         let r = Ray::new(Point::point(-1., 1., -2.), Vector::vector(0., 0., 1.));
         assert!(t.intersections(&r).ints().is_empty());
     }
 
     #[test]
     fn ray_misses_p2_p3_edge() {
-        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let t = Rc::new(basic_triangle(
+            Point::point(0., 1., 0.),
+            Point::point(-1., 0., 0.),
+            Point::point(1., 0., 0.),
+        ));
         let r = Ray::new(Point::point(0., -1., -2.), Vector::vector(0., 0., 1.));
         assert!(t.intersections(&r).ints().is_empty());
     }
 
     #[test]
     fn ray_hits_triangle() {
-        let t = Rc::new(basic_triangle(Point::point(0., 1., 0.), Point::point(-1., 0., 0.), Point::point(1., 0., 0.)));
+        let t = Rc::new(basic_triangle(
+            Point::point(0., 1., 0.),
+            Point::point(-1., 0., 0.),
+            Point::point(1., 0., 0.),
+        ));
         let r = Ray::new(Point::point(0., 0.5, -2.), Vector::vector(0., 0., 1.));
         let xs = t.intersections(&r);
         assert_eq!(xs.ints().len(), 1);
         assert_eq!(xs.ints()[0].t, 2.0);
     }
-
-    // Scenario: Finding the normal on a triangle
-    // Given t ← triangle(point(0, 1, 0), point(-1, 0, 0), point(1, 0, 0))
-    // When n1 ← local_normal_at(t, point(0, 0.5, 0))
-    //     And n2 ← local_normal_at(t, point(-0.5, 0.75, 0))
-    //     And n3 ← local_normal_at(t, point(0.5, 0.25, 0))
-    // Then n1 = t.normal
-    //     And n2 = t.normal
-    //     And n3 = t.normal
 }
